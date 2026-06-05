@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>气象信息看板 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js"></script>
+    <script>window.echarts || document.write('<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"><\/script>');</script>
+    <script src="hunan.js"></script>
+    <script src="guangdong.js"></script>
+    <script src="hubei.js"></script>
+    <script src="jiangxi.js"></script>
+    <script src="guizhou.js"></script>
+</head>
+<body>
+    <!-- 主内容区域 - 由主入口提供Header和Sidebar -->
+    <main class="main-content">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h2 class="page-title">气象信息看板</h2>
+            <p class="page-subtitle">湖南省气象要素与新能源出力预测</p>
+        </div>
+
+        <!-- 筛选栏 -->
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>气象类型</label>
+                <select class="filter-select"><option>全部</option><option>风速</option><option>辐照度</option><option>温度</option><option>湿度</option></select>
+            </div>
+            <div class="filter-item">
+                <label>预测时段</label>
+                <select class="filter-select"><option>全部</option><option>24小时</option><option>48小时</option><option>72小时</option></select>
+            </div>
+            <div class="filter-item">
+                <label>查询日期</label>
+                <input type="date" class="filter-input" value="2026-05-26">
+            </div>
+            <button class="btn-primary">查询数据</button>
+            <button class="btn-secondary">导出报表</button>
+            <span class="data-source">数据来源：国家气象中心 | 每15分钟更新</span>
+        </div>
+
+        <!-- Tab标签 -->
+        <div class="tabs">
+            <div class="tab active">出力预测</div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-cards-row">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">实时平均风速</span>
+                    <select class="stat-select">
+                        <option>15min</option>
+                    </select>
+                </div>
+                <div class="stat-value">5.8<span class="stat-unit">m/s</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">预测平均风速</span>
+                    <select class="stat-select">
+                        <option>15min</option>
+                    </select>
+                </div>
+                <div class="stat-value">6.3<span class="stat-unit">m/s</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">当日累计电量</span>
+                </div>
+                <div class="stat-value">289<span class="stat-unit">MWh</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">当月累计电量</span>
+                </div>
+                <div class="stat-value">1850<span class="stat-unit">MWh</span></div>
+            </div>
+        </div>
+
+        <!-- 地图和日历 -->
+        <div class="map-calendar-row">
+            <div class="map-section">
+                <div class="section-header">
+                    <h3><span id="map-province-title">湖南省</span>气象要素热力地图（风速/辐照）</h3>
+                    <select id="map-province-select" class="filter-select map-province-select"><option value="湖南省">湖南省</option><option value="广东省">广东省</option><option value="江西省">江西省</option><option value="湖北省">湖北省</option><option value="贵州省">贵州省</option></select>
+                    <div class="drill-indicator" id="drill-indicator">
+                        <span class="drill-path" id="drill-path-label">湖南省</span>
+                        <span class="drill-sep">›</span>
+                        <span class="drill-current" id="drill-current">长沙市</span>
+                        <button class="drill-back" id="drill-back-btn">返回全省</button>
+                    </div>
+                    <span class="hint">点击地市查看该市场址点位</span>
+                </div>
+                <div id="map-chart" class="map-container"></div>
+            </div>
+            <div class="station-section">
+                <div class="section-header">
+                    <h3>场站气象要素一览</h3>
+                    <div class="overview-controls">
+                        <select id="region-select" class="filter-select"><option value="湖南省">湖南省</option><option value="广东省">广东省</option><option value="江西省">江西省</option><option value="湖北省">湖北省</option><option value="贵州省">贵州省</option></select>
+                        <select id="forecast-month-select" class="filter-select"><option value="0">下月预测</option><option value="1">未来2月</option><option value="2">未来3月</option></select>
+                    </div>
+                </div>
+                <div class="overview-table-wrap">
+                    <table class="overview-table" id="station-overview-table">
+                        <colgroup>
+                            <col style="width:22%">
+                            <col style="width:8%">
+                            <col style="width:12%">
+                            <col style="width:12%">
+                            <col style="width:12%">
+                            <col style="width:12%">
+                            <col style="width:22%">
+                        </colgroup>
+                        <thead><tr>
+                            <th>场站名称</th>
+                            <th>类型</th>
+                            <th>实时风速<br><span class="sub-hint">m/s</span></th>
+                            <th>预测风速<br><span class="sub-hint">m/s</span></th>
+                            <th>实时辐照<br><span class="sub-hint">W/m²</span></th>
+                            <th>预测辐照<br><span class="sub-hint">W/m²</span></th>
+                            <th>月预测<br><span class="sub-hint">风速/辐照</span></th>
+                        </tr></thead>
+                        <tbody id="overview-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="forecast-section">
+                    <h4 class="forecast-title">未来三个月场站气象预测</h4>
+                    <table class="forecast-table" id="forecast-table">
+                        <thead><tr>
+                            <th>月份</th>
+                            <th>平均风速<br><span class="sub-hint">m/s</span></th>
+                            <th>平均辐照<br><span class="sub-hint">W/m²</span></th>
+                            <th>平均温度<br><span class="sub-hint">°C</span></th>
+                            <th>平均湿度<br><span class="sub-hint">%</span></th>
+                            <th>电量预测<br><span class="sub-hint">MWh</span></th>
+                        </tr></thead>
+                        <tbody id="forecast-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 场站选中指示器 -->
+        <div id="selected-site-bar" class="selected-site-bar" style="display:none;">
+            <span class="site-bar-label">当前选中场站</span>
+            <span class="site-bar-name" id="selected-site-name"></span>
+            <span class="site-bar-meta" id="selected-site-meta"></span>
+            <button class="site-bar-clear" id="clear-site-btn">取消选中</button>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="charts-row-2">
+            <div class="chart-card">
+                <h3 class="chart-title">全省气象要素趋势</h3>
+                <div id="weather-trend-chart" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">新能源出力预测曲线</h3>
+                <div id="power-forecast-chart" class="chart-container"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

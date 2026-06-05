@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统参数配置 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">系统参数配置</h2>
+            <p class="page-subtitle">维护交易中心价格上下限、限额参数、预测参数等全局配置项</p>
+        </div>
+
+        <div class="section-group" style="margin-top: var(--space-4)">
+            <h3 class="section-title" style="margin-bottom: var(--space-3)">交易参数</h3>
+            <div class="param-card" style="margin-bottom: var(--space-3)">
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">日前价格上限</span>
+                        <span class="param-desc">日前市场出清价格的上限值，单位：元/MWh</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:120px" value="1500" id="param-dayahead-max">
+                        <span class="param-unit">元/MWh</span>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">日前价格下限</span>
+                        <span class="param-desc">日前市场出清价格的下限值，单位：元/MWh</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:120px" value="0" id="param-dayahead-min">
+                        <span class="param-unit">元/MWh</span>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">实时价格上限</span>
+                        <span class="param-desc">实时市场出清价格的上限值，单位：元/MWh</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:120px" value="1500" id="param-real-max">
+                        <span class="param-unit">元/MWh</span>
+                    </div>
+                </div>
+                <div class="param-row" style="border-bottom: none">
+                    <div class="param-info">
+                        <span class="param-label">实时价格下限</span>
+                        <span class="param-desc">实时市场出清价格的下限值，单位：元/MWh</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:120px" value="0" id="param-real-min">
+                        <span class="param-unit">元/MWh</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-group">
+            <h3 class="section-title" style="margin-bottom: var(--space-3)">限额参数</h3>
+            <div class="param-card" style="margin-bottom: var(--space-3)">
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">年度交易电量限额</span>
+                        <span class="param-desc">交易中心核定的年度可交易电量上限，存量按上一年度实际上网电量核定</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:120px" value="500000" id="param-annual-limit">
+                        <span class="param-unit">万 kWh</span>
+                    </div>
+                </div>
+                <div class="param-row" style="border-bottom: none">
+                    <div class="param-info">
+                        <span class="param-label">年度利用小时数</span>
+                        <span class="param-desc">增量项目按装机容量 × 年设计利用小时数核定</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:120px" value="1100" id="param-util-hours">
+                        <span class="param-unit">h</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-group">
+            <h3 class="section-title" style="margin-bottom: var(--space-3)">预测参数</h3>
+            <div class="param-card" style="margin-bottom: var(--space-3)">
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">置信区间默认值</span>
+                        <span class="param-desc">负荷预测和电价预测的置信度水平，可修改</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:100px" value="95" id="param-confidence">
+                        <span class="param-unit">%</span>
+                    </div>
+                </div>
+                <div class="param-row" style="border-bottom: none">
+                    <div class="param-info">
+                        <span class="param-label">预测超时时间</span>
+                        <span class="param-desc">算法服务调用超时阈值，超时后提示重试</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:100px" value="5" id="param-timeout">
+                        <span class="param-unit">分钟</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── 按场站年度交易限额 ──────────────────────── -->
+        <div class="section-group" style="margin-top: var(--space-6)">
+            <h3 class="section-title" style="margin-bottom: var(--space-3)">按场站年度交易限额</h3>
+            <p style="font:400 var(--text-sm)/1.4 var(--font-body);color:var(--muted);margin-bottom:var(--space-3)">中长期持仓模块使用的累计交易电量限额，按场站和年度分别管理。数据由交易中心核定后由管理员录入。</p>
+            <div class="param-card" style="overflow:auto">
+                <table class="data-table" id="quota-table" style="min-width:600px">
+                    <thead>
+                        <tr>
+                            <th>场站名称</th>
+                            <th>年度</th>
+                            <th>装机容量(MW)</th>
+                            <th>年利用小时数(h)</th>
+                            <th>年度交易限额(万kWh)</th>
+                            <th>计算方式</th>
+                            <th style="width:80px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="quota-table-body"></tbody>
+                </table>
+            </div>
+            <div style="display:flex;gap:var(--space-3);margin-top:var(--space-3)">
+                <button class="btn-primary" onclick="addQuotaRow()" style="font-size:var(--text-sm)">+ 新增限额</button>
+                <button class="btn-primary" onclick="saveQuota()" style="font-size:var(--text-sm)">保存限额</button>
+            </div>
+        </div>
+
+        <div class="filter-bar" style="justify-content:center;border:none;background:transparent;padding:var(--space-4) 0">
+            <button class="btn-primary" onclick="saveParams()" style="min-width:120px">保存全部参数</button>
+        </div>
+    </main>
+
+    <style>
+        .section-group { margin-bottom: var(--space-6); }
+        .section-title { font: 600 var(--text-lg)/1.4 var(--font-display); color: var(--fg); position: relative; padding-left: var(--space-3); }
+        .section-title::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 2px; }
+        .param-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+        .param-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border); }
+        .param-row:last-child { border-bottom: none; }
+        .param-info { display: flex; flex-direction: column; gap: 4px; }
+        .param-label { font: 500 var(--text-base)/1.5 var(--font-body); color: var(--fg); }
+        .param-desc { font: 400 var(--text-sm)/1.4 var(--font-body); color: var(--muted); max-width: 420px; }
+        .param-input-wrap { display: flex; align-items: center; gap: var(--space-2); }
+        .param-unit { font: 400 var(--text-sm)/1 var(--font-body); color: var(--muted); white-space: nowrap; }
+    </style>
+
+    <script>
+        function saveParams() {
+            var params = {
+                dayaheadMax: document.getElementById('param-dayahead-max').value,
+                dayaheadMin: document.getElementById('param-dayahead-min').value,
+                realMax: document.getElementById('param-real-max').value,
+                realMin: document.getElementById('param-real-min').value,
+                annualLimit: document.getElementById('param-annual-limit').value,
+                utilHours: document.getElementById('param-util-hours').value,
+                confidence: document.getElementById('param-confidence').value,
+                timeout: document.getElementById('param-timeout').value
+            };
+            console.log('Saved params:', params);
+            alert('所有参数已保存成功');
+        }
+
+        // ─── 按场站年度交易限额 ──────────────────────────
+        var quotaData = [
+            { station: '光伏电站A', year: 2026, capacity: 150, hours: 1100, limit: 165000, method: '增量（装机×利用小时）' },
+            { station: '风电场B', year: 2026, capacity: 200, hours: 1200, limit: 240000, method: '增量（装机×利用小时）' },
+            { station: '光伏电站C', year: 2026, capacity: 100, hours: 1050, limit: 105000, method: '增量（装机×利用小时）' },
+            { station: '水电站D', year: 2026, capacity: 300, hours: 900, limit: 270000, method: '增量（装机×利用小时）' },
+            { station: '光伏电站A', year: 2025, capacity: 150, hours: 1080, limit: 152000, method: '存量（上年度实际上网）' }
+        ];
+
+        function renderQuota() {
+            var tbody = document.getElementById('quota-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            quotaData.forEach(function(q, i) {
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + q.station + '</td>' +
+                    '<td>' + q.year + '</td>' +
+                    '<td>' + q.capacity + '</td>' +
+                    '<td>' + q.hours + '</td>' +
+                    '<td style="font-weight:600;color:var(--fg)">' + q.limit.toLocaleString() + '</td>' +
+                    '<td style="font-size:var(--text-xs);color:var(--muted)">' + q.method + '</td>' +
+                    '<td><button class="btn-delete" onclick="deleteQuota(' + i + ')" style="padding:var(--space-1) var(--space-2);font-size:var(--text-xs)">删除</button></td>' +
+                    '</tr>';
+            });
+        }
+
+        function addQuotaRow() {
+            var station = prompt('请输入场站名称：');
+            if (!station) return;
+            var year = prompt('请输入年度（如 2026）：');
+            if (!year) return;
+            var capacity = parseFloat(prompt('请输入装机容量（MW）：')) || 0;
+            var hours = parseFloat(prompt('请输入年利用小时数（h）：')) || 0;
+            var limit = capacity * hours;
+            quotaData.push({ station: station, year: parseInt(year), capacity: capacity, hours: hours, limit: limit, method: '增量（装机×利用小时）' });
+            renderQuota();
+        }
+
+        function deleteQuota(index) {
+            if (confirm('确认删除「' + quotaData[index].station + '」' + quotaData[index].year + '年度的限额配置？')) {
+                quotaData.splice(index, 1);
+                renderQuota();
+            }
+        }
+
+        function saveQuota() {
+            alert('按场站年度交易限额已保存');
+        }
+
+        renderQuota();
+    </script>
+</body>
+</html>

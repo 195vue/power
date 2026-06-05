@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外部数据接口 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        .interface-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-top: var(--space-4); }
+        .if-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+        .if-card-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border); background: color-mix(in oklab, var(--bg), transparent 50%); }
+        .if-card-header h3 { font: 600 var(--text-base)/1.4 var(--font-display); color: var(--fg); margin: 0; }
+        .if-card-body { padding: var(--space-4) var(--space-5); }
+        .if-row { display: flex; justify-content: space-between; padding: var(--space-2) 0; border-bottom: 1px solid var(--border-soft); font-size: var(--text-sm); }
+        .if-row:last-child { border-bottom: none; }
+        .if-row .lbl { color: var(--muted); }
+        .if-row .val { color: var(--fg); font-weight: 500; }
+        .if-row .mono { font-family: var(--font-mono); font-size: var(--text-xs); }
+        .if-card-actions { display: flex; gap: 6px; padding: var(--space-3) var(--space-5); border-top: 1px solid var(--border); justify-content: flex-end; }
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .status-dot.on { background: var(--success); }
+        .status-dot.off { background: var(--border); }
+        .status-dot.error { background: var(--danger); }
+        .conn-status { display: flex; align-items: center; font-size: var(--text-sm); }
+        .test-result { font-size: var(--text-xs); color: var(--muted); margin-top: var(--space-2); padding: var(--space-2); border-radius: var(--radius-sm); }
+        .test-result.ok { background: color-mix(in oklab, var(--success), transparent 90%); color: var(--success); }
+        .test-result.fail { background: color-mix(in oklab, var(--danger), transparent 90%); color: var(--danger); }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">外部数据接口</h2>
+            <p class="page-subtitle">统一管理交易中心接口、场站采集系统、市场数据接入等外部数据源的连接配置</p>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>接口类型</label>
+                <select class="filter-select" style="width:160px" id="filter-type">
+                    <option value="all">全部类型</option>
+                    <option>交易中心</option>
+                    <option>场站采集</option>
+                    <option>气象数据</option>
+                    <option>市场数据</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>连接状态</label>
+                <select class="filter-select" style="width:140px" id="filter-conn">
+                    <option value="all">全部状态</option>
+                    <option>已连接</option>
+                    <option>连接异常</option>
+                    <option>未配置</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="filterInterfaces()">查询</button>
+            <div style="flex:1"></div>
+            <button class="btn-primary" onclick="openIfModal()">+ 新增接口</button>
+        </div>
+
+        <div id="interface-grid" class="interface-grid"></div>
+    </main>
+
+    <div class="modal-overlay" id="if-modal" style="display:none">
+        <div class="modal-panel" style="width:600px">
+            <div class="modal-header">
+                <h3 id="if-modal-title">新增接口</h3>
+                <button class="modal-close" onclick="closeIfModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">接口名称</label>
+                        <input class="form-input" id="edit-name" placeholder="如：交易中心现货价格接口">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">接口类型</label>
+                        <select class="form-input" id="edit-type">
+                            <option>交易中心</option>
+                            <option>场站采集</option>
+                            <option>气象数据</option>
+                            <option>市场数据</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">接口地址</label>
+                    <input class="form-input" id="edit-url" placeholder="https://api.example.com/v1/spot-price">
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">认证方式</label>
+                        <select class="form-input" id="edit-auth">
+                            <option>API Key</option>
+                            <option>Bearer Token</option>
+                            <option>Basic Auth</option>
+                            <option>OAuth2</option>
+                            <option>无认证</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">同步频率</label>
+                        <select class="form-input" id="edit-freq">
+                            <option>实时</option>
+                            <option>每分钟</option>
+                            <option>每5分钟</option>
+                            <option>每15分钟</option>
+                            <option>每小时</option>
+                            <option>每日</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">数据格式</label>
+                        <select class="form-input" id="edit-format">
+                            <option>JSON</option>
+                            <option>XML</option>
+                            <option>CSV</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">超时时间 (秒)</label>
+                        <input class="form-input" id="edit-timeout" type="number" value="30">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">认证凭据</label>
+                    <input class="form-input" id="edit-credential" type="password" placeholder="API Key / Token / 密码">
+                </div>
+                <div class="form-section">
+                    <label class="form-label">数据说明</label>
+                    <textarea class="form-input" id="edit-notes" rows="2" placeholder="描述接口返回的数据内容、字段说明等" style="resize:vertical;min-height:48px"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeIfModal()">取消</button>
+                <button class="btn-primary" onclick="saveInterface()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var interfaceList = [
+            { name: '交易中心日前出清价格接口', type: '交易中心', url: 'https://trade-api.hunan.gov.cn/v1/spot/dayahead', auth: 'API Key', freq: '每日', format: 'JSON', timeout: 30, conn: '已连接', lastSync: '2026-05-26 12:00:00', notes: '返回全省96点日前出清价格，每日12:00更新' },
+            { name: '交易中心实时出清价格接口', type: '交易中心', url: 'https://trade-api.hunan.gov.cn/v1/spot/real', auth: 'API Key', freq: '每15分钟', format: 'JSON', timeout: 15, conn: '已连接', lastSync: '2026-05-26 23:45:00', notes: '返回全省实时出清价格，15分钟粒度滚动更新' },
+            { name: '场站实时出力采集接口', type: '场站采集', url: 'https://scada.example.com/api/v1/power/real', auth: 'Bearer Token', freq: '实时', format: 'JSON', timeout: 10, conn: '已连接', lastSync: '2026-05-26 23:46:00', notes: '场站SCADA系统实时出力数据，15分钟粒度' },
+            { name: '场站气象监测接口', type: '场站采集', url: 'https://scada.example.com/api/v1/weather', auth: 'Bearer Token', freq: '每5分钟', format: 'JSON', timeout: 10, conn: '连接异常', lastSync: '2026-05-26 22:30:00', notes: '场站级气象监测数据（风速、辐照、温湿度）' },
+            { name: '国家气象中心数据接口', type: '气象数据', url: 'https://weather.cma.cn/api/forecast/hunan', auth: 'API Key', freq: '每小时', format: 'XML', timeout: 60, conn: '已连接', lastSync: '2026-05-26 23:00:00', notes: 'CMA数值天气预报，72h预测，覆盖湖南省' },
+            { name: 'ECMWF全球模式数据接口', type: '气象数据', url: 'https://api.ecmwf.int/v1/forecast', auth: 'OAuth2', freq: '每日', format: 'GRIB', timeout: 120, conn: '未配置', lastSync: '--', notes: 'ECMWF高精度全球气象模式，需单独申请访问权限' },
+            { name: '全省负荷数据接口', type: '市场数据', url: 'https://dispatch-api.hunan.gov.cn/v1/load', auth: 'API Key', freq: '每15分钟', format: 'JSON', timeout: 30, conn: '已连接', lastSync: '2026-05-26 23:45:00', notes: '全省电力负荷实时数据，用于负荷预测和供需分析' },
+            { name: '全省装机数据接口', type: '市场数据', url: 'https://dispatch-api.hunan.gov.cn/v1/capacity', auth: 'API Key', freq: '每日', format: 'JSON', timeout: 30, conn: '已连接', lastSync: '2026-05-26 06:00:00', notes: '全省电源装机结构数据（光伏/风电/水电/火电）' }
+        ];
+        var editIndex = -1;
+
+        function renderIfGrid(list) {
+            var data = list || interfaceList;
+            var grid = document.getElementById('interface-grid');
+            grid.innerHTML = '';
+            data.forEach(function(iface, i) {
+                var dotClass = iface.conn === '已连接' ? 'on' : (iface.conn === '连接异常' ? 'error' : 'off');
+                var badgeClass = iface.conn === '已连接' ? 'badge-success' : (iface.conn === '连接异常' ? 'badge-danger' : 'badge-muted');
+                grid.innerHTML +=
+                    '<div class="if-card">' +
+                    '<div class="if-card-header"><h3>' + iface.name + '</h3><span class="badge ' + badgeClass + '">' + iface.conn + '</span></div>' +
+                    '<div class="if-card-body">' +
+                    '<div class="if-row"><span class="lbl">接口地址</span><span class="val mono">' + iface.url + '</span></div>' +
+                    '<div class="if-row"><span class="lbl">类型</span><span class="val">' + iface.type + '</span></div>' +
+                    '<div class="if-row"><span class="lbl">认证方式</span><span class="val">' + iface.auth + '</span></div>' +
+                    '<div class="if-row"><span class="lbl">同步频率</span><span class="val">' + iface.freq + '</span></div>' +
+                    '<div class="if-row"><span class="lbl">数据格式</span><span class="val">' + iface.format + '</span></div>' +
+                    '<div class="if-row"><span class="lbl">最后同步</span><span class="val mono" style="font-size:var(--text-xs)">' + iface.lastSync + '</span></div>' +
+                    '</div>' +
+                    '<div class="if-card-actions">' +
+                    '<button class="btn-primary" onclick="testConn(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">测试连接</button> ' +
+                    '<button class="btn-config" onclick="openIfModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteIf(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '</div></div>';
+            });
+        }
+
+        function testConn(index) {
+            var iface = interfaceList[index];
+            alert('正在测试连接: ' + iface.url + '\n\n连接状态: ' + (iface.conn === '已连接' ? '✅ 连接成功 (' + iface.lastSync + ')' : '❌ 连接失败，请检查接口配置'));
+        }
+
+        function openIfModal(index) {
+            var modal = document.getElementById('if-modal');
+            if (index === undefined || index === null || index === -1) {
+                editIndex = -1;
+                document.getElementById('if-modal-title').textContent = '新增接口';
+                ['edit-name','edit-url','edit-credential','edit-notes'].forEach(function(id) { document.getElementById(id).value = ''; });
+                document.getElementById('edit-type').value = '交易中心';
+                document.getElementById('edit-auth').value = 'API Key';
+                document.getElementById('edit-freq').value = '每小时';
+                document.getElementById('edit-format').value = 'JSON';
+                document.getElementById('edit-timeout').value = '30';
+            } else {
+                editIndex = index;
+                document.getElementById('if-modal-title').textContent = '编辑接口';
+                var iface = interfaceList[index];
+                document.getElementById('edit-name').value = iface.name;
+                document.getElementById('edit-type').value = iface.type;
+                document.getElementById('edit-url').value = iface.url;
+                document.getElementById('edit-auth').value = iface.auth;
+                document.getElementById('edit-freq').value = iface.freq;
+                document.getElementById('edit-format').value = iface.format;
+                document.getElementById('edit-timeout').value = iface.timeout;
+                document.getElementById('edit-credential').value = '';
+                document.getElementById('edit-notes').value = iface.notes || '';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeIfModal() { document.getElementById('if-modal').style.display = 'none'; }
+
+        function saveInterface() {
+            var data = {
+                name: document.getElementById('edit-name').value,
+                type: document.getElementById('edit-type').value,
+                url: document.getElementById('edit-url').value,
+                auth: document.getElementById('edit-auth').value,
+                freq: document.getElementById('edit-freq').value,
+                format: document.getElementById('edit-format').value,
+                timeout: parseInt(document.getElementById('edit-timeout').value) || 30,
+                conn: '未配置',
+                lastSync: '--',
+                notes: document.getElementById('edit-notes').value
+            };
+            if (!data.name) { alert('请输入接口名称'); return; }
+            if (!data.url) { alert('请输入接口地址'); return; }
+            if (editIndex === -1) { interfaceList.push(data); }
+            else { interfaceList[editIndex] = data; }
+            filterInterfaces();
+            closeIfModal();
+        }
+
+        function deleteIf(index) {
+            if (confirm('确认删除接口「' + interfaceList[index].name + '」？')) { interfaceList.splice(index, 1); filterInterfaces(); }
+        }
+
+        function filterInterfaces() {
+            var type = document.getElementById('filter-type').value;
+            var conn = document.getElementById('filter-conn').value;
+            var filtered = interfaceList.filter(function(iface) {
+                if (type !== 'all' && iface.type !== type) return false;
+                if (conn !== 'all' && iface.conn !== conn) return false;
+                return true;
+            });
+            renderIfGrid(filtered);
+        }
+
+        var _modal = document.getElementById('if-modal');
+        if (_modal) { _modal.addEventListener('click', function(e) { if (e.target === this) closeIfModal(); }); }
+        renderIfGrid();
+    </script>
+</body>
+</html>

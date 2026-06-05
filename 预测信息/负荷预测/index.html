@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>负荷预测 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <!-- 主内容区域 - 由主入口提供Header和Sidebar -->
+    <main class="main-content">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h2 class="page-title">负荷预测</h2>
+            <p class="page-subtitle">全省及地市电力负荷预测分析</p>
+        </div>
+
+        <!-- 筛选栏 -->
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>预测区域</label>
+                <select class="filter-select" id="filter-city">
+                    <option selected>全省</option>
+                    <option>长沙</option>
+                    <option>株洲</option>
+                    <option>湘潭</option>
+                    <option>衡阳</option>
+                    <option>岳阳</option>
+                    <option>常德</option>
+                    <option>益阳</option>
+                    <option>郴州</option>
+                    <option>永州</option>
+                    <option>邵阳</option>
+                    <option>娄底</option>
+                    <option>怀化</option>
+                    <option>湘西</option>
+                    <option>张家界</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>预测分类</label>
+                <select class="filter-select" id="filter-cat">
+                    <option selected>全社会用电量</option>
+                    <option>居民生活用电量</option>
+                    <option>第一产业用电量</option>
+                    <option>第二产业用电量</option>
+                    <option>第三产业用电量</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>预测方案</label>
+                <select class="filter-select" id="filter-plan">
+                    <option>日前预测</option>
+                    <option>日内预测</option>
+                    <option selected>短期预测</option>
+                    <option>中期预测</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>预测日期</label>
+                <input type="date" class="filter-input" id="filter-date" value="2026-05-26">
+            </div>
+            <button class="btn-primary" id="btn-forecast">负荷预测</button>
+            <div class="filter-item">
+                <label>查询日期</label>
+                <input type="date" class="filter-input" id="filter-query-date" value="2026-05-26">
+            </div>
+            <button class="btn-primary" id="btn-query">查询</button>
+        </div>
+
+
+        <!-- 负荷预测图表 -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <span class="chart-status">数据已加载</span>
+            </div>
+            
+            <div class="load-summary">
+                <span class="summary-label">负荷</span>
+                <span class="summary-value">7.06 MWh</span>
+            </div>
+            
+            <div id="load-forecast-chart" class="chart-container-large"></div>
+        </div>
+
+        <!-- 负荷预测数据表格 -->
+        <div class="table-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>时段(15分钟)</th>
+                        <th>预测负荷(MW)</th>
+                        <th>置信区间(95%)</th>
+                        <th>偏差率(%)</th>
+                    </tr>
+                </thead>
+                <tbody id="load-forecast-table-body"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

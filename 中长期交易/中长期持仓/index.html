@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中长期持仓 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <!-- 主内容区域 - 由主入口提供Header和Sidebar -->
+        <main class="main-content">
+            <!-- 页面标题 -->
+            <div class="page-header">
+                <h2 class="page-title">中长期持仓</h2>
+                <p class="page-subtitle">合约持仓情况概览</p>
+            </div>
+
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>年份</label>
+                    <input type="number" class="filter-input" value="2026" min="2020" max="2035" style="width:110px">
+                </div>
+                <div class="filter-item">
+                    <label>厂站名称</label>
+                    <select class="filter-select">
+                        <option selected>所有</option>
+                        <option>电场A</option>
+                        <option>电场B</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>交易方式</label>
+                    <select class="filter-select">
+                        <option selected>所有</option>
+                        <option>集中竞价</option>
+                        <option>双边协商</option>
+                    </select>
+                </div>
+                <button class="btn-primary">查询</button>
+            </div>
+
+            <!-- 数据卡片 -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-label">签约合同总数</div>
+                    <div class="stat-value">32 <span class="stat-unit">(份)</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">签约合同总电量</div>
+                    <div class="stat-value">1899.46 <span class="stat-unit">MWh</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">签约合同总价</div>
+                    <div class="stat-value">4299.46 <span class="stat-unit">(万元)</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">累计交易电量限额</div>
+                    <div class="stat-value">2599.46 <span class="stat-unit">MWh</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">净合约电量</div>
+                    <div class="stat-value">1899.46 <span class="stat-unit">MWh</span></div>
+                </div>
+            </div>
+
+            <!-- 图表区域第一行 -->
+            <div class="charts-row">
+                <!-- 合约电量情况 -->
+                <div class="chart-card">
+                    <h3 class="chart-title">合约电量情况</h3>
+                    <div id="contract-volume-chart" class="chart-container"></div>
+                </div>
+
+                <!-- 已签订合同完成情况占比 -->
+                <div class="chart-card">
+                    <h3 class="chart-title">已签订合同完成情况占比</h3>
+                    <div id="contract-completion-chart" class="chart-container"></div>
+                </div>
+            </div>
+
+            <!-- 图表区域第二行 -->
+            <div class="charts-row-3">
+                <!-- 合同增长分析 -->
+                <div class="chart-card">
+                    <h3 class="chart-title">合同增长分析</h3>
+                    <div id="contract-growth-chart" class="chart-container"></div>
+                </div>
+
+                <!-- 合同占比情况 -->
+                <div class="chart-card">
+                    <h3 class="chart-title">合同占比情况</h3>
+                    <div id="contract-proportion-chart" class="chart-container"></div>
+                </div>
+
+                <!-- 合同排名top5 -->
+                <div class="chart-card">
+                    <h3 class="chart-title">合同排名top5</h3>
+                    <div id="contract-ranking-chart" class="chart-container"></div>
+                </div>
+            </div>
+        </main>
+
+    <!-- 加载图表脚本 -->
+    <script src="script.js"></script>
+</body>
+</html>

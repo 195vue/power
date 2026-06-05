@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场站信息管理 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">场站信息管理</h2>
+            <p class="page-subtitle">场站基础参数配置与维护，参数直接影响现货申报策略生成</p>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>场站名称</label>
+                <select class="filter-select" style="width:160px">
+                    <option>全部场站</option>
+                    <option>光伏电站A</option>
+                    <option>风电场B</option>
+                    <option>光伏电站C</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>公司</label>
+                <select class="filter-select" style="width:160px">
+                    <option>全部公司</option>
+                    <option>新能源公司</option>
+                    <option>传统能源公司</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="filterTable()">查询</button>
+            <div style="flex:1"></div>
+            <button class="btn-primary" onclick="openModal()">+ 新增场站</button>
+        </div>
+
+        <div class="table-section" style="margin-top: var(--space-4)">
+            <table class="data-table" id="station-table">
+                <thead>
+                    <tr>
+                        <th>场站名称</th>
+                        <th>所属公司</th>
+                        <th>装机容量(MW)</th>
+                        <th>最小技术出力(MW)</th>
+                        <th>爬坡率上限(MW/min)</th>
+                        <th>爬坡率下限(MW/min)</th>
+                        <th>启停约束(次/日)</th>
+                        <th>状态</th>
+                        <th style="width:120px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="station-table-body">
+                    <tr>
+                        <td>光伏电站A</td>
+                        <td>新能源公司</td>
+                        <td>150</td>
+                        <td>0</td>
+                        <td>5</td>
+                        <td>5</td>
+                        <td>0</td>
+                        <td><span class="badge badge-success">正常</span></td>
+                        <td>
+                            <button class="btn-config" onclick="openModal(0)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button>
+                            <button class="btn-delete" onclick="deleteStation(0)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>风电场B</td>
+                        <td>新能源公司</td>
+                        <td>200</td>
+                        <td>10</td>
+                        <td>8</td>
+                        <td>6</td>
+                        <td>2</td>
+                        <td><span class="badge badge-success">正常</span></td>
+                        <td>
+                            <button class="btn-config" onclick="openModal(1)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button>
+                            <button class="btn-delete" onclick="deleteStation(1)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>光伏电站C</td>
+                        <td>传统能源公司</td>
+                        <td>100</td>
+                        <td>0</td>
+                        <td>4</td>
+                        <td>4</td>
+                        <td>0</td>
+                        <td><span class="badge badge-muted">停运</span></td>
+                        <td>
+                            <button class="btn-config" onclick="openModal(2)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button>
+                            <button class="btn-delete" onclick="deleteStation(2)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>水电站D</td>
+                        <td>传统能源公司</td>
+                        <td>300</td>
+                        <td>50</td>
+                        <td>12</td>
+                        <td>10</td>
+                        <td>4</td>
+                        <td><span class="badge badge-success">正常</span></td>
+                        <td>
+                            <button class="btn-config" onclick="openModal(3)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button>
+                            <button class="btn-delete" onclick="deleteStation(3)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="pagination">
+                <span class="info-text">共 4 条记录</span>
+                <div>
+                    <button class="page-btn active">1</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 新增/编辑弹窗 -->
+    <div class="modal-overlay" id="station-modal" style="display:none">
+        <div class="modal-panel" style="width:560px">
+            <div class="modal-header">
+                <h3 id="modal-title">新增场站</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">场站名称</label>
+                        <input class="form-input" id="edit-name" placeholder="请输入场站名称">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">所属公司</label>
+                        <select class="form-input" id="edit-company">
+                            <option>新能源公司</option>
+                            <option>传统能源公司</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">装机容量 (MW)</label>
+                        <input class="form-input" id="edit-capacity" type="number" placeholder="请输入装机容量">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">最小技术出力 (MW)</label>
+                        <input class="form-input" id="edit-min-output" type="number" placeholder="请输入最小技术出力">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">爬坡率上限 (MW/min)</label>
+                        <input class="form-input" id="edit-ramp-up" type="number" placeholder="请输入爬坡率上限">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">爬坡率下限 (MW/min)</label>
+                        <input class="form-input" id="edit-ramp-down" type="number" placeholder="请输入爬坡率下限">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">启停约束 (次/日)</label>
+                        <input class="form-input" id="edit-start-stop" type="number" placeholder="0表示无限制">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">状态</label>
+                        <select class="form-input" id="edit-status">
+                            <option>正常</option>
+                            <option>停运</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn-primary" onclick="saveStation()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var stationData = [
+            { name: '光伏电站A', company: '新能源公司', capacity: 150, minOutput: 0, rampUp: 5, rampDown: 5, startStop: 0, status: '正常' },
+            { name: '风电场B', company: '新能源公司', capacity: 200, minOutput: 10, rampUp: 8, rampDown: 6, startStop: 2, status: '正常' },
+            { name: '光伏电站C', company: '传统能源公司', capacity: 100, minOutput: 0, rampUp: 4, rampDown: 4, startStop: 0, status: '停运' },
+            { name: '水电站D', company: '传统能源公司', capacity: 300, minOutput: 50, rampUp: 12, rampDown: 10, startStop: 4, status: '正常' }
+        ];
+        var editIndex = -1;
+
+        function renderTable() {
+            var tbody = document.getElementById('station-table-body');
+            tbody.innerHTML = '';
+            stationData.forEach(function(s, i) {
+                var statusClass = s.status === '正常' ? 'badge-success' : 'badge-muted';
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + s.name + '</td>' +
+                    '<td>' + s.company + '</td>' +
+                    '<td>' + s.capacity + '</td>' +
+                    '<td>' + s.minOutput + '</td>' +
+                    '<td>' + s.rampUp + '</td>' +
+                    '<td>' + s.rampDown + '</td>' +
+                    '<td>' + s.startStop + '</td>' +
+                    '<td><span class="badge ' + statusClass + '">' + s.status + '</span></td>' +
+                    '<td><button class="btn-config" onclick="openModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> <button class="btn-delete" onclick="deleteStation(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button></td>' +
+                    '</tr>';
+            });
+        }
+
+        function openModal(index) {
+            var modal = document.getElementById('station-modal');
+            if (index === undefined || index === null) {
+                editIndex = -1;
+                document.getElementById('modal-title').textContent = '新增场站';
+                document.getElementById('edit-name').value = '';
+                document.getElementById('edit-company').value = '新能源公司';
+                document.getElementById('edit-capacity').value = '';
+                document.getElementById('edit-min-output').value = '';
+                document.getElementById('edit-ramp-up').value = '';
+                document.getElementById('edit-ramp-down').value = '';
+                document.getElementById('edit-start-stop').value = '';
+                document.getElementById('edit-status').value = '正常';
+            } else {
+                editIndex = index;
+                document.getElementById('modal-title').textContent = '编辑场站';
+                var s = stationData[index];
+                document.getElementById('edit-name').value = s.name;
+                document.getElementById('edit-company').value = s.company;
+                document.getElementById('edit-capacity').value = s.capacity;
+                document.getElementById('edit-min-output').value = s.minOutput;
+                document.getElementById('edit-ramp-up').value = s.rampUp;
+                document.getElementById('edit-ramp-down').value = s.rampDown;
+                document.getElementById('edit-start-stop').value = s.startStop;
+                document.getElementById('edit-status').value = s.status;
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('station-modal').style.display = 'none';
+        }
+
+        function saveStation() {
+            var data = {
+                name: document.getElementById('edit-name').value,
+                company: document.getElementById('edit-company').value,
+                capacity: parseFloat(document.getElementById('edit-capacity').value) || 0,
+                minOutput: parseFloat(document.getElementById('edit-min-output').value) || 0,
+                rampUp: parseFloat(document.getElementById('edit-ramp-up').value) || 0,
+                rampDown: parseFloat(document.getElementById('edit-ramp-down').value) || 0,
+                startStop: parseInt(document.getElementById('edit-start-stop').value) || 0,
+                status: document.getElementById('edit-status').value
+            };
+            if (!data.name) { alert('请输入场站名称'); return; }
+            if (editIndex === -1) {
+                stationData.push(data);
+            } else {
+                stationData[editIndex] = data;
+            }
+            renderTable();
+            closeModal();
+        }
+
+        function deleteStation(index) {
+            if (confirm('确认删除场站「' + stationData[index].name + '」？')) {
+                stationData.splice(index, 1);
+                renderTable();
+            }
+        }
+
+        function filterTable() {
+            renderTable();
+        }
+
+        // 点击遮罩层关闭
+        document.getElementById('station-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>

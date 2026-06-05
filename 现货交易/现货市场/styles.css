@@ -1,0 +1,82 @@
+/* Iframe: override sidebar margin */
+.main-content { margin-left: 0; }
+
+.unit-label {
+  font-size: var(--text-sm);
+  color: var(--meta);
+  margin-bottom: var(--space-2);
+  padding-left: 12px;
+  padding-bottom: 4px;
+}
+
+/* 筛选栏 */
+.filter-bar {
+    background: var(--surface);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: 1px solid var(--border);
+    box-shadow: var(--elev-ring);
+}
+
+.filter-item label {
+    font-size: var(--text-sm);
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.filter-input {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    outline: none;
+    transition: border-color var(--motion-fast) var(--ease-standard);
+}
+
+.filter-input:focus {
+    border-color: var(--accent);
+    box-shadow: var(--focus-ring);
+}
+
+/* 图表卡片 */
+.chart-card {
+    background: var(--surface);
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid var(--border);
+}
+
+.chart-title {
+    font-size: 15px;
+    color: var(--fg);
+    margin-bottom: 16px;
+    font-weight: 600;
+    padding-left: 12px;
+    border-left: 3px solid var(--accent);
+}
+
+.chart-container-large {
+    width: 100%;
+    height: 350px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .chart-container-large {
+        height: 250px;
+    }
+}

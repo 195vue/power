@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>操作日志 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">操作日志</h2>
+            <p class="page-subtitle">查看系统操作记录，追踪用户行为和系统事件</p>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>操作人</label>
+                <input class="filter-input" placeholder="搜索操作人" style="width:130px" id="log-search-user">
+            </div>
+            <div class="filter-item">
+                <label>操作类型</label>
+                <select class="filter-select" style="width:130px" id="log-filter-type">
+                    <option value="all">全部类型</option>
+                    <option>登录/登出</option>
+                    <option>数据查询</option>
+                    <option>数据修改</option>
+                    <option>策略保存</option>
+                    <option>方案发布</option>
+                    <option>系统配置</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>开始日期</label>
+                <input class="filter-input" type="date" style="width:140px" id="log-start-date">
+            </div>
+            <div class="filter-item">
+                <label>结束日期</label>
+                <input class="filter-input" type="date" style="width:140px" id="log-end-date">
+            </div>
+            <button class="btn-primary" onclick="filterLogs()">查询</button>
+            <button class="btn-secondary" onclick="exportLogs()">导出</button>
+        </div>
+
+        <div class="table-section" style="margin-top: var(--space-4)">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:160px">操作时间</th>
+                        <th style="width:110px">操作人</th>
+                        <th style="width:100px">IP 地址</th>
+                        <th style="width:120px">操作类型</th>
+                        <th>操作对象</th>
+                        <th>操作内容</th>
+                        <th style="width:80px">结果</th>
+                    </tr>
+                </thead>
+                <tbody id="log-table-body"></tbody>
+            </table>
+            <div class="pagination">
+                <span class="info-text" id="log-count">共 0 条记录</span>
+                <div>
+                    <button class="page-btn" onclick="switchLogPage(1)">上一页</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn" onclick="switchLogPage(2)">2</button>
+                    <button class="page-btn" onclick="switchLogPage(3)">3</button>
+                    <button class="page-btn" onclick="switchLogPage(2)">下一页</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .page-btn { padding: var(--space-1) var(--space-3); }
+    </style>
+
+    <script>
+        var logData = [
+            { time: '2026-05-25 09:00:12', user: 'admin', ip: '192.168.1.100', type: '登录/登出', object: '系统', detail: '用户登录系统', result: '成功' },
+            { time: '2026-05-25 09:05:34', user: 'admin', ip: '192.168.1.100', type: '系统配置', object: '交易参数', detail: '修改日前价格上限：1500 → 1520 元/MWh', result: '成功' },
+            { time: '2026-05-25 09:32:18', user: 'trader1', ip: '192.168.1.102', type: '数据查询', object: '市场行情', detail: '查询 2026-05-25 市场行情数据', result: '成功' },
+            { time: '2026-05-25 10:12:45', user: 'analyst1', ip: '192.168.1.101', type: '方案发布', object: '负荷方案', detail: '发布负荷预测基线模型 v3（版本：v3.1.0）', result: '成功' },
+            { time: '2026-05-25 10:15:23', user: 'analyst1', ip: '192.168.1.101', type: '数据修改', object: '用户管理', detail: '修改用户 trader2 角色：交易员 → 预测分析师', result: '成功' },
+            { time: '2026-05-25 10:30:07', user: 'admin', ip: '192.168.1.100', type: '数据修改', object: '场站信息', detail: '新增场站「光伏电站A」装机容量 150MW', result: '成功' },
+            { time: '2026-05-25 11:00:55', user: 'trader1', ip: '192.168.1.102', type: '策略保存', object: '现货策略', detail: '保存 2026-05-26 现货申报策略（方案：日前预测/中性）', result: '成功' },
+            { time: '2026-05-25 11:05:30', user: 'trader2', ip: '192.168.1.103', type: '登录/登出', object: '系统', detail: '用户登录失败（密码错误）', result: '失败' },
+            { time: '2026-05-25 11:22:18', user: 'trader1', ip: '192.168.1.102', type: '数据查询', object: '电价预测', detail: '查询 2026-05-26 日前电价预测结果', result: '成功' },
+            { time: '2026-05-25 14:00:03', user: 'analyst2', ip: '192.168.1.104', type: '数据修改', object: '算法方案', detail: '编辑日前电价 GRU 模型，版本从 v2.0.0 升级至 v2.1.0', result: '成功' },
+            { time: '2026-05-25 14:30:44', user: 'admin', ip: '192.168.1.100', type: '数据修改', object: '数据字典', detail: '新增交易品种编码：ROLLING（日滚动）', result: '成功' },
+            { time: '2026-05-25 15:00:12', user: 'trader1', ip: '192.168.1.102', type: '策略保存', object: '中长期策略', detail: '保存 2026-05-26 中长期申报策略（策略：常规日滚动）', result: '成功' },
+            { time: '2026-05-25 15:15:50', user: 'admin', ip: '192.168.1.100', type: '登录/登出', object: '系统', detail: '用户登出系统', result: '成功' },
+            { time: '2026-05-25 15:45:22', user: 'analyst1', ip: '192.168.1.101', type: '数据修改', object: '气象数据源', detail: '切换默认气象数据源为 ECMWF', result: '成功' },
+            { time: '2026-05-25 16:12:05', user: 'admin', ip: '192.168.1.100', type: '系统配置', object: '预测参数', detail: '修改置信区间默认值：95% → 90%', result: '成功' }
+        ];
+
+        var currentPage = 1;
+        var pageSize = 10;
+
+        function renderLogs() {
+            var start = (currentPage - 1) * pageSize;
+            var end = Math.min(start + pageSize, logData.length);
+            var pageData = logData.slice(start, end);
+            var tbody = document.getElementById('log-table-body');
+            tbody.innerHTML = '';
+            pageData.forEach(function(log) {
+                var cls = log.result === '成功' ? 'badge-success' : 'badge-muted';
+                tbody.innerHTML += '<tr>' +
+                    '<td style="font-family:var(--font-mono);font-size:12px">' + log.time + '</td>' +
+                    '<td>' + log.user + '</td>' +
+                    '<td style="font-family:var(--font-mono);font-size:12px">' + log.ip + '</td>' +
+                    '<td><span class="badge badge-muted">' + log.type + '</span></td>' +
+                    '<td>' + log.object + '</td>' +
+                    '<td style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + log.detail + '">' + log.detail + '</td>' +
+                    '<td><span class="badge ' + cls + '">' + log.result + '</span></td>' +
+                    '</tr>';
+            });
+            document.getElementById('log-count').textContent = '共 ' + logData.length + ' 条记录，当前第 ' + currentPage + ' 页';
+        }
+
+        function filterLogs() { currentPage = 1; renderLogs(); }
+
+        function switchLogPage(page) {
+            var maxPage = Math.ceil(logData.length / pageSize);
+            if (page < 1 || page > maxPage) return;
+            currentPage = page;
+            renderLogs();
+        }
+
+        function exportLogs() { alert('日志导出功能将生成 Excel 文件'); }
+
+        renderLogs();
+    </script>
+</body>
+</html>

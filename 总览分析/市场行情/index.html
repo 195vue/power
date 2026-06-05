@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>市场行情 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <!-- 主内容区域 - 由主入口提供Header和Sidebar -->
+        <main class="main-content">
+            <!-- 页面标题 -->
+            <div class="page-header">
+                <h2 class="page-title">市场行情看板</h2>
+                <p class="page-subtitle">全省电力市场行情数据概览</p>
+            </div>
+
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>数据周期</label>
+                    <select class="filter-select">
+                        <option>日</option>
+                        <option selected>月</option>
+                        <option>年</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>日期</label>
+                    <input type="date" class="filter-input" value="2026-05-26">
+                </div>
+                <button class="btn-primary">查询</button>
+                <button class="btn-secondary">导出</button>
+                <span class="update-time">数据更新时间：2026-03-26 15:30:25</span>
+            </div>
+
+            <!-- 宏观数据区域 -->
+            <div class="macro-data-section">
+                <div class="macro-header">
+                    <h3 class="section-title">宏观数</h3>
+                </div>
+                <div class="macro-cards">
+                    <div class="macro-card">
+                        <div class="macro-label">本项目装机容量</div>
+                        <div class="macro-value">150 <span class="macro-unit">MW</span></div>
+                        <div class="macro-trend up">同比 +8.5%</div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-label">本月利用小时</div>
+                        <div class="macro-value">78 <span class="macro-unit">h</span></div>
+                        <div class="macro-trend up">环比 +10.3%</div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-label">本月发电量</div>
+                        <div class="macro-value">50230 <span class="macro-unit">MWh</span></div>
+                        <div class="macro-trend up">环比 +9.8%</div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-label">场站综合电价</div>
+                        <div class="macro-value">372.5 <span class="macro-unit">元/MWh</span></div>
+                        <div class="macro-sub-detail">中长期:370.2 + 现货:376.8</div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-label">年度累计发电小时数</div>
+                        <div class="macro-value">1000 <span class="macro-unit">h</span></div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-label">年度累计发电电量</div>
+                        <div class="macro-value">500000 <span class="macro-unit">MWh</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表区域第一行 -->
+            <div class="charts-row">
+                <!-- 湖南省电源装机结构 -->
+                <div class="chart-card">
+                    <h3 class="chart-title">湖南省电源装机结构</h3>
+                    <div id="power-structure-chart" class="chart-container"></div>
+                    <div class="chart-caption">湖南省电源装机结构图</div>
+                </div>
+
+                <!-- 各类交易价格汇总 -->
+                <div class="chart-card">
+                    <h3 class="chart-title">各类交易价格汇总</h3>
+                    <h4 class="chart-subtitle">各类交易价格对比</h4>
+                    <div id="price-comparison-chart" class="chart-container"></div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>交易类型</th>
+                                <th>市场均价</th>
+                                <th>场站均价</th>
+                                <th>成交量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>中长期集中</td>
+                                <td>362.8</td>
+                                <td>358.5</td>
+                                <td>125600</td>
+                            </tr>
+                            <tr>
+                                <td>中长期双边</td>
+                                <td>375.6</td>
+                                <td>372.3</td>
+                                <td>89500</td>
+                            </tr>
+                            <tr>
+                                <td>绿电交易</td>
+                                <td>418.2</td>
+                                <td>412.8</td>
+                                <td>28700</td>
+                            </tr>
+                            <tr>
+                                <td>现货日前</td>
+                                <td>385.5</td>
+                                <td>378.8</td>
+                                <td>32800</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 图表区域第二行 -->
+            <div class="charts-row-3">
+                <!-- 供需情况 -->
+                <div class="chart-card">
+                    <h3 class="chart-title">供需情况</h3>
+                    <h4 class="chart-subtitle">负荷/新能源出力</h4>
+                    <div id="supply-demand-chart" class="chart-container"></div>
+                </div>
+
+                <!-- 市场价格曲线 -->
+                <div class="chart-card">
+                    <h3 class="chart-title">市场价格曲线</h3>
+                    <h4 class="chart-subtitle">中长期+现货价格</h4>
+                    <div id="market-price-chart" class="chart-container"></div>
+                </div>
+
+                <!-- 出力预测偏差 -->
+                <div class="chart-card">
+                    <h3 class="chart-title">出力预测偏差</h3>
+                    <h4 class="chart-subtitle">出力预测偏差率</h4>
+                    <div id="forecast-deviation-chart" class="chart-container"></div>
+                </div>
+            </div>
+
+            <!-- 全省出清电量统计 -->
+            <div class="chart-card full-width">
+                <h3 class="chart-title">交易出清电量统计</h3>
+                <h4 class="chart-subtitle">全省出清电量</h4>
+                <div id="clearing-volume-chart" class="chart-container"></div>
+            </div>
+        </main>
+
+    <!-- 加载图表脚本 -->
+    <script src="script.js"></script>
+</body>
+</html>

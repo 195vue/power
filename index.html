@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        #page-content.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: var(--text-md);
+        }
+        #page-content.loading::after {
+            content: '加载中...';
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="top-header" id="top-header">
+        <div class="header-left">
+            <div class="logo">OD</div>
+            <h1>新能源电力交易辅助决策系统</h1>
+        </div>
+        <div class="header-right">
+            <span class="header-action">消息 <span class="badge">3</span></span>
+            <span class="header-action">设置</span>
+            <div class="user-info">
+                <div class="avatar">管</div>
+                <span>管理员</span>
+            </div>
+            <button class="logout-btn">退出</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 主内容区域 - SPA动态加载 -->
+        <main id="page-content" class="loading"></main>
+    </div>
+
+    <!-- 加载组件 -->
+    <script src="components/component-loader.js"></script>
+    <script>
+        // 全局ECharts自适应
+        window.addEventListener('resize', function() {
+            const content = document.getElementById('page-content');
+            if (!content) return;
+            content.querySelectorAll('[id$="-chart"], .chart-container, [id*="chart"]').forEach(function(el) {
+                try {
+                    var instance = echarts.getInstanceByDom(el);
+                    if (instance) instance.resize();
+                } catch(e) {}
+            });
+        });
+
+        // 初始化：加载侧边栏 + 默认加载市场行情
+        ComponentLoader.loadSidebar('sidebar', 'market-overview');
+        ComponentLoader.loadPageContent('总览分析/市场行情/index.html');
+    </script>
+</body>
+</html>

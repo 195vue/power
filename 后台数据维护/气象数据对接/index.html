@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>气象数据对接</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        /* ─── 页面专用 ─────────────────────────────────── */
+        .weather-source-table { border-collapse: collapse; width: 100%; }
+        .weather-source-table th {
+            background: var(--surface);
+            font-weight: 600; font-size: var(--text-sm);
+            color: var(--fg); text-align: left;
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 2px solid var(--border);
+        }
+        .weather-source-table td {
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--border);
+            font-size: var(--text-sm); color: var(--fg);
+            vertical-align: middle;
+        }
+        .weather-source-table tr:hover td { background: color-mix(in oklab, var(--accent), transparent 97%); }
+        .weather-source-table .source-name { font-weight: 600; }
+        .weather-source-table .source-url { color: var(--muted); font-size: var(--text-xs); font-family: var(--font-mono); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
+        .weather-source-table .field-list { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+        .weather-source-table .field-tag {
+            font-size: 11px; padding: 1px 7px; border-radius: var(--radius-pill);
+            background: color-mix(in oklab, var(--accent), transparent 90%);
+            color: var(--accent); white-space: nowrap;
+        }
+
+        .conn-success { color: var(--success); font-weight: 500; }
+        .conn-error   { color: var(--danger); font-weight: 500; }
+        .conn-pending { color: var(--warn); font-weight: 500; }
+
+        .action-btns { display: flex; gap: 6px; }
+        .action-btns .btn-icon {
+            padding: 4px 10px; font-size: var(--text-xs);
+            border-radius: var(--radius-sm); cursor: pointer;
+            border: 1px solid var(--border); background: var(--surface);
+            color: var(--fg); transition: background var(--motion-fast) var(--ease-standard);
+        }
+        .action-btns .btn-icon:hover { background: color-mix(in oklab, var(--accent), transparent 92%); border-color: var(--accent); color: var(--accent); }
+        .action-btns .btn-icon.danger:hover { background: color-mix(in oklab, var(--danger), transparent 92%); border-color: var(--danger); color: var(--danger); }
+
+        /* 字段配置卡片 */
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: var(--space-3);
+        }
+        .field-card {
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+        }
+        .field-card .field-label { font-size: var(--text-xs); color: var(--muted); margin-bottom: 2px; }
+        .field-card .field-value { font-size: var(--text-sm); font-weight: 600; color: var(--fg); }
+        .field-card .field-mapping { font-size: 11px; color: var(--meta); font-family: var(--font-mono); margin-top: 2px; }
+
+        /* ─── Modal 覆盖 ────────────────────────────── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,.35); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: var(--bg); border-radius: var(--radius-md);
+            padding: var(--space-6); width: 560px; max-width: 90vw;
+            max-height: 85vh; overflow-y: auto;
+            box-shadow: var(--elev-raised);
+        }
+        .modal-box h3 { font-size: var(--text-lg); font-weight: 600; color: var(--fg); margin: 0 0 var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border); }
+        .modal-box .form-group { margin-bottom: var(--space-4); }
+        .modal-box .form-group label { display: block; font-size: var(--text-sm); font-weight: 500; color: var(--fg); margin-bottom: var(--space-1); }
+        .modal-box .form-group input,
+        .modal-box .form-group select,
+        .modal-box .form-group textarea {
+            width: 100%; padding: var(--space-2) var(--space-3);
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            font-size: var(--text-sm); font-family: var(--font-body);
+            background: var(--surface); color: var(--fg);
+            box-sizing: border-box;
+        }
+        .modal-box .form-group textarea { min-height: 60px; resize: vertical; }
+        .modal-box .form-group input:focus,
+        .modal-box .form-group select:focus,
+        .modal-box .form-group textarea:focus {
+            outline: none; border-color: var(--accent);
+            box-shadow: var(--focus-ring);
+        }
+        .modal-box .form-row { display: flex; gap: var(--space-4); }
+        .modal-box .form-row .form-group { flex: 1; }
+        .modal-actions { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+
+        /* 数据同步状态 */
+        .sync-info { display: flex; gap: var(--space-6); margin-bottom: var(--space-4); }
+        .sync-stat { text-align: center; padding: var(--space-3) var(--space-5); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); flex: 1; }
+        .sync-stat .num { font-size: var(--text-2xl); font-weight: 700; color: var(--fg); line-height: 1.2; }
+        .sync-stat .label { font-size: var(--text-xs); color: var(--muted); }
+
+        .main-content { margin-left: 0; }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <div class="page-header">
+            <h2>气象数据对接</h2>
+            <div class="page-subtitle">气象数据源配置与管理</div>
+        </div>
+
+        <!-- 筛选栏 -->
+        <div class="filter-bar" style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:var(--space-4)">
+            <div class="filter-item">
+                <label>数据源类型</label>
+                <select class="filter-select" style="width:130px">
+                    <option>全部</option>
+                    <option>气象局</option>
+                    <option>卫星数据</option>
+                    <option>数值预报</option>
+                    <option>第三方API</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>连接状态</label>
+                <select class="filter-select" style="width:120px">
+                    <option>全部</option>
+                    <option>已连接</option>
+                    <option>连接异常</option>
+                    <option>未连接</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>关键字</label>
+                <input type="text" class="filter-input" placeholder="搜索数据源名称..." style="width:180px">
+            </div>
+            <button class="btn btn-primary" onclick="document.getElementById('add-modal').classList.add('show')">+ 新增数据源</button>
+            <button class="btn btn-secondary" onclick="testAllConnections()">测试全部连接</button>
+        </div>
+
+        <!-- 同步概览 -->
+        <div class="sync-info">
+            <div class="sync-stat"><div class="num" id="total-sources">6</div><div class="label">数据源总数</div></div>
+            <div class="sync-stat"><div class="num" id="connected-count" style="color:var(--success)">4</div><div class="label">已连接</div></div>
+            <div class="sync-stat"><div class="num" id="error-count" style="color:var(--danger)">1</div><div class="label">连接异常</div></div>
+            <div class="sync-stat"><div class="num" id="last-sync">10:23</div><div class="label">最近同步</div></div>
+        </div>
+
+        <!-- 数据源列表 -->
+        <div class="card" style="padding:0;overflow:hidden">
+            <table class="weather-source-table">
+                <thead>
+                    <tr>
+                        <th style="width:30px">#</th>
+                        <th style="width:120px">数据源名称</th>
+                        <th style="width:90px">类型</th>
+                        <th style="width:80px">连接状态</th>
+                        <th>服务地址</th>
+                        <th style="width:180px">数据字段</th>
+                        <th style="width:80px">更新频率</th>
+                        <th style="width:80px">最近同步</th>
+                        <th style="width:100px">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="color:var(--muted)">1</td>
+                        <td class="source-name">湖南省气象局</td>
+                        <td><span style="font-size:var(--text-xs);padding:1px 8px;border-radius:var(--radius-pill);background:color-mix(in oklab,var(--accent),transparent 90%);color:var(--accent)">气象局</span></td>
+                        <td><span class="conn-success">● 已连接</span></td>
+                        <td><span class="source-url">http://hnweather.gov.cn/api/v2</span></td>
+                        <td><div class="field-list"><span class="field-tag">风速</span><span class="field-tag">风向</span><span class="field-tag">辐照度</span><span class="field-tag">温度</span><span class="field-tag">湿度</span><span class="field-tag">气压</span></div></td>
+                        <td>15分钟</td>
+                        <td style="font-size:var(--text-xs);color:var(--muted)">10:23</td>
+                        <td><div class="action-btns"><button class="btn-icon" onclick="editSource(0)">编辑</button><button class="btn-icon danger" onclick="deleteSource(0)">删除</button></div></td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--muted)">2</td>
+                        <td class="source-name">CMA 数值预报</td>
+                        <td><span style="font-size:var(--text-xs);padding:1px 8px;border-radius:var(--radius-pill);background:color-mix(in oklab,var(--warn),transparent 88%);color:#a16207">数值预报</span></td>
+                        <td><span class="conn-success">● 已连接</span></td>
+                        <td><span class="source-url">http://data.cma.cn/grid/gfs</span></td>
+                        <td><div class="field-list"><span class="field-tag">风速</span><span class="field-tag">辐照度</span><span class="field-tag">云量</span></div></td>
+                        <td>1小时</td>
+                        <td style="font-size:var(--text-xs);color:var(--muted)">09:45</td>
+                        <td><div class="action-btns"><button class="btn-icon" onclick="editSource(1)">编辑</button><button class="btn-icon danger" onclick="deleteSource(1)">删除</button></div></td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--muted)">3</td>
+                        <td class="source-name">ECMWF 全球模式</td>
+                        <td><span style="font-size:var(--text-xs);padding:1px 8px;border-radius:var(--radius-pill);background:color-mix(in oklab,var(--accent),transparent 90%);color:var(--accent)">数值预报</span></td>
+                        <td><span class="conn-success">● 已连接</span></td>
+                        <td><span class="source-url">https://api.ecmwf.int/v1/forecast</span></td>
+                        <td><div class="field-list"><span class="field-tag">风速</span><span class="field-tag">风向</span><span class="field-tag">温度</span><span class="field-tag">辐照度</span></div></td>
+                        <td>6小时</td>
+                        <td style="font-size:var(--text-xs);color:var(--muted)">08:00</td>
+                        <td><div class="action-btns"><button class="btn-icon" onclick="editSource(2)">编辑</button><button class="btn-icon danger" onclick="deleteSource(2)">删除</button></div></td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--muted)">4</td>
+                        <td class="source-name">葵花8号卫星云图</td>
+                        <td><span style="font-size:var(--text-xs);padding:1px 8px;border-radius:var(--radius-pill);background:color-mix(in oklab,var(--accent),transparent 90%);color:var(--accent)">卫星数据</span></td>
+                        <td><span class="conn-success">● 已连接</span></td>
+                        <td><span class="source-url">https://satellite.jma.go.jp/himawari/area</span></td>
+                        <td><div class="field-list"><span class="field-tag">云图</span><span class="field-tag">云顶温度</span></div></td>
+                        <td>10分钟</td>
+                        <td style="font-size:var(--text-xs);color:var(--muted)">10:20</td>
+                        <td><div class="action-btns"><button class="btn-icon" onclick="editSource(3)">编辑</button><button class="btn-icon danger" onclick="deleteSource(3)">删除</button></div></td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--muted)">5</td>
+                        <td class="source-name">Solargis 辐照数据库</td>
+                        <td><span style="font-size:var(--text-xs);padding:1px 8px;border-radius:var(--radius-pill);background:color-mix(in oklab,var(--accent),transparent 90%);color:var(--accent)">第三方API</span></td>
+                        <td><span class="conn-error">● 连接异常</span></td>
+                        <td><span class="source-url">https://api.solargis.com/v2/ghi</span></td>
+                        <td><div class="field-list"><span class="field-tag">GHI</span><span class="field-tag">DNI</span><span class="field-tag">DHI</span></div></td>
+                        <td>30分钟</td>
+                        <td style="font-size:var(--text-xs);color:var(--muted)">06:12</td>
+                        <td><div class="action-btns"><button class="btn-icon" onclick="editSource(4)">编辑</button><button class="btn-icon danger" onclick="deleteSource(4)">删除</button></div></td>
+                    </tr>
+                    <tr>
+                        <td style="color:var(--muted)">6</td>
+                        <td class="source-name">华北电力大学预测中心</td>
+                        <td><span style="font-size:var(--text-xs);padding:1px 8px;border-radius:var(--radius-pill);background:color-mix(in oklab,var(--warn),transparent 88%);color:#a16207">第三方API</span></td>
+                        <td><span class="conn-pending">● 未连接</span></td>
+                        <td><span class="source-url">http://forecast.ncepu.edu.cn/api</span></td>
+                        <td><div class="field-list"><span class="field-tag">风速</span><span class="field-tag">辐照度</span></div></td>
+                        <td>-</td>
+                        <td style="font-size:var(--text-xs);color:var(--muted)">-</td>
+                        <td><div class="action-btns"><button class="btn-icon" onclick="editSource(5)">编辑</button><button class="btn-icon danger" onclick="deleteSource(5)">删除</button></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 新增/编辑 Modal -->
+        <div class="modal-overlay" id="add-modal">
+            <div class="modal-box">
+                <h3 id="modal-title">新增数据源</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>数据源名称</label>
+                        <input type="text" id="source-name" placeholder="如：湖南省气象局">
+                    </div>
+                    <div class="form-group">
+                        <label>数据源类型</label>
+                        <select id="source-type">
+                            <option value="气象局">气象局</option>
+                            <option value="卫星数据">卫星数据</option>
+                            <option value="数值预报">数值预报</option>
+                            <option value="第三方API">第三方API</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>服务地址</label>
+                    <input type="text" id="source-url" placeholder="http://... 或 https://...">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>认证方式</label>
+                        <select id="source-auth">
+                            <option value="无">无</option>
+                            <option value="API Key">API Key</option>
+                            <option value="Token">Token</option>
+                            <option value="Basic">Basic 认证</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>认证凭据</label>
+                        <input type="password" id="source-cred" placeholder="API Key / Token">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>更新频率</label>
+                        <select id="source-interval">
+                            <option value="10分钟">10分钟</option>
+                            <option value="15分钟" selected>15分钟</option>
+                            <option value="30分钟">30分钟</option>
+                            <option value="1小时">1小时</option>
+                            <option value="6小时">6小时</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>数据格式</label>
+                        <select id="source-format">
+                            <option value="JSON">JSON</option>
+                            <option value="XML">XML</option>
+                            <option value="CSV">CSV</option>
+                            <option value="GRIB2">GRIB2</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>数据字段映射</label>
+                    <textarea id="source-fields" placeholder='[{"name":"风速","key":"wind_speed","unit":"m/s"},{"name":"辐照度","key":"ghi","unit":"W/m²"}]'></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="document.getElementById('add-modal').classList.remove('show')">取消</button>
+                    <button class="btn btn-primary" onclick="saveSource()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // 模拟数据源存储
+    var sources = [
+        { name:'湖南省气象局', type:'气象局', url:'http://hnweather.gov.cn/api/v2', auth:'API Key', cred:'hn***8a2', interval:'15分钟', format:'JSON', fields:'[{"name":"风速","key":"wind_speed","unit":"m/s"},{"name":"风向","key":"wind_dir","unit":"°"},{"name":"辐照度","key":"ghi","unit":"W/m²"},{"name":"温度","key":"temp","unit":"°C"},{"name":"湿度","key":"humidity","unit":"%"},{"name":"气压","key":"pressure","unit":"hPa"}]', status:'connected' },
+        { name:'CMA 数值预报', type:'数值预报', url:'http://data.cma.cn/grid/gfs', auth:'Token', cred:'cm***4f', interval:'1小时', format:'GRIB2', fields:'[{"name":"风速","key":"wind","unit":"m/s"},{"name":"辐照度","key":"solar","unit":"W/m²"},{"name":"云量","key":"cloud","unit":"%"}]', status:'connected' },
+        { name:'ECMWF 全球模式', type:'数值预报', url:'https://api.ecmwf.int/v1/forecast', auth:'API Key', cred:'ec***9k', interval:'6小时', format:'GRIB2', fields:'[{"name":"风速","key":"wind","unit":"m/s"},{"name":"风向","key":"wind_dir","unit":"°"},{"name":"温度","key":"temp","unit":"°C"},{"name":"辐照度","key":"solar","unit":"W/m²"}]', status:'connected' },
+        { name:'葵花8号卫星云图', type:'卫星数据', url:'https://satellite.jma.go.jp/himawari/area', auth:'无', cred:'', interval:'10分钟', format:'JSON', fields:'[{"name":"云图","key":"image","unit":""},{"name":"云顶温度","key":"cld_temp","unit":"°C"}]', status:'connected' },
+        { name:'Solargis 辐照数据库', type:'第三方API', url:'https://api.solargis.com/v2/ghi', auth:'API Key', cred:'sg***1f', interval:'30分钟', format:'JSON', fields:'[{"name":"GHI","key":"ghi","unit":"W/m²"},{"name":"DNI","key":"dni","unit":"W/m²"},{"name":"DHI","key":"dhi","unit":"W/m²"}]', status:'error' },
+        { name:'华北电力大学预测中心', type:'第三方API', url:'http://forecast.ncepu.edu.cn/api', auth:'Token', cred:'', interval:'15分钟', format:'JSON', fields:'[{"name":"风速","key":"wind","unit":"m/s"},{"name":"辐照度","key":"solar","unit":"W/m²"}]', status:'pending' }
+    ];
+
+    var editingIndex = -1;
+
+    function editSource(idx) {
+        editingIndex = idx;
+        var s = sources[idx];
+        document.getElementById('modal-title').textContent = '编辑数据源';
+        document.getElementById('source-name').value = s.name;
+        document.getElementById('source-type').value = s.type;
+        document.getElementById('source-url').value = s.url;
+        document.getElementById('source-auth').value = s.auth;
+        document.getElementById('source-cred').value = s.cred;
+        document.getElementById('source-interval').value = s.interval;
+        document.getElementById('source-format').value = s.format;
+        document.getElementById('source-fields').value = s.fields;
+        document.getElementById('add-modal').classList.add('show');
+    }
+
+    function saveSource() {
+        var data = {
+            name: document.getElementById('source-name').value,
+            type: document.getElementById('source-type').value,
+            url: document.getElementById('source-url').value,
+            auth: document.getElementById('source-auth').value,
+            cred: document.getElementById('source-cred').value,
+            interval: document.getElementById('source-interval').value,
+            format: document.getElementById('source-format').value,
+            fields: document.getElementById('source-fields').value,
+            status: 'connected'
+        };
+        if (!data.name || !data.url) { alert('请填写数据源名称和服务地址'); return; }
+        if (editingIndex >= 0) { sources[editingIndex] = data; } else { sources.push(data); }
+        document.getElementById('add-modal').classList.remove('show');
+        renderTable();
+        updateStats();
+    }
+
+    function deleteSource(idx) {
+        if (!confirm('确定删除数据源「' + sources[idx].name + '」？')) return;
+        sources.splice(idx, 1);
+        renderTable();
+        updateStats();
+    }
+
+    function testAllConnections() {
+        alert('正在测试全部数据源连接...\n已连接: 4/6\n异常: 1 (Solargis)\n未连接: 1 (华北电力大学)');
+    }
+
+    function renderTable() {
+        var tbody = document.querySelector('.weather-source-table tbody');
+        tbody.innerHTML = '';
+        sources.forEach(function(s, i) {
+            var fields = '';
+            try {
+                var parsed = JSON.parse(s.fields);
+                fields = parsed.map(function(f) { return '<span class="field-tag">' + f.name + '</span>'; }).join('');
+            } catch(e) { fields = '<span class="field-tag" style="background:color-mix(in oklab,var(--danger),transparent 88%);color:var(--danger)">解析失败</span>'; }
+
+            var statusHtml = '';
+            var statusClass = s.status === 'connected' ? 'conn-success' : (s.status === 'error' ? 'conn-error' : 'conn-pending');
+            var statusText = s.status === 'connected' ? '已连接' : (s.status === 'error' ? '连接异常' : '未连接');
+            statusHtml = '<span class="' + statusClass + '">● ' + statusText + '</span>';
+
+            var typeColors = { '气象局': 'var(--accent)', '卫星数据': 'var(--accent)', '数值预报': '#a16207', '第三方API': '#a16207' };
+            var typeColor = typeColors[s.type] || 'var(--accent)';
+
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td style="color:var(--muted)">' + (i+1) + '</td>' +
+                '<td class="source-name">' + s.name + '</td>' +
+                '<td><span style="font-size:var(--text-xs);padding:1px 8px;border-radius:var(--radius-pill);background:color-mix(in oklab,' + typeColor + ',transparent 88%);color:' + typeColor + '">' + s.type + '</span></td>' +
+                '<td>' + statusHtml + '</td>' +
+                '<td><span class="source-url">' + s.url + '</span></td>' +
+                '<td><div class="field-list">' + fields + '</div></td>' +
+                '<td>' + (s.interval || '-') + '</td>' +
+                '<td style="font-size:var(--text-xs);color:var(--muted)">' + (s.status === 'connected' ? '10:23' : '-') + '</td>' +
+                '<td><div class="action-btns"><button class="btn-icon" onclick="editSource(' + i + ')">编辑</button><button class="btn-icon danger" onclick="deleteSource(' + i + ')">删除</button></div></td>';
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateStats() {
+        var total = sources.length;
+        var connected = sources.filter(function(s) { return s.status === 'connected'; }).length;
+        var errors = sources.filter(function(s) { return s.status === 'error'; }).length;
+        document.getElementById('total-sources').textContent = total;
+        document.getElementById('connected-count').textContent = connected;
+        document.getElementById('error-count').textContent = errors;
+    }
+
+    // modal关闭——点击遮罩
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            e.target.classList.remove('show');
+        }
+    });
+    </script>
+</body>
+</html>

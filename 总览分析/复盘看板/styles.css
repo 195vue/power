@@ -1,0 +1,235 @@
+/* Iframe: override sidebar margin */
+.main-content { margin-left: 0; }
+
+/* 复盘看板专用样式 */
+
+/* 页面标题 */
+.page-header {
+    margin-bottom: 16px;
+}
+
+.page-title {
+    font-size: 18px;
+    color: var(--fg);
+    font-weight: 600;
+    margin: 0;
+}
+
+/* 筛选栏 */
+.filter-bar {
+    background: var(--surface);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: 1px solid var(--border);
+    box-shadow: var(--elev-ring);
+}
+
+.filter-item label {
+    font-size: var(--text-sm);
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.filter-input {
+    width: 180px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    outline: none;
+    transition: border-color var(--motion-fast) var(--ease-standard);
+}
+
+.filter-input:focus {
+    border-color: var(--accent);
+    box-shadow: var(--focus-ring);
+}
+
+.filter-input::placeholder {
+    color: var(--meta);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--border);
+    padding: var(--space-2) var(--space-5);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: var(--text-sm);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+}
+
+.btn-secondary:hover {
+    background: var(--bg);
+    border-color: var(--accent);
+}
+
+/* 数据卡片区域 */
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--surface);
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    position: relative;
+    border: 1px solid var(--border);
+}
+
+.stat-card-icon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 24px;
+    height: 24px;
+    background: var(--accent-subtle);
+    border-radius: 50%;
+}
+
+.stat-card-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+}
+
+.stat-card-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 12px;
+}
+
+.stat-card-value .unit {
+    font-size: 14px;
+    font-weight: normal;
+    color: var(--meta);
+}
+
+.stat-card-detail {
+    font-size: 12px;
+    color: var(--meta);
+    line-height: 1.8;
+}
+
+/* 表格区域 */
+.table-section {
+    background: var(--surface);
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid var(--border);
+}
+
+.table-section .section-title {
+    font-size: 15px;
+    color: var(--fg);
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+/* 数据表格样式增强 */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.data-table thead {
+    background: var(--bg);
+}
+
+.data-table th {
+    padding: 14px 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.data-table td {
+    padding: 14px 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+    color: var(--fg);
+}
+
+.data-table tbody tr:hover {
+    background: var(--bg);
+}
+
+/* 正负值颜色 */
+.data-table .positive {
+    color: var(--success);
+}
+
+.data-table .negative {
+    color: var(--accent);
+}
+
+.data-table .increase {
+    color: var(--danger);
+}
+
+.data-table .decrease {
+    color: var(--accent);
+}
+
+/* 图表区域 */
+.charts-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.chart-card {
+    background: var(--surface);
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.chart-title {
+    font-size: 15px;
+    color: var(--fg);
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+.chart-container {
+    width: 100%;
+    height: 350px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
+}

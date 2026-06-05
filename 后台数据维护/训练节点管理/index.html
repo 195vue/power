@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>训练节点管理 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        .node-name { font-weight: 600; }
+        .node-meta { font-size: var(--text-xs); color: var(--muted); display: block; margin-top: 2px; }
+        .company-tag { display: inline-block; padding: 2px 8px; border-radius: var(--radius-pill); font-size: 11px; background: color-mix(in oklab, var(--accent), transparent 90%); color: var(--accent); }
+        .action-cell { white-space: nowrap; }
+        .action-cell button { margin-right: 4px; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+        .detail-item { display: flex; flex-direction: column; gap: 4px; }
+        .detail-item .label { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .detail-item .value { font-size: var(--text-sm); color: var(--fg); font-weight: 500; }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">训练节点管理</h2>
+            <p class="page-subtitle">维护电价预测训练算法节点，支持按公司、场站标识管理训练数据集与模型文件路径</p>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>所属公司</label>
+                <select class="filter-select" style="width:160px" id="filter-company">
+                    <option value="all">全部公司</option>
+                    <option>新能源公司</option>
+                    <option>传统能源公司</option>
+                    <option>独立售电公司</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>状态</label>
+                <select class="filter-select" style="width:120px" id="filter-status">
+                    <option value="all">全部状态</option>
+                    <option>训练完成</option>
+                    <option>训练中</option>
+                    <option>训练失败</option>
+                    <option>已过期</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="filterNodes()">查询</button>
+            <div style="flex:1"></div>
+            <button class="btn-primary" onclick="openNodeModal()">+ 新增训练节点</button>
+        </div>
+
+        <div class="table-section" style="margin-top: var(--space-4)">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>节点名称</th>
+                        <th>所属公司</th>
+                        <th>关联场站</th>
+                        <th>训练数据范围</th>
+                        <th>训练时间</th>
+                        <th>版本号</th>
+                        <th>状态</th>
+                        <th style="width:140px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="node-table-body"></tbody>
+            </table>
+            <div class="pagination">
+                <span class="info-text" id="node-count">共 0 条记录</span>
+                <div>
+                    <button class="page-btn active">1</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="node-modal" style="display:none">
+        <div class="modal-panel" style="width:600px">
+            <div class="modal-header">
+                <h3 id="node-modal-title">新增训练节点</h3>
+                <button class="modal-close" onclick="closeNodeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">节点名称</label>
+                        <input class="form-input" id="edit-name" placeholder="如：淮南矿业集团售电训练节点">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">版本号</label>
+                        <input class="form-input" id="edit-version" placeholder="如 v1.0.0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">所属公司</label>
+                        <select class="form-input" id="edit-company">
+                            <option>新能源公司</option>
+                            <option>传统能源公司</option>
+                            <option>独立售电公司</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">关联场站</label>
+                        <input class="form-input" id="edit-station" placeholder="关联场站名称，多个用逗号分隔">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">训练开始日期</label>
+                        <input class="form-input" id="edit-train-start" type="date">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">训练结束日期</label>
+                        <input class="form-input" id="edit-train-end" type="date">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">模型文件路径</label>
+                        <input class="form-input" id="edit-model-path" placeholder="/models/forecast/v2/">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">状态</label>
+                        <select class="form-input" id="edit-status">
+                            <option>训练完成</option>
+                            <option>训练中</option>
+                            <option>训练失败</option>
+                            <option>已过期</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">备注</label>
+                    <textarea class="form-input" id="edit-notes" rows="2" placeholder="训练参数、数据来源说明等" style="resize:vertical;min-height:48px"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeNodeModal()">取消</button>
+                <button class="btn-primary" onclick="saveNode()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var nodeList = [
+            { name: '淮南矿业集团售电训练节点', company: '独立售电公司', station: '淮南光伏电站', trainStart: '2025-10-01', trainEnd: '2026-03-31', trainedAt: '2026-04-01 14:23', version: 'v1.0.0', modelPath: '/models/price/huainan_v1/', status: '训练完成', notes: '基于2025Q4-2026Q1数据训练，RMSE=12.3' },
+            { name: '湘南区域电价训练节点', company: '新能源公司', station: '光伏电站A,风电场B', trainStart: '2025-08-01', trainEnd: '2026-01-31', trainedAt: '2026-02-05 09:15', version: 'v2.1.0', modelPath: '/models/price/xiangnan_v2/', status: '训练完成', notes: '覆盖湘南区域所有场站，融合气象特征' },
+            { name: '湘北区域电价训练节点', company: '传统能源公司', station: '水电站D', trainStart: '2025-09-01', trainEnd: '2026-02-28', trainedAt: '2026-03-10 16:40', version: 'v1.3.0', modelPath: '/models/price/xiangbei_v1/', status: '训练完成', notes: '水电为主，含水情数据特征' },
+            { name: '全网通用电价预测节点', company: '新能源公司', station: '全部场站', trainStart: '2026-01-01', trainEnd: '2026-04-30', trainedAt: '2026-05-06 11:30', version: 'v3.0.0', modelPath: '/models/price/global_v3/', status: '训练中', notes: '全网统一训练，GRU+Transformer混合架构' },
+            { name: '2025年度电价基线节点', company: '传统能源公司', station: '全部场站', trainStart: '2024-06-01', trainEnd: '2025-05-31', trainedAt: '2025-06-15 08:00', version: 'v1.0.0', modelPath: '/models/price/2025_baseline/', status: '已过期', notes: '2025年度基线模型，已不再使用' },
+            { name: '光伏专项电价预测节点', company: '新能源公司', station: '光伏电站A,光伏电站C', trainStart: '2026-02-01', trainEnd: '2026-04-30', trainedAt: '', version: 'v1.0-beta', modelPath: '/models/price/pv_special/', status: '训练失败', notes: '训练数据不足，需补充2026年Q1数据' }
+        ];
+        var editIndex = -1;
+
+        function renderNodes(list) {
+            var data = list || nodeList;
+            var tbody = document.getElementById('node-table-body');
+            tbody.innerHTML = '';
+            data.forEach(function(n, i) {
+                var cls = n.status === '训练完成' ? 'badge-success' : (n.status === '训练中' ? 'badge' : (n.status === '训练失败' ? 'badge-danger' : 'badge-muted'));
+                tbody.innerHTML += '<tr>' +
+                    '<td><span class="node-name">' + n.name + '</span></td>' +
+                    '<td><span class="company-tag">' + n.company + '</span></td>' +
+                    '<td>' + n.station + '</td>' +
+                    '<td>' + n.trainStart + ' ~ ' + n.trainEnd + '</td>' +
+                    '<td style="font-size:var(--text-xs)">' + (n.trainedAt || '--') + '</td>' +
+                    '<td><code style="font-size:var(--text-xs);background:var(--bg);padding:2px 6px;border-radius:4px">' + n.version + '</code></td>' +
+                    '<td><span class="badge ' + cls + '">' + n.status + '</span></td>' +
+                    '<td class="action-cell">' +
+                    '<button class="btn-config" onclick="openNodeModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteNode(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '</td></tr>';
+            });
+            document.getElementById('node-count').textContent = '共 ' + data.length + ' 条记录';
+        }
+
+        function openNodeModal(index) {
+            var modal = document.getElementById('node-modal');
+            if (index === undefined || index === null || index === -1) {
+                editIndex = -1;
+                document.getElementById('node-modal-title').textContent = '新增训练节点';
+                ['edit-name','edit-version','edit-station','edit-model-path','edit-notes'].forEach(function(id) {
+                    document.getElementById(id).value = '';
+                });
+                document.getElementById('edit-company').value = '新能源公司';
+                document.getElementById('edit-status').value = '训练中';
+                document.getElementById('edit-train-start').value = '';
+                document.getElementById('edit-train-end').value = '';
+            } else {
+                editIndex = index;
+                document.getElementById('node-modal-title').textContent = '编辑训练节点';
+                var n = nodeList[index];
+                document.getElementById('edit-name').value = n.name;
+                document.getElementById('edit-company').value = n.company;
+                document.getElementById('edit-station').value = n.station;
+                document.getElementById('edit-train-start').value = n.trainStart;
+                document.getElementById('edit-train-end').value = n.trainEnd;
+                document.getElementById('edit-version').value = n.version;
+                document.getElementById('edit-model-path').value = n.modelPath;
+                document.getElementById('edit-status').value = n.status;
+                document.getElementById('edit-notes').value = n.notes || '';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeNodeModal() {
+            document.getElementById('node-modal').style.display = 'none';
+        }
+
+        function saveNode() {
+            var d = new Date();
+            var now = d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0')+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+            var data = {
+                name: document.getElementById('edit-name').value,
+                company: document.getElementById('edit-company').value,
+                station: document.getElementById('edit-station').value,
+                trainStart: document.getElementById('edit-train-start').value,
+                trainEnd: document.getElementById('edit-train-end').value,
+                version: document.getElementById('edit-version').value,
+                modelPath: document.getElementById('edit-model-path').value,
+                status: document.getElementById('edit-status').value,
+                notes: document.getElementById('edit-notes').value,
+                trainedAt: document.getElementById('edit-status').value === '训练完成' ? now : ''
+            };
+            if (!data.name) { alert('请输入节点名称'); return; }
+            if (editIndex === -1) {
+                nodeList.push(data);
+            } else {
+                nodeList[editIndex] = data;
+            }
+            renderNodes();
+            closeNodeModal();
+        }
+
+        function deleteNode(index) {
+            if (confirm('确认删除训练节点「' + nodeList[index].name + '」？')) {
+                nodeList.splice(index, 1);
+                renderNodes();
+            }
+        }
+
+        function filterNodes() {
+            var company = document.getElementById('filter-company').value;
+            var status = document.getElementById('filter-status').value;
+            var filtered = nodeList.filter(function(n) {
+                if (company !== 'all' && n.company !== company) return false;
+                if (status !== 'all' && n.status !== status) return false;
+                return true;
+            });
+            renderNodes(filtered);
+        }
+
+        var _nodeModal = document.getElementById('node-modal');
+        if (_nodeModal) {
+            _nodeModal.addEventListener('click', function(e) {
+                if (e.target === this) closeNodeModal();
+            });
+        }
+        renderNodes();
+    </script>
+</body>
+</html>

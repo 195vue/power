@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模型对接管理 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">模型对接管理</h2>
+            <p class="page-subtitle">统一管理所有预测模型的服务地址、版本、启停状态及运行参数配置</p>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>模型名称</label>
+                <select class="filter-select" style="width:160px" id="filter-type">
+                    <option>全部模型</option>
+                    <option>负荷预测模型</option>
+                    <option>电价预测模型</option>
+                    <option>功率预测模型</option>
+                    <option>气象预测模型</option>
+                    <option>现货价格预测模型</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>运行状态</label>
+                <select class="filter-select" style="width:120px" id="filter-status">
+                    <option>全部状态</option>
+                    <option>运行中</option>
+                    <option>已停止</option>
+                    <option>异常</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="filterTable()">查询</button>
+            <div style="flex:1"></div>
+            <button class="btn-primary" onclick="openModelModal()">+ 注册模型</button>
+        </div>
+
+        <div class="table-section" style="margin-top: var(--space-4)">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>模型名称</th>
+                        <th>模型类型</th>
+                        <th>版本号</th>
+                        <th>服务地址</th>
+                        <th>运行状态</th>
+                        <th>最后心跳</th>
+                        <th>更新时间</th>
+                        <th style="width:180px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="model-table-body"></tbody>
+            </table>
+            <div class="pagination">
+                <span class="info-text" id="model-count">共 0 条记录</span>
+                <div>
+                    <button class="page-btn active">1</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 模型注册/编辑弹窗 -->
+    <div class="modal-overlay" id="model-modal" style="display:none">
+        <div class="modal-panel" style="width:640px">
+            <div class="modal-header">
+                <h3 id="model-modal-title">注册模型</h3>
+                <button class="modal-close" onclick="closeModelModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row three-col">
+                    <div class="form-section">
+                        <label class="form-label">模型名称</label>
+                        <input class="form-input" id="edit-name" placeholder="如：负荷预测模型">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">模型类型</label>
+                        <select class="form-input" id="edit-type">
+                            <option>负荷预测</option>
+                            <option>电价预测</option>
+                            <option>功率预测</option>
+                            <option>气象预测</option>
+                            <option>现货价格预测</option>
+                        </select>
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">版本号</label>
+                        <input class="form-input" id="edit-version" placeholder="如：v2.1.0">
+                    </div>
+                </div>
+                <div class="form-row two-col">
+                    <div class="form-section">
+                        <label class="form-label">服务地址</label>
+                        <input class="form-input" id="edit-endpoint" placeholder="http://192.168.1.100:8080/predict">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">认证密钥</label>
+                        <input class="form-input" id="edit-token" type="password" placeholder="API Key / Token">
+                    </div>
+                </div>
+                <div class="form-row two-col">
+                    <div class="form-section">
+                        <label class="form-label">超时时间 (秒)</label>
+                        <input class="form-input" id="edit-timeout" type="number" value="30" placeholder="默认30秒">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">重试次数</label>
+                        <input class="form-input" id="edit-retry" type="number" value="3" placeholder="默认3次">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">模型描述</label>
+                    <textarea class="form-input" id="edit-desc" rows="2" placeholder="模型功能说明、输入输出描述等" style="resize:vertical;min-height:48px"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModelModal()">取消</button>
+                <button class="btn-primary" onclick="saveModel()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 参数配置弹窗 -->
+    <div class="modal-overlay" id="param-modal" style="display:none">
+        <div class="modal-panel" style="width:560px">
+            <div class="modal-header">
+                <h3 id="param-modal-title">模型参数配置</h3>
+                <button class="modal-close" onclick="closeParamModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="param-modal-body">
+                <div class="form-section">
+                    <label class="form-label">输入数据源</label>
+                    <select class="form-input" id="param-datasource">
+                        <option>实时数据中台</option>
+                        <option>历史数据库</option>
+                        <option>第三方数据接口</option>
+                    </select>
+                </div>
+                <div class="form-row two-col">
+                    <div class="form-section">
+                        <label class="form-label">预测时间粒度 (分钟)</label>
+                        <select class="form-input" id="param-granularity">
+                            <option value="15">15分钟</option>
+                            <option value="30">30分钟</option>
+                            <option value="60">60分钟</option>
+                        </select>
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">预测时长 (小时)</label>
+                        <input class="form-input" id="param-horizon" type="number" value="24" min="1" max="168">
+                    </div>
+                </div>
+                <div class="form-row two-col">
+                    <div class="form-section">
+                        <label class="form-label">模型精度阈值</label>
+                        <input class="form-input" id="param-threshold" type="number" value="85" min="0" max="100">
+                        <span class="field-help">低于此精度触发告警 (%)</span>
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">自动重训练</label>
+                        <select class="form-input" id="param-retrain">
+                            <option>开启</option>
+                            <option>关闭</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">数据预处理规则</label>
+                    <div class="param-checkboxes">
+                        <label class="param-checkbox"><input type="checkbox" checked> 异常值剔除</label>
+                        <label class="param-checkbox"><input type="checkbox" checked> 缺失值插补</label>
+                        <label class="param-checkbox"><input type="checkbox"> 归一化处理</label>
+                        <label class="param-checkbox"><input type="checkbox" checked> 气象修正</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeParamModal()">取消</button>
+                <button class="btn-primary" onclick="saveParams()">保存配置</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var modelList = [
+            { name: '负荷预测模型', type: '负荷预测', version: 'v2.1.0', endpoint: 'http://192.168.1.100:8081/predict/load', status: '运行中', heartbeat: '2026-05-26 23:20:15', updated: '2026-05-20', desc: '全省负荷96点预测，基于时序Transformer网络', token: 'sk-load-****', timeout: 30, retry: 3 },
+            { name: '电价预测模型', type: '电价预测', version: 'v2.3.1', endpoint: 'http://192.168.1.100:8082/predict/price', status: '运行中', heartbeat: '2026-05-26 23:21:02', updated: '2026-05-18', desc: '日前及实时电价预测，96点粒度，融合气象特征', token: 'sk-price-****', timeout: 45, retry: 3 },
+            { name: '功率预测模型', type: '功率预测', version: 'v1.8.0', endpoint: 'http://192.168.1.100:8083/predict/power', status: '运行中', heartbeat: '2026-05-26 23:19:58', updated: '2026-05-15', desc: '光伏/风电功率预测，集成NWP数值天气预报', token: 'sk-power-****', timeout: 30, retry: 5 },
+            { name: '气象预测模型', type: '气象预测', version: 'v1.5.2', endpoint: 'http://192.168.1.101:9090/weather/forecast', status: '已停止', heartbeat: '2026-05-25 18:00:00', updated: '2026-04-28', desc: '风速、辐照度、温湿度72h预测，ECMWF驱动', token: 'sk-wthr-****', timeout: 60, retry: 3 },
+            { name: '现货价格预测模型', type: '现货价格预测', version: 'v1.2.0', endpoint: 'http://192.168.1.100:8084/predict/spot', status: '异常', heartbeat: '2026-05-26 22:45:10', updated: '2026-05-10', desc: '日前/实时现货价格预测，15分钟粒度输出', token: 'sk-spot-****', timeout: 30, retry: 2 }
+        ];
+        var editIndex = -1;
+
+        function renderTable(list) {
+            var data = list || modelList;
+            var tbody = document.getElementById('model-table-body');
+            tbody.innerHTML = '';
+            data.forEach(function(m, i) {
+                var statusClass = m.status === '运行中' ? 'badge-success' : (m.status === '已停止' ? 'badge-muted' : 'badge-danger');
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + m.name + '</strong></td>' +
+                    '<td>' + m.type + '</td>' +
+                    '<td><code style="font-size:var(--text-xs);background:var(--bg);padding:2px 6px;border-radius:4px">' + m.version + '</code></td>' +
+                    '<td><span class="mono-text">' + m.endpoint + '</span></td>' +
+                    '<td><span class="badge ' + statusClass + '">' + m.status + '</span></td>' +
+                    '<td style="font-size:var(--text-xs);color:var(--muted)">' + m.heartbeat + '</td>' +
+                    '<td style="font-size:var(--text-xs)">' + m.updated + '</td>' +
+                    '<td class="action-cell">' +
+                        (m.status === '运行中'
+                            ? '<button class="btn-toggle" onclick="toggleModel(' + i + ')" title="停止模型" style="padding:var(--space-1) var(--space-2);font-size:var(--text-xs)">停止</button>'
+                            : '<button class="btn-primary" onclick="toggleModel(' + i + ')" title="启动模型" style="padding:var(--space-1) var(--space-2);font-size:var(--text-xs)">启动</button>') +
+                        '<button class="btn-config" onclick="openParamModal(' + i + ')" title="参数配置" style="padding:var(--space-1) var(--space-2);font-size:var(--text-xs)">参数</button>' +
+                        '<button class="btn-modify" onclick="openModelModal(' + i + ')" title="编辑" style="padding:var(--space-1) var(--space-2);font-size:var(--text-xs)">编辑</button>' +
+                        '<button class="btn-delete" onclick="deleteModel(' + i + ')" title="删除" style="padding:var(--space-1) var(--space-2);font-size:var(--text-xs)">删除</button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            document.getElementById('model-count').textContent = '共 ' + data.length + ' 条记录';
+        }
+
+        function toggleModel(index) {
+            var m = modelList[index];
+            if (m.status === '运行中') {
+                if (confirm('确认停止模型「' + m.name + '」？')) {
+                    m.status = '已停止';
+                    m.heartbeat = getNowStr();
+                }
+            } else {
+                m.status = '运行中';
+                m.heartbeat = getNowStr();
+            }
+            renderTable();
+        }
+
+        function getNowStr() {
+            var d = new Date();
+            return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+        }
+        function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+        function openModelModal(index) {
+            var modal = document.getElementById('model-modal');
+            if (index === undefined || index === null || index === -1) {
+                editIndex = -1;
+                document.getElementById('model-modal-title').textContent = '注册模型';
+                ['edit-name','edit-version','edit-endpoint','edit-token','edit-desc'].forEach(function(id) {
+                    document.getElementById(id).value = '';
+                });
+                document.getElementById('edit-type').value = '负荷预测';
+                document.getElementById('edit-timeout').value = '30';
+                document.getElementById('edit-retry').value = '3';
+            } else {
+                editIndex = index;
+                document.getElementById('model-modal-title').textContent = '编辑模型';
+                var m = modelList[index];
+                document.getElementById('edit-name').value = m.name;
+                document.getElementById('edit-type').value = m.type;
+                document.getElementById('edit-version').value = m.version;
+                document.getElementById('edit-endpoint').value = m.endpoint;
+                document.getElementById('edit-token').value = m.token || '';
+                document.getElementById('edit-timeout').value = m.timeout || 30;
+                document.getElementById('edit-retry').value = m.retry || 3;
+                document.getElementById('edit-desc').value = m.desc || '';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeModelModal() {
+            document.getElementById('model-modal').style.display = 'none';
+        }
+
+        function saveModel() {
+            var data = {
+                name: document.getElementById('edit-name').value,
+                type: document.getElementById('edit-type').value,
+                version: document.getElementById('edit-version').value,
+                endpoint: document.getElementById('edit-endpoint').value,
+                token: document.getElementById('edit-token').value,
+                timeout: parseInt(document.getElementById('edit-timeout').value) || 30,
+                retry: parseInt(document.getElementById('edit-retry').value) || 3,
+                desc: document.getElementById('edit-desc').value,
+                status: '运行中',
+                heartbeat: getNowStr(),
+                updated: getTodayStr()
+            };
+            if (!data.name) { alert('请输入模型名称'); return; }
+            if (!data.endpoint) { alert('请输入服务地址'); return; }
+            if (editIndex === -1) {
+                modelList.push(data);
+            } else {
+                modelList[editIndex] = data;
+            }
+            renderTable();
+            closeModelModal();
+        }
+
+        function getTodayStr() {
+            var d = new Date();
+            return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+        }
+
+        function deleteModel(index) {
+            if (confirm('确认删除模型对接「' + modelList[index].name + '」？')) {
+                modelList.splice(index, 1);
+                renderTable();
+            }
+        }
+
+        function filterTable() {
+            var typeFilter = document.getElementById('filter-type').value;
+            var statusFilter = document.getElementById('filter-status').value;
+            var filtered = modelList.filter(function(m) {
+                if (typeFilter !== '全部模型' && m.type !== typeFilter && m.name !== typeFilter) return false;
+                if (statusFilter !== '全部状态' && m.status !== statusFilter) return false;
+                return true;
+            });
+            renderTable(filtered);
+        }
+
+        // ─── 参数配置 ──────────────────────────────────────────────
+        var paramModelIndex = -1;
+
+        function openParamModal(index) {
+            paramModelIndex = index;
+            var m = modelList[index];
+            document.getElementById('param-modal-title').textContent = '参数配置 — ' + m.name;
+            document.getElementById('param-modal').style.display = 'flex';
+        }
+
+        function closeParamModal() {
+            document.getElementById('param-modal').style.display = 'none';
+        }
+
+        function saveParams() {
+            alert('模型参数配置已保存');
+            closeParamModal();
+        }
+
+        // 点击遮罩关闭
+        var _modelModal = document.getElementById('model-modal');
+        if (_modelModal) {
+            _modelModal.addEventListener('click', function(e) {
+                if (e.target === this) closeModelModal();
+            });
+        }
+        var _paramModal = document.getElementById('param-modal');
+        if (_paramModal) {
+            _paramModal.addEventListener('click', function(e) {
+                if (e.target === this) closeParamModal();
+            });
+        }
+
+        // 初始化
+        renderTable();
+    </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>现货市场 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <!-- 主内容区域 - 由主入口提供Header和Sidebar -->
+        <main class="main-content">
+            <!-- 页面标题 -->
+            <div class="page-header">
+                <h2 class="page-title">现货市场</h2>
+                <p class="page-subtitle">现货市场出力及收益分析</p>
+            </div>
+
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>日期</label>
+                    <input type="date" class="filter-input" value="2026-05-26">
+                </div>
+                <button class="btn-primary">查询</button>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="chart-card">
+                <h3 class="chart-title">出力及价格曲线</h3>
+                <div id="output-price-chart" class="chart-container-large"></div>
+            </div>
+
+            <div class="chart-card">
+                <h3 class="chart-title">收益曲线</h3>
+                <div id="revenue-chart" class="chart-container-large"></div>
+            </div>
+        </main>
+
+    <!-- 加载脚本 -->
+    <script src="script.js"></script>
+</body>
+</html>

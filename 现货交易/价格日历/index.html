@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>价格日历 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <!-- 主内容区域 - 由主入口提供Header和Sidebar -->
+        <main class="main-content">
+            <!-- 页面标题 -->
+            <div class="page-header">
+                <h2 class="page-title">现货价格日历</h2>
+                <p class="page-subtitle">日前及实时电价日历展示</p>
+            </div>
+
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>运行月</label>
+                    <input type="month" class="filter-input" value="2026-05">
+                </div>
+                <div class="info-text">
+                    日前电价披露到当日,实时电价不定时披露.因此标签蓝日期中实时为预测电价,D+1日为日前实时预测电价
+                </div>
+            </div>
+
+            <!-- 日历标题 -->
+            <div class="calendar-header">
+                <h3 class="month-title">2026年 3月</h3>
+            </div>
+
+            <!-- 日历表格 -->
+            <div class="calendar-wrapper">
+                <table class="calendar-table">
+                    <thead>
+                        <tr>
+                            <th>一</th>
+                            <th>二</th>
+                            <th>三</th>
+                            <th>四</th>
+                            <th>五</th>
+                            <th>六</th>
+                            <th>日</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calendar-body">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+    <!-- 加载脚本 -->
+    <script src="script.js"></script>
+</body>
+</html>

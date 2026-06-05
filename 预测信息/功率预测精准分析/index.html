@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>功率预测精度分析 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <!-- 主内容区域 - 由主入口提供Header和Sidebar -->
+    <main class="main-content">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h2 class="page-title">功率预测精度分析</h2>
+            <p class="page-subtitle">功率预测精度统计与分析</p>
+        </div>
+
+        <!-- 筛选栏 -->
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>开始时间</label>
+                <input type="date" class="filter-input" value="2026-05-01">
+            </div>
+            <div class="filter-item">
+                <label>结束时间</label>
+                <input type="date" class="filter-input" value="2026-05-26">
+            </div>
+            <button class="btn-primary">查询</button>
+        </div>
+
+        <!-- 预测对比图表 - 双栏布局 -->
+        <div class="chart-grid-2">
+            <div class="chart-card">
+                <h3 class="chart-title">1小时间隔预测对比</h3>
+                <div id="power-comparison-chart" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">15分钟间隔预测对比</h3>
+                <div class="chart-toolbar">
+                    <span class="chart-badge">96点/日</span>
+                    <span class="chart-badge chart-badge-info">数据缩放可拖拽</span>
+                </div>
+                <div id="power-15min-chart" class="chart-container"></div>
+            </div>
+        </div>
+
+        <!-- 功率预测误差分析 -->
+        <div class="chart-card">
+            <h3 class="chart-title">功率预测误差分析</h3>
+            <div class="error-metrics">
+                <div class="error-metric">
+                    <span class="metric-label">平均绝对误差 (MAE)</span>
+                    <span class="metric-value" style="color: var(--accent)">0.24 <small>MW</small></span>
+                </div>
+                <div class="error-metric">
+                    <span class="metric-label">均方根误差 (RMSE)</span>
+                    <span class="metric-value" style="color: var(--danger)">0.31 <small>MW</small></span>
+                </div>
+                <div class="error-metric">
+                    <span class="metric-label">平均绝对百分比误差 (MAPE)</span>
+                    <span class="metric-value" style="color: var(--success)">5.82 <small>%</small></span>
+                </div>
+                <div class="error-metric">
+                    <span class="metric-label">预测合格率</span>
+                    <span class="metric-value" style="color: var(--warn)">93.7 <small>%</small></span>
+                </div>
+            </div>
+            <div id="error-distribution-chart" class="chart-container-large"></div>
+        </div>
+
+        <!-- 近7天功率预测准确率图表 -->
+        <div class="chart-card">
+            <h3 class="chart-title">近7天功率预测准确率</h3>
+            <div id="accuracy-7days-chart" class="chart-container-large"></div>
+        </div>
+
+        <!-- 近30天功率预测准确率图表 -->
+        <div class="chart-card">
+            <h3 class="chart-title">近30天功率预测准确率趋势</h3>
+            <div id="accuracy-30days-chart" class="chart-container-large"></div>
+        </div>
+
+        <!-- 功率预测数据表格 -->
+        <div class="table-card">
+            <h3 class="chart-title">功率预测数据</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>实际功率 (MW)</th>
+                        <th>短期预测 (MW)</th>
+                        <th>超短期预测 (MW)</th>
+                    </tr>
+                </thead>
+                <tbody id="power-data-table-body"></tbody>
+            </table>
+            <div class="pagination">
+                <span class="pagination-info">显示 1-10 条，共 24 条</span>
+                <div class="pagination-buttons">
+                    <button class="page-btn">上一页</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">下一页</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

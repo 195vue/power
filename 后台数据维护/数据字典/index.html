@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据字典 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">数据字典</h2>
+            <p class="page-subtitle">维护系统基础编码数据，如交易品种、电源类型、场站类型等</p>
+        </div>
+
+        <!-- 字典类型 Tab -->
+        <div class="tab-bar" id="dict-tabs" style="margin-bottom: var(--space-4)">
+            <button class="tab-btn active" data-tab="trade-type">交易品种</button>
+            <button class="tab-btn" data-tab="power-type">电源类型</button>
+            <button class="tab-btn" data-tab="station-type">场站类型</button>
+            <button class="tab-btn" data-tab="unit-type">计量单位</button>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>编码</label>
+                <input class="filter-input" placeholder="搜索编码" style="width:150px" id="dict-search-code">
+            </div>
+            <div class="filter-item">
+                <label>名称</label>
+                <input class="filter-input" placeholder="搜索名称" style="width:150px" id="dict-search-name">
+            </div>
+            <button class="btn-primary" onclick="filterDict()">查询</button>
+            <div style="flex:1"></div>
+            <button class="btn-primary" onclick="openDictModal()">+ 新增编码</button>
+        </div>
+
+        <div class="table-section" style="margin-top: var(--space-4)">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:80px">序号</th>
+                        <th>编码</th>
+                        <th>名称</th>
+                        <th>字典类型</th>
+                        <th>排序号</th>
+                        <th>状态</th>
+                        <th style="width:120px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="dict-table-body"></tbody>
+            </table>
+            <div class="pagination">
+                <span class="info-text" id="dict-count">共 0 条记录</span>
+                <div><button class="page-btn active">1</button></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 新增/编辑弹窗 -->
+    <div class="modal-overlay" id="dict-modal" style="display:none">
+        <div class="modal-panel" style="width:480px">
+            <div class="modal-header">
+                <h3 id="dict-modal-title">新增编码</h3>
+                <button class="modal-close" onclick="closeDictModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">编码</label>
+                        <input class="form-input" id="dict-code" placeholder="编码 Key">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">名称</label>
+                        <input class="form-input" id="dict-name" placeholder="显示名称">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">字典类型</label>
+                        <select class="form-input" id="dict-type">
+                            <option>交易品种</option>
+                            <option>电源类型</option>
+                            <option>场站类型</option>
+                            <option>计量单位</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">排序号</label>
+                        <input class="form-input" id="dict-order" type="number" placeholder="排序">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">状态</label>
+                    <select class="form-input" id="dict-status">
+                        <option>启用</option>
+                        <option>停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeDictModal()">取消</button>
+                <button class="btn-primary" onclick="saveDict()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .tab-bar { display: flex; gap: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+        .tab-btn { flex: 1; padding: var(--space-3) var(--space-4); border: none; background: transparent; cursor: pointer; font: 500 var(--text-sm)/1 var(--font-body); color: var(--muted); transition: background var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+        .tab-btn:not(:last-child) { border-right: 1px solid var(--border); }
+        .tab-btn:hover { background: var(--bg); color: var(--fg); }
+        .tab-btn.active { background: var(--accent); color: var(--accent-on); }
+    </style>
+
+    <script>
+        var dictData = {
+            'trade-type': [
+                { code: 'PRIORITY', name: '优先发电', order: 1, status: '启用' },
+                { code: 'BILATERAL', name: '双边协商', order: 2, status: '启用' },
+                { code: 'AUCTION', name: '集中竞价', order: 3, status: '启用' },
+                { code: 'LISTED', name: '挂牌交易', order: 4, status: '启用' },
+                { code: 'GREEN', name: '绿电交易', order: 5, status: '启用' },
+                { code: 'TRANSFER', name: '合同转让', order: 6, status: '启用' },
+                { code: 'ROLLING', name: '日滚动', order: 7, status: '启用' }
+            ],
+            'power-type': [
+                { code: 'PV', name: '光伏', order: 1, status: '启用' },
+                { code: 'WIND', name: '风电', order: 2, status: '启用' },
+                { code: 'HYDRO', name: '水电', order: 3, status: '启用' },
+                { code: 'THERMAL', name: '火电', order: 4, status: '启用' }
+            ],
+            'station-type': [
+                { code: 'PV_STATION', name: '光伏电站', order: 1, status: '启用' },
+                { code: 'WIND_FARM', name: '风电场', order: 2, status: '启用' },
+                { code: 'HYDRO_STATION', name: '水电站', order: 3, status: '启用' },
+                { code: 'THERMAL_PLANT', name: '火电厂', order: 4, status: '启用' }
+            ],
+            'unit-type': [
+                { code: 'MWH', name: '兆瓦时(MWh)', order: 1, status: '启用' },
+                { code: 'KWH', name: '万千瓦时(万kWh)', order: 2, status: '启用' },
+                { code: 'MW', name: '兆瓦(MW)', order: 3, status: '启用' },
+                { code: 'CNY_MWH', name: '元/兆瓦时(元/MWh)', order: 4, status: '启用' },
+                { code: 'H', name: '小时(h)', order: 5, status: '启用' },
+                { code: 'PCT', name: '百分比(%)', order: 6, status: '启用' }
+            ]
+        };
+        var currentTab = 'trade-type';
+        var dictEditIndex = -1;
+
+        function renderDict() {
+            var data = dictData[currentTab] || [];
+            var tbody = document.getElementById('dict-table-body');
+            tbody.innerHTML = '';
+            data.forEach(function(d, i) {
+                var cls = d.status === '启用' ? 'badge-success' : 'badge-muted';
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + (i + 1) + '</td>' +
+                    '<td>' + d.code + '</td>' +
+                    '<td>' + d.name + '</td>' +
+                    '<td>' + getDictTypeLabel(currentTab) + '</td>' +
+                    '<td>' + d.order + '</td>' +
+                    '<td><span class="badge ' + cls + '">' + d.status + '</span></td>' +
+                    '<td><button class="btn-config" onclick="openDictModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> <button class="btn-delete" onclick="deleteDict(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button></td>' +
+                    '</tr>';
+            });
+            document.getElementById('dict-count').textContent = '共 ' + data.length + ' 条记录';
+        }
+
+        function getDictTypeLabel(key) {
+            var map = { 'trade-type': '交易品种', 'power-type': '电源类型', 'station-type': '场站类型', 'unit-type': '计量单位' };
+            return map[key] || key;
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('#dict-tabs .tab-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            renderDict();
+        }
+
+        document.querySelectorAll('#dict-tabs .tab-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() { switchTab(this.dataset.tab); });
+        });
+
+        function openDictModal(index) {
+            var modal = document.getElementById('dict-modal');
+            if (index === undefined || index === null) {
+                dictEditIndex = -1;
+                document.getElementById('dict-modal-title').textContent = '新增编码';
+                document.getElementById('dict-code').value = '';
+                document.getElementById('dict-name').value = '';
+                document.getElementById('dict-type').value = getDictTypeLabel(currentTab);
+                document.getElementById('dict-order').value = '';
+                document.getElementById('dict-status').value = '启用';
+            } else {
+                dictEditIndex = index;
+                document.getElementById('dict-modal-title').textContent = '编辑编码';
+                var d = dictData[currentTab][index];
+                document.getElementById('dict-code').value = d.code;
+                document.getElementById('dict-name').value = d.name;
+                document.getElementById('dict-type').value = getDictTypeLabel(currentTab);
+                document.getElementById('dict-order').value = d.order;
+                document.getElementById('dict-status').value = d.status;
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeDictModal() { document.getElementById('dict-modal').style.display = 'none'; }
+
+        function saveDict() {
+            var data = {
+                code: document.getElementById('dict-code').value,
+                name: document.getElementById('dict-name').value,
+                order: parseInt(document.getElementById('dict-order').value) || 0,
+                status: document.getElementById('dict-status').value
+            };
+            if (!data.code || !data.name) { alert('请输入编码和名称'); return; }
+            if (dictEditIndex === -1) {
+                if (!dictData[currentTab]) dictData[currentTab] = [];
+                dictData[currentTab].push(data);
+            } else {
+                dictData[currentTab][dictEditIndex] = data;
+            }
+            renderDict();
+            closeDictModal();
+        }
+
+        function deleteDict(index) {
+            var name = dictData[currentTab][index].name;
+            if (confirm('确认删除编码「' + name + '」？')) {
+                dictData[currentTab].splice(index, 1);
+                renderDict();
+            }
+        }
+
+        function filterDict() { renderDict(); }
+
+        var _dictModal = document.getElementById('dict-modal');
+        if (_dictModal) {
+            _dictModal.addEventListener('click', function(e) { if (e.target === this) closeDictModal(); });
+        }
+        renderDict();
+    </script>
+</body>
+</html>

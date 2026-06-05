@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中长期辅助决策 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <!-- 主内容区域 - 由主入口提供Header和Sidebar -->
+        <main class="main-content">
+            <!-- 页面标题 -->
+            <div class="page-header">
+                <h2 class="page-title">中长期辅助决策</h2>
+                <p class="page-subtitle">中长期交易策略分析与辅助决策</p>
+            </div>
+
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>日期</label>
+                    <input type="date" class="filter-input" value="2026-05-26">
+                </div>
+                <div class="filter-item">
+                    <label>公司</label>
+                    <input type="text" class="filter-input" placeholder="输入公司">
+                </div>
+                <div class="filter-item">
+                    <label>策略</label>
+                    <select class="filter-select">
+                        <option>请选择</option>
+                        <option>策略A</option>
+                        <option>策略B</option>
+                    </select>
+                </div>
+                <button class="btn-primary">查询</button>
+                <button class="btn-save">保存策略</button>
+            </div>
+
+            <!-- 四象限布局 -->
+            <div class="quadrant-grid">
+                <!-- 左上：中长期余量分析 -->
+                <div class="quadrant quadrant-tl">
+                    <div class="quadrant-header">
+                        <h3 class="panel-title">中长期余量分析</h3>
+                    </div>
+                    <div id="volume-analysis-chart" class="chart-container-large"></div>
+
+                    <!-- 设置栏（单行） -->
+                    <div class="settings-row">
+                        <div class="set-group">
+                            <label class="form-label">交易类型</label>
+                            <select class="filter-select">
+                                <option>日滚动</option>
+                                <option>年度</option>
+                                <option>月度</option>
+                                <option>多月</option>
+                                <option>月内</option>
+                            </select>
+                        </div>
+                        <div class="set-group">
+                            <label class="form-label">申报内容</label>
+                            <select class="filter-select">
+                                <option>电量</option>
+                                <option>电价</option>
+                            </select>
+                        </div>
+                        <div class="set-group">
+                            <label class="form-label">起始</label>
+                            <input type="text" class="form-input" value="1时" readonly style="width:60px">
+                        </div>
+                        <div class="set-group">
+                            <label class="form-label">终止</label>
+                            <input type="text" class="form-input" value="1时" readonly style="width:60px">
+                        </div>
+                        <div class="set-group">
+                            <label class="form-label">倍率</label>
+                            <div style="display:flex;align-items:center;gap:4px">
+                                <input type="text" class="form-input" placeholder="0" style="width:60px">
+                                <button class="btn-modify" style="padding:4px 10px;font-size:12px">修改</button>
+                            </div>
+                        </div>
+                        <div class="set-group">
+                            <label class="form-label">固定值</label>
+                            <div style="display:flex;align-items:center;gap:4px">
+                                <input type="text" class="form-input" placeholder="0" style="width:60px">
+                                <button class="btn-modify" style="padding:4px 10px;font-size:12px">修改</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右上：中长期申报策略 -->
+                <div class="quadrant quadrant-tr">
+                    <div class="quadrant-header">
+                        <h3 class="panel-title">中长期申报策略</h3>
+                    </div>
+                    <div class="scroll-table-wrap">
+                        <button class="btn-day-rolling">日滚动</button>
+                        <table class="strategy-table">
+                            <thead>
+                                <tr>
+                                    <th>时段</th>
+                                    <th>电量上限(MWh)</th>
+                                    <th>电价取值区间(元/...</th>
+                                    <th>概率(%)</th>
+                                    <th>交易类型</th>
+                                </tr>
+                            </thead>
+                            <tbody id="strategy-table-body">
+                                <!-- 动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 左下：价格策略分析 -->
+                <div class="quadrant quadrant-bl">
+                    <div class="quadrant-header">
+                        <h3 class="panel-title">价格策略分析</h3>
+                    </div>
+                    <div class="panel-controls">
+                        <span class="control-label">参考线</span>
+                        <button class="btn-toggle active">日滚动</button>
+                        <button class="btn-toggle">平均数</button>
+                    </div>
+                    <div id="price-strategy-chart" class="chart-container-large"></div>
+
+                </div>
+
+                <!-- 右下：中长期收益 -->
+                <div class="quadrant quadrant-br">
+                    <div class="quadrant-header">
+                        <h3 class="panel-title">中长期收益</h3>
+                    </div>
+                    <div class="scroll-table-wrap">
+                        <table class="revenue-table">
+                            <thead>
+                                <tr>
+                                    <th>时段</th>
+                                    <th>日滚动(元/...</th>
+                                    <th>年度(元/MWh)</th>
+                                    <th>多月(元/MWh)</th>
+                                    <th>月度(元/MWh)</th>
+                                    <th>月内(元/MWh)</th>
+                                    <th>汇总(元/MWh)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="revenue-table-body">
+                                <!-- 动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    <!-- 加载脚本 -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>现货辅助决策 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">现货辅助决策</h2>
+            <p class="page-subtitle">现货交易策略分析与优化</p>
+        </div>
+
+        <!-- 顶部筛选栏 -->
+        <div class="top-filter-bar">
+            <div class="filter-controls">
+                <div class="filter-item">
+                    <label>载入历史方案</label>
+                    <select class="filter-select" id="strategy-select">
+                        <option>20251024 - 2025-10-24</option>
+                        <option>20251023 - 2025-10-23</option>
+                        <option>20251022 - 2025-10-22</option>
+                        <option>20251021 - 2025-10-21</option>
+                        <option>20251020 - 2025-10-20</option>
+                        <option>20251019 - 2025-10-19</option>
+                        <option>20251018 - 2025-10-18</option>
+                        <option>20251017 - 2025-10-17</option>
+                        <option>20251016 - 2025-10-16</option>
+                        <option>20251015 - 2025-10-15</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>报价日期</label>
+                    <input type="date" class="filter-input" value="2026-05-26">
+                </div>
+                <div class="filter-item">
+                    <label>测算方案</label>
+                    <select class="filter-select">
+                        <option>日前预测价格</option>
+                        <option>实时预测价格</option>
+                        <option>自定义方案</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>场站名称</label>
+                    <input type="text" class="filter-input" placeholder="输入场站">
+                </div>
+                <div class="filter-item">
+                    <label>报价策略</label>
+                    <select class="filter-select">
+                        <option>保守策略</option>
+                        <option>平衡策略</option>
+                        <option>激进策略</option>
+                    </select>
+                </div>
+                <button class="btn-primary">保存策略</button>
+                <button class="btn-config">场站参数配置</button>
+            </div>
+        </div>
+
+        <!-- 四象限网格 -->
+        <div class="quadrant-grid">
+            <!-- 左上：出力及价格曲线 -->
+            <div class="quadrant-card" style="--qt-color: #5470c6;">
+                <div class="quadrant-header">
+                    <span class="quadrant-title">出力及价格曲线</span>
+                </div>
+                <div class="quadrant-body chart-fit">
+                    <div id="output-price-chart" class="chart-container-large"></div>
+                </div>
+            </div>
+
+            <!-- 右上：预期收益曲线 + 批量调整 -->
+            <div class="quadrant-card" style="--qt-color: #17a34a;">
+                <div class="quadrant-header">
+                    <span class="quadrant-title">预期收益曲线</span>
+                </div>
+                <div class="quadrant-body chart-fit revenue-col">
+                    <div id="revenue-chart" class="chart-container-large"></div>
+                    <div class="batch-adjust-area">
+                        <div class="batch-row">
+                            <span class="batch-label">批量申报出力</span>
+                            <span class="batch-sub">倍率</span>
+                            <input type="number" class="batch-input" id="output-multiplier" value="1.0" step="0.1" min="0">
+                            <span class="batch-sub">偏移</span>
+                            <input type="number" class="batch-input" id="output-offset" value="0" step="1">
+                        </div>
+                        <div class="batch-row">
+                            <span class="batch-label">批量申报电价</span>
+                            <span class="batch-sub">倍率</span>
+                            <input type="number" class="batch-input" id="price-multiplier" value="1.0" step="0.1" min="0">
+                            <span class="batch-sub">偏移</span>
+                            <input type="number" class="batch-input" id="price-offset" value="0" step="1">
+                        </div>
+                        <button class="btn-primary batch-apply-btn" id="batch-apply">批量调整</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 左下：申报方案编辑 -->
+            <div class="quadrant-card" style="--qt-color: #eab308;">
+                <div class="quadrant-header">
+                    <span class="quadrant-title">申报方案编辑</span>
+                </div>
+                <div class="quadrant-body scroll-fit">
+                    <table class="declaration-table">
+                        <thead>
+                            <tr>
+                                <th>时段（96点）</th>
+                                <th>申报出力</th>
+                                <th>申报电价</th>
+                                <th>预测电价</th>
+                            </tr>
+                        </thead>
+                        <tbody id="declaration-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 右下：申报汇总 -->
+            <div class="quadrant-card" style="--qt-color: #8b5cf6;">
+                <div class="quadrant-header">
+                    <span class="quadrant-title">申报汇总</span>
+                </div>
+                <div class="quadrant-body">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">总申报出力</span>
+                            <span class="summary-value" id="sum-output">—</span>
+                            <span class="summary-unit">MW</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">平均申报电价</span>
+                            <span class="summary-value" id="avg-price">—</span>
+                            <span class="summary-unit">元/MWh</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">预期总收益</span>
+                            <span class="summary-value" id="total-revenue">—</span>
+                            <span class="summary-unit">元</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">均价差</span>
+                            <span class="summary-value" id="price-diff">—</span>
+                            <span class="summary-unit">元/MWh</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>

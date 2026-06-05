@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>报价策略管理 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        .strategy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-top: var(--space-4); }
+        .strategy-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-5); position: relative; }
+        .strategy-card .card-badge { position: absolute; top: var(--space-3); right: var(--space-3); font-size: 11px; padding: 2px 10px; border-radius: var(--radius-pill); }
+        .strategy-card h3 { font: 600 var(--text-lg)/1.3 var(--font-display); color: var(--fg); margin: 0 0 var(--space-2); }
+        .strategy-card .desc { font-size: var(--text-sm); color: var(--muted); margin-bottom: var(--space-4); line-height: 1.5; }
+        .param-row-s { display: flex; justify-content: space-between; align-items: center; padding: var(--space-2) 0; border-bottom: 1px solid var(--border); font-size: var(--text-sm); }
+        .param-row-s:last-child { border-bottom: none; }
+        .param-row-s .label { color: var(--muted); }
+        .param-row-s .val { font-weight: 600; color: var(--fg); }
+        .param-row-s input { width: 80px; text-align: right; padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: var(--text-sm); }
+        .param-row-s input:focus { border-color: var(--accent); box-shadow: var(--focus-ring); outline: none; }
+        .config-actions { margin-top: var(--space-4); display: flex; gap: var(--space-3); justify-content: center; }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">报价策略管理</h2>
+            <p class="page-subtitle">配置中长期及现货交易的报价策略模板参数，分位数设定直接影响策略预览和申报</p>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>适用模块</label>
+                <select class="filter-select" style="width:160px" id="filter-module">
+                    <option value="all">全部模块</option>
+                    <option>现货辅助决策</option>
+                    <option>中长期辅助决策</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>策略类型</label>
+                <select class="filter-select" style="width:140px" id="filter-type">
+                    <option value="all">全部类型</option>
+                    <option>保守</option>
+                    <option>中性</option>
+                    <option>激进</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="filterStrategies()">查询</button>
+            <div style="flex:1"></div>
+            <button class="btn-primary" onclick="openStrategyModal()">+ 新增策略</button>
+        </div>
+
+        <div id="strategy-grid" class="strategy-grid"></div>
+
+        <div class="table-section" style="margin-top: var(--space-5)">
+            <h3 style="font:500 var(--text-base)/1.5 var(--font-display);color:var(--fg);margin-bottom:var(--space-3)">策略配置明细</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>策略名称</th>
+                        <th>适用模块</th>
+                        <th>策略类型</th>
+                        <th>电价分位数</th>
+                        <th>中标概率基准</th>
+                        <th>价格上下浮动(%)</th>
+                        <th>适用场景</th>
+                        <th>状态</th>
+                        <th style="width:120px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="strategy-table-body"></tbody>
+            </table>
+            <div class="pagination">
+                <span class="info-text" id="strategy-count">共 0 条记录</span>
+                <div><button class="page-btn active">1</button></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="strategy-modal" style="display:none">
+        <div class="modal-panel" style="width:560px">
+            <div class="modal-header">
+                <h3 id="strategy-modal-title">新增策略</h3>
+                <button class="modal-close" onclick="closeStrategyModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">策略名称</label>
+                        <input class="form-input" id="edit-name" placeholder="如：现货保守报价策略">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">策略类型</label>
+                        <select class="form-input" id="edit-type">
+                            <option>保守</option>
+                            <option>中性</option>
+                            <option>激进</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">适用模块</label>
+                        <select class="form-input" id="edit-module">
+                            <option>现货辅助决策</option>
+                            <option>中长期辅助决策</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">状态</label>
+                        <select class="form-input" id="edit-status">
+                            <option>启用</option>
+                            <option>停用</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">电价分位数</label>
+                        <input class="form-input" id="edit-percentile" type="number" min="1" max="99" placeholder="如 30 表示P30">
+                        <span class="field-help">取值 1-99，P30=保守，P50=中性，P70=激进</span>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">中标概率基准 (%)</label>
+                        <input class="form-input" id="edit-probability" type="number" min="0" max="100" placeholder="如 85">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">价格上浮比例 (%)</label>
+                        <input class="form-input" id="edit-upper" type="number" placeholder="0">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">价格下浮比例 (%)</label>
+                        <input class="form-input" id="edit-lower" type="number" placeholder="0">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">适用场景说明</label>
+                    <textarea class="form-input" id="edit-scenario" rows="2" placeholder="描述该策略的适用市场条件..." style="resize:vertical;min-height:48px"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeStrategyModal()">取消</button>
+                <button class="btn-primary" onclick="saveStrategy()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var strategyList = [
+            { name: '现货保守报价策略', module: '现货辅助决策', type: '保守', percentile: 30, probability: 85, upper: 0, lower: -5, scenario: '市场供过于求时段、合约完成度偏低急需锁量时', status: '启用' },
+            { name: '现货中性报价策略', module: '现货辅助决策', type: '中性', percentile: 50, probability: 70, upper: 3, lower: -3, scenario: '常规交易日的默认选择，均衡中标概率与单位收益', status: '启用' },
+            { name: '现货激进报价策略', module: '现货辅助决策', type: '激进', percentile: 70, probability: 50, upper: 8, lower: 0, scenario: '市场供不应求时段、合约完成度充足可追求收益时', status: '启用' },
+            { name: '中长期保守报价策略', module: '中长期辅助决策', type: '保守', percentile: 35, probability: 80, upper: 0, lower: -8, scenario: '中长期合约签约窗口末期，优先锁量', status: '启用' },
+            { name: '中长期中性报价策略', module: '中长期辅助决策', type: '中性', percentile: 50, probability: 65, upper: 5, lower: -5, scenario: '常规中长期合约申报', status: '启用' },
+            { name: '中长期激进报价策略', module: '中长期辅助决策', type: '激进', percentile: 65, probability: 45, upper: 10, lower: 0, scenario: '市场看涨时，追求高收益', status: '停用' }
+        ];
+        var editIndex = -1;
+
+        function renderAll(list) {
+            var data = list || strategyList;
+            // Grid
+            var grid = document.getElementById('strategy-grid');
+            grid.innerHTML = '';
+            data.forEach(function(s, i) {
+                var cls = s.status === '启用' ? 'badge-success' : 'badge-muted';
+                grid.innerHTML +=
+                    '<div class="strategy-card">' +
+                    '<span class="card-badge badge ' + cls + '">' + s.status + '</span>' +
+                    '<h3>' + s.name + '</h3>' +
+                    '<div class="desc">' + s.scenario + '</div>' +
+                    '<div class="param-row-s"><span class="label">适用模块</span><span class="val">' + s.module + '</span></div>' +
+                    '<div class="param-row-s"><span class="label">电价分位数</span><span class="val">P' + s.percentile + '</span></div>' +
+                    '<div class="param-row-s"><span class="label">中标概率</span><span class="val">' + s.probability + '%</span></div>' +
+                    '<div class="param-row-s"><span class="label">价格浮动</span><span class="val">' + (s.lower >= 0 ? '' : '') + s.lower + '% ~ +' + s.upper + '%</span></div>' +
+                    '<div class="config-actions">' +
+                    '<button class="btn-config" onclick="openStrategyModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-toggle" onclick="toggleStrategy(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">' + (s.status === '启用' ? '停用' : '启用') + '</button> ' +
+                    '<button class="btn-delete" onclick="deleteStrategy(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '</div></div>';
+            });
+
+            // Table
+            var tbody = document.getElementById('strategy-table-body');
+            tbody.innerHTML = '';
+            data.forEach(function(s, i) {
+                var cls = s.status === '启用' ? 'badge-success' : 'badge-muted';
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + s.name + '</strong></td>' +
+                    '<td>' + s.module + '</td>' +
+                    '<td>' + s.type + '</td>' +
+                    '<td>P' + s.percentile + '</td>' +
+                    '<td>' + s.probability + '%</td>' +
+                    '<td>' + s.lower + '% ~ +' + s.upper + '%</td>' +
+                    '<td style="font-size:var(--text-xs);color:var(--muted);max-width:200px">' + s.scenario + '</td>' +
+                    '<td><span class="badge ' + cls + '">' + s.status + '</span></td>' +
+                    '<td class="action-cell"><button class="btn-config" onclick="openStrategyModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> <button class="btn-delete" onclick="deleteStrategy(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button></td></tr>';
+            });
+            document.getElementById('strategy-count').textContent = '共 ' + data.length + ' 条记录';
+        }
+
+        function toggleStrategy(index) {
+            var s = strategyList[index];
+            s.status = s.status === '启用' ? '停用' : '启用';
+            filterStrategies();
+        }
+
+        function openStrategyModal(index) {
+            var modal = document.getElementById('strategy-modal');
+            if (index === undefined || index === null || index === -1) {
+                editIndex = -1;
+                document.getElementById('strategy-modal-title').textContent = '新增策略';
+                ['edit-name','edit-scenario'].forEach(function(id) { document.getElementById(id).value = ''; });
+                document.getElementById('edit-type').value = '中性';
+                document.getElementById('edit-module').value = '现货辅助决策';
+                document.getElementById('edit-status').value = '启用';
+                document.getElementById('edit-percentile').value = '50';
+                document.getElementById('edit-probability').value = '70';
+                document.getElementById('edit-upper').value = '3';
+                document.getElementById('edit-lower').value = '-3';
+            } else {
+                editIndex = index;
+                document.getElementById('strategy-modal-title').textContent = '编辑策略';
+                var s = strategyList[index];
+                document.getElementById('edit-name').value = s.name;
+                document.getElementById('edit-type').value = s.type;
+                document.getElementById('edit-module').value = s.module;
+                document.getElementById('edit-status').value = s.status;
+                document.getElementById('edit-percentile').value = s.percentile;
+                document.getElementById('edit-probability').value = s.probability;
+                document.getElementById('edit-upper').value = s.upper;
+                document.getElementById('edit-lower').value = s.lower;
+                document.getElementById('edit-scenario').value = s.scenario;
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeStrategyModal() { document.getElementById('strategy-modal').style.display = 'none'; }
+
+        function saveStrategy() {
+            var data = {
+                name: document.getElementById('edit-name').value,
+                module: document.getElementById('edit-module').value,
+                type: document.getElementById('edit-type').value,
+                percentile: parseInt(document.getElementById('edit-percentile').value) || 50,
+                probability: parseInt(document.getElementById('edit-probability').value) || 70,
+                upper: parseInt(document.getElementById('edit-upper').value) || 0,
+                lower: parseInt(document.getElementById('edit-lower').value) || 0,
+                scenario: document.getElementById('edit-scenario').value,
+                status: document.getElementById('edit-status').value
+            };
+            if (!data.name) { alert('请输入策略名称'); return; }
+            if (editIndex === -1) { strategyList.push(data); }
+            else { strategyList[editIndex] = data; }
+            filterStrategies();
+            closeStrategyModal();
+        }
+
+        function deleteStrategy(index) {
+            if (confirm('确认删除策略「' + strategyList[index].name + '」？')) { strategyList.splice(index, 1); filterStrategies(); }
+        }
+
+        function filterStrategies() {
+            var module = document.getElementById('filter-module').value;
+            var type = document.getElementById('filter-type').value;
+            var filtered = strategyList.filter(function(s) {
+                if (module !== 'all' && s.module !== module) return false;
+                if (type !== 'all' && s.type !== type) return false;
+                return true;
+            });
+            renderAll(filtered);
+        }
+
+        var _modal = document.getElementById('strategy-modal');
+        if (_modal) { _modal.addEventListener('click', function(e) { if (e.target === this) closeStrategyModal(); }); }
+        renderAll();
+    </script>
+</body>
+</html>
