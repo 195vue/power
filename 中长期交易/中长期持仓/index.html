@@ -21,22 +21,31 @@
             <div class="filter-bar">
                 <div class="filter-item">
                     <label>年份</label>
-                    <input type="number" class="filter-input" value="2026" min="2020" max="2035" style="width:110px">
+                    <select class="filter-select">
+                        <option value="2026" selected>2026</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                    </select>
                 </div>
                 <div class="filter-item">
-                    <label>厂站名称</label>
+                    <label>场站名称</label>
                     <select class="filter-select">
-                        <option selected>所有</option>
-                        <option>电场A</option>
-                        <option>电场B</option>
+                        <option value="all" selected>所有</option>
+                        <option value="plant-a">电场A</option>
+                        <option value="plant-b">电场B</option>
                     </select>
                 </div>
                 <div class="filter-item">
                     <label>交易方式</label>
-                    <select class="filter-select">
-                        <option selected>所有</option>
-                        <option>集中竞价</option>
-                        <option>双边协商</option>
+                    <select class="filter-select" multiple size="1">
+                        <option value="all" selected>所有</option>
+                        <option value="priority" selected>优先发电</option>
+                        <option value="bilateral" selected>双边协商</option>
+                        <option value="auction" selected>集中竞价</option>
+                        <option value="listing" selected>挂牌交易</option>
+                        <option value="green" selected>绿电交易</option>
+                        <option value="transfer" selected>合同转让</option>
                     </select>
                 </div>
                 <button class="btn-primary">查询</button>
@@ -44,25 +53,25 @@
 
             <!-- 数据卡片 -->
             <div class="stats-cards">
-                <div class="stat-card">
+                <div class="stat-card" data-tooltip="所选年度、场站、交易方式筛选条件下，所有已签约且在有效期内的合同数量之和。">
                     <div class="stat-label">签约合同总数</div>
                     <div class="stat-value">32 <span class="stat-unit">(份)</span></div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" data-tooltip="所有符合条件的合同约定电量之和。">
                     <div class="stat-label">签约合同总电量</div>
-                    <div class="stat-value">1899.46 <span class="stat-unit">MWh</span></div>
+                    <div class="stat-value">1899.46 <span class="stat-unit">(万 kWh)</span></div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" data-tooltip="所有符合条件的合同约定电费之和。">
                     <div class="stat-label">签约合同总价</div>
                     <div class="stat-value">4299.46 <span class="stat-unit">(万元)</span></div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" data-tooltip="该场站年度可参与市场化交易的电量上限。增量项目按'装机容量 × 年设计利用小时数'核定；存量项目按上一年度实际上网电量核定。">
                     <div class="stat-label">累计交易电量限额</div>
-                    <div class="stat-value">2599.46 <span class="stat-unit">MWh</span></div>
+                    <div class="stat-value">2599.46 <span class="stat-unit">(万 kWh)</span></div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" data-tooltip="签约合同总电量 − 转出合同电量 + 转入合同电量。">
                     <div class="stat-label">净合约电量</div>
-                    <div class="stat-value">1899.46 <span class="stat-unit">MWh</span></div>
+                    <div class="stat-value">1899.46 <span class="stat-unit">(万 kWh)</span></div>
                 </div>
             </div>
 

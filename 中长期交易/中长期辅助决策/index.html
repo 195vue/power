@@ -25,14 +25,18 @@
                 </div>
                 <div class="filter-item">
                     <label>公司</label>
-                    <input type="text" class="filter-input" placeholder="输入公司">
+                    <select class="filter-select">
+                        <option value="current" selected>当前公司</option>
+                        <option value="company-a">公司A</option>
+                        <option value="company-b">公司B</option>
+                    </select>
                 </div>
                 <div class="filter-item">
                     <label>策略</label>
                     <select class="filter-select">
-                        <option>请选择</option>
-                        <option>策略A</option>
-                        <option>策略B</option>
+                        <option value="default" selected>常规日滚动策略</option>
+                        <option value="strategy-a">保守策略</option>
+                        <option value="strategy-b">激进策略</option>
                     </select>
                 </div>
                 <button class="btn-primary">查询</button>
@@ -68,12 +72,62 @@
                             </select>
                         </div>
                         <div class="set-group">
-                            <label class="form-label">起始</label>
-                            <input type="text" class="form-input" value="1时" readonly style="width:60px">
+                            <label class="form-label">起始时间</label>
+                            <select class="filter-select" style="width:70px">
+                                <option value="1">1时</option>
+                                <option value="2">2时</option>
+                                <option value="3">3时</option>
+                                <option value="4">4时</option>
+                                <option value="5">5时</option>
+                                <option value="6">6时</option>
+                                <option value="7">7时</option>
+                                <option value="8">8时</option>
+                                <option value="9">9时</option>
+                                <option value="10">10时</option>
+                                <option value="11">11时</option>
+                                <option value="12">12时</option>
+                                <option value="13">13时</option>
+                                <option value="14">14时</option>
+                                <option value="15">15时</option>
+                                <option value="16">16时</option>
+                                <option value="17">17时</option>
+                                <option value="18">18时</option>
+                                <option value="19">19时</option>
+                                <option value="20">20时</option>
+                                <option value="21">21时</option>
+                                <option value="22">22时</option>
+                                <option value="23">23时</option>
+                                <option value="24">24时</option>
+                            </select>
                         </div>
                         <div class="set-group">
-                            <label class="form-label">终止</label>
-                            <input type="text" class="form-input" value="1时" readonly style="width:60px">
+                            <label class="form-label">终止时间</label>
+                            <select class="filter-select" style="width:70px">
+                                <option value="1">1时</option>
+                                <option value="2">2时</option>
+                                <option value="3">3时</option>
+                                <option value="4">4时</option>
+                                <option value="5">5时</option>
+                                <option value="6">6时</option>
+                                <option value="7">7时</option>
+                                <option value="8">8时</option>
+                                <option value="9">9时</option>
+                                <option value="10">10时</option>
+                                <option value="11">11时</option>
+                                <option value="12">12时</option>
+                                <option value="13">13时</option>
+                                <option value="14">14时</option>
+                                <option value="15">15时</option>
+                                <option value="16">16时</option>
+                                <option value="17">17时</option>
+                                <option value="18">18时</option>
+                                <option value="19">19时</option>
+                                <option value="20">20时</option>
+                                <option value="21">21时</option>
+                                <option value="22">22时</option>
+                                <option value="23">23时</option>
+                                <option value="24" selected>24时</option>
+                            </select>
                         </div>
                         <div class="set-group">
                             <label class="form-label">倍率</label>
@@ -98,7 +152,13 @@
                         <h3 class="panel-title">中长期申报策略</h3>
                     </div>
                     <div class="scroll-table-wrap">
-                        <button class="btn-day-rolling">日滚动</button>
+                        <select class="filter-select trade-type-select">
+                            <option value="daily" selected>日滚动</option>
+                            <option value="intra-month">月内</option>
+                            <option value="monthly">月度</option>
+                            <option value="multi-month">多月</option>
+                            <option value="yearly">年度</option>
+                        </select>
                         <table class="strategy-table">
                             <thead>
                                 <tr>
@@ -123,8 +183,18 @@
                     </div>
                     <div class="panel-controls">
                         <span class="control-label">参考线</span>
-                        <button class="btn-toggle active">日滚动</button>
-                        <button class="btn-toggle">平均数</button>
+                        <select class="filter-select ref-variety">
+                            <option value="daily" selected>日滚动</option>
+                            <option value="yearly">年度</option>
+                            <option value="multi-month">多月</option>
+                            <option value="monthly">月度</option>
+                            <option value="intra-month">月内</option>
+                        </select>
+                        <select class="filter-select ref-stat">
+                            <option value="avg" selected>平均数</option>
+                            <option value="max">最大值</option>
+                            <option value="min">最小值</option>
+                        </select>
                     </div>
                     <div id="price-strategy-chart" class="chart-container-large"></div>
 

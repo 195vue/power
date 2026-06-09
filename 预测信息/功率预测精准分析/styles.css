@@ -45,6 +45,24 @@
     box-shadow: var(--focus-ring);
 }
 
+.filter-select {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    outline: none;
+    transition: border-color var(--motion-fast) var(--ease-standard);
+    min-width: 120px;
+}
+
+.filter-select:focus {
+    border-color: var(--accent);
+    box-shadow: var(--focus-ring);
+}
+
 .chart-card {
     background: var(--surface);
     padding: 20px;
