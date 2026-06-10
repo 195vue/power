@@ -236,14 +236,14 @@ priceStrategyChart.setOption({
 
 // 生成策略表格数据
 const strategyTableBody = document.getElementById('strategy-table-body');
-const strategyHours = Array.from({length: 23}, (_, i) => `${i + 1}时`);
+const strategyHours = Array.from({length: 24}, (_, i) => `${i + 1}时`);
 
 strategyHours.forEach(hour => {
     const row = document.createElement('tr');
     row.innerHTML = `
         <td>${hour}</td>
-        <td>0</td>
-        <td>0</td>
+        <td class="editable-cell" data-field="volume">0</td>
+        <td class="editable-cell" data-field="price">0</td>
         <td>0</td>
         <td>日滚动</td>
     `;
@@ -258,15 +258,98 @@ revenueHours.forEach(hour => {
     const row = document.createElement('tr');
     row.innerHTML = `
         <td>${hour}</td>
-        <td>0.00</td>
-        <td>0.00</td>
-        <td>0.00</td>
-        <td>0.00</td>
-        <td>0.00</td>
-        <td>0.00</td>
+        <td class="editable-cell">0.00</td>
+        <td class="editable-cell">0.00</td>
+        <td class="editable-cell">0.00</td>
+        <td class="editable-cell">0.00</td>
+        <td class="editable-cell">0.00</td>
+        <td class="editable-cell">0.00</td>
     `;
     revenueTableBody.appendChild(row);
 });
+
+// 双击编辑功能
+function setupEditableCells() {
+    // 策略表编辑
+    const strategyEditableCells = document.querySelectorAll('.strategy-table .editable-cell');
+    strategyEditableCells.forEach(cell => {
+        cell.addEventListener('dblclick', function() {
+            makeCellEditable(this);
+        });
+    });
+
+    // 收益表编辑
+    const revenueEditableCells = document.querySelectorAll('.revenue-table .editable-cell');
+    revenueEditableCells.forEach(cell => {
+        cell.addEventListener('dblclick', function() {
+            makeCellEditable(this);
+        });
+    });
+}
+
+// 使单元格可编辑
+function makeCellEditable(cell) {
+    if (cell.querySelector('input')) return; // 已经在编辑中
+
+    const originalValue = cell.textContent.trim();
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = originalValue;
+    input.style.cssText = 'width: 100%; padding: 8px; border: 1px solid var(--accent); border-radius: 4px; font-size: 13px; text-align: center;';
+
+    cell.textContent = '';
+    cell.appendChild(input);
+    input.focus();
+    input.select();
+
+    // 保存原始值，用于取消时恢复
+    cell.dataset.originalValue = originalValue;
+
+    // 回车确认
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmEdit(cell, input.value);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelEdit(cell);
+        }
+    });
+
+    // 失去焦点时确认
+    input.addEventListener('blur', function() {
+        confirmEdit(cell, input.value);
+    });
+}
+
+// 确认编辑
+function confirmEdit(cell, newValue) {
+    const trimmedValue = newValue.trim();
+    cell.textContent = trimmedValue;
+
+    // 标记为已修改（可选：添加视觉提示）
+    cell.style.color = 'var(--accent)';
+    cell.style.fontWeight = '500';
+
+    // 刷新相关图表
+    refreshCharts();
+}
+
+// 取消编辑
+function cancelEdit(cell) {
+    cell.textContent = cell.dataset.originalValue;
+}
+
+// 刷新图表（模拟）
+function refreshCharts() {
+    // 实际项目中，这里应该根据修改后的数据重新计算并刷新图表
+    console.log('刷新图表...');
+    // volumeAnalysisChart.setOption({...});
+    // priceStrategyChart.setOption({...});
+}
+
+// 初始化编辑功能
+setupEditableCells();
 
 // 响应式调整
 window.addEventListener('resize', () => {

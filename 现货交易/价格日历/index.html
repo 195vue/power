@@ -21,16 +21,21 @@
             <div class="filter-bar">
                 <div class="filter-item">
                     <label>运行月</label>
-                    <input type="month" class="filter-input" value="2026-05">
+                    <input type="month" class="filter-input" value="2026-05" id="month-input">
                 </div>
-                <div class="info-text">
-                    日前电价披露到当日,实时电价不定时披露.因此标签蓝日期中实时为预测电价,D+1日为日前实时预测电价
+                <div class="info-icon" title="披露规则：日前电价披露到当日，实时电价不定时披露。蓝色日期中实时为预测电价，D+1日为日前实时预测电价">
+                    ℹ️
                 </div>
+            </div>
+
+            <!-- 异常提示 -->
+            <div class="warning-banner" id="no-data-warning" style="display: none;">
+                ⚠️ 所选月份暂无价格数据
             </div>
 
             <!-- 日历标题 -->
             <div class="calendar-header">
-                <h3 class="month-title">2026年 3月</h3>
+                <h3 class="month-title" id="month-title">2026年 5月</h3>
             </div>
 
             <!-- 日历表格 -->

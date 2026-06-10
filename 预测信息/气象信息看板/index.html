@@ -26,20 +26,38 @@
         <!-- 筛选栏 -->
         <div class="filter-bar">
             <div class="filter-item">
-                <label>气象类型</label>
-                <select class="filter-select"><option>全部</option><option>风速</option><option>辐照度</option><option>温度</option><option>湿度</option></select>
+                <label>气象数据源</label>
+                <select class="filter-select" id="data-source-select">
+                    <option value="ECMWF">ECMWF</option>
+                    <option value="NMC">国家气象中心(NMC)</option>
+                    <option value="GRIB">GRIB2</option>
+                    <option value="WRF">WRF模式</option>
+                </select>
             </div>
             <div class="filter-item">
-                <label>预测时段</label>
-                <select class="filter-select"><option>全部</option><option>24小时</option><option>48小时</option><option>72小时</option></select>
+                <label>预测时长</label>
+                <select class="filter-select" id="forecast-duration-select">
+                    <option value="1h">实时（1h内）</option>
+                    <option value="1d">短期（1D内）</option>
+                    <option value="3d">中期（3D内）</option>
+                    <option value="1w">中期（1周内）</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>气象类型</label>
+                <select class="filter-select"><option>全部</option><option>风速</option><option>辐照度</option><option>温度</option><option>湿度</option></select>
             </div>
             <div class="filter-item">
                 <label>查询日期</label>
                 <input type="date" class="filter-input" value="2026-05-26">
             </div>
-            <button class="btn-primary">查询数据</button>
-            <button class="btn-secondary">导出报表</button>
-            <span class="data-source">数据来源：国家气象中心 | 每15分钟更新</span>
+            <button class="btn-primary" id="query-data-btn">查询数据</button>
+            <button class="btn-secondary" id="export-report-btn">导出报表</button>
+            <button class="btn-secondary" id="refresh-btn">刷新</button>
+            <div class="status-indicator">
+                <span class="data-source">数据来源：<span id="current-source">ECMWF</span></span>
+                <span class="update-time">数据最后更新于：<span id="last-update-time">2026-05-26 14:30:00</span></span>
+            </div>
         </div>
 
         <!-- Tab标签 -->

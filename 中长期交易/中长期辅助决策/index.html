@@ -152,6 +152,16 @@
                         <h3 class="panel-title">中长期申报策略</h3>
                     </div>
                     <div class="scroll-table-wrap">
+                        <!-- 全时段过签提示 -->
+                        <div class="warning-banner" id="over-sign-warning" style="display: none;">
+                            ⚠️ 当前日期所有时段均已过签，建议不再新增中长期申报
+                        </div>
+
+                        <!-- 保存提示 -->
+                        <div class="edit-hint">
+                            💡 双击"电量上限"和"电价取值区间"单元格可编辑，编辑后点击顶部"保存策略"按钮提交
+                        </div>
+
                         <select class="filter-select trade-type-select">
                             <option value="daily" selected>日滚动</option>
                             <option value="intra-month">月内</option>
@@ -163,8 +173,8 @@
                             <thead>
                                 <tr>
                                     <th>时段</th>
-                                    <th>电量上限(MWh)</th>
-                                    <th>电价取值区间(元/...</th>
+                                    <th class="editable-col">电量上限(MWh) <span class="edit-icon">✎</span></th>
+                                    <th class="editable-col">电价取值区间(元/MWh) <span class="edit-icon">✎</span></th>
                                     <th>概率(%)</th>
                                     <th>交易类型</th>
                                 </tr>

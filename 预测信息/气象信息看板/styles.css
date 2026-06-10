@@ -64,10 +64,26 @@
     color: var(--accent);
 }
 
+.status-indicator {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-left: auto;
+}
+
 .data-source {
     font-size: 12px;
     color: var(--meta);
-    margin-left: auto;
+}
+
+.update-time {
+    font-size: 12px;
+    color: var(--meta);
+}
+
+#current-source, #last-update-time {
+    color: var(--accent);
+    font-weight: 500;
 }
 
 .tabs {

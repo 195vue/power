@@ -173,21 +173,38 @@
     background: var(--bg);
 }
 
-/* 正负值颜色 */
-.data-table .positive {
-    color: var(--success);
+/* 正负值颜色 - 统一规范 */
+/* 正向变化（差值为正、变化率为正）用绿色 */
+.data-table .positive,
+.data-table .value-positive {
+    color: #22c55e;
+    font-weight: 500;
 }
 
-.data-table .negative {
-    color: var(--accent);
+/* 负向变化（差值为负、变化率为负）用蓝色 */
+.data-table .negative,
+.data-table .value-negative {
+    color: #3b82f6;
+    font-weight: 500;
 }
 
+/* 保留兼容性 */
 .data-table .increase {
-    color: var(--danger);
+    color: #22c55e;
+    font-weight: 500;
 }
 
 .data-table .decrease {
-    color: var(--accent);
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+/* 排序提示 */
+.sort-hint {
+    font-size: 12px;
+    color: #999;
+    font-weight: normal;
+    margin-left: 8px;
 }
 
 /* 图表区域 */

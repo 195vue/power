@@ -178,6 +178,23 @@ function updateSummary() {
     document.getElementById('price-diff').textContent = (diff >= 0 ? '+' : '') + diff.toFixed(2);
 }
 
+// ─── 场站参数配置弹窗 ───
+function openConfigModal() {
+    console.log('11111111111');
+    
+    var modal = document.getElementById('config-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function closeConfigModal() {
+    var modal = document.getElementById('config-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
 // ─── 单元格手动编辑后更新汇总 ───
 document.addEventListener('input', function(e) {
     if (e.target.classList.contains('cell-input')) {

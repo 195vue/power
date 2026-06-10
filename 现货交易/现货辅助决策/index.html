@@ -39,26 +39,29 @@
                 </div>
                 <div class="filter-item">
                     <label>测算方案</label>
-                    <select class="filter-select">
-                        <option>日前预测价格</option>
-                        <option>实时预测价格</option>
-                        <option>自定义方案</option>
+                    <select class="filter-select" id="calc-method">
+                        <option value="day-ahead">日前预测价格</option>
+                        <option value="real-time">实时预测价格</option>
                     </select>
                 </div>
                 <div class="filter-item">
                     <label>场站名称</label>
-                    <input type="text" class="filter-input" placeholder="输入场站">
+                    <select class="filter-select" id="station-select">
+                        <option>电场A（默认）</option>
+                        <option>电场B</option>
+                        <option>电场C</option>
+                    </select>
                 </div>
                 <div class="filter-item">
                     <label>报价策略</label>
-                    <select class="filter-select">
-                        <option>保守策略</option>
-                        <option>平衡策略</option>
-                        <option>激进策略</option>
+                    <select class="filter-select" id="quote-strategy">
+                        <option value="conservative">保守策略（P30）</option>
+                        <option value="neutral" selected>中性策略（P50）</option>
+                        <option value="aggressive">激进策略（P70）</option>
                     </select>
                 </div>
-                <button class="btn-primary">保存策略</button>
-                <button class="btn-config">场站参数配置</button>
+                <button class="btn-primary" id="save-strategy-btn">保存策略</button>
+                <button class="btn-config" onclick="showConfigModal()">场站参数配置</button>
             </div>
         </div>
 
@@ -153,6 +156,111 @@
             </div>
         </div>
     </main>
+
+    <!-- 场站参数配置弹窗 -->
+    <div class="modal-overlay" id="config-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">场站参数配置</span>
+                <button class="modal-close" onclick="closeConfigModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="param-grid">
+                    <div class="param-item">
+                        <label>装机容量（MW）</label>
+                        <input type="number" class="param-input" id="param-capacity" value="200" step="1">
+                    </div>
+                    <div class="param-item">
+                        <label>最小技术出力（MW）</label>
+                        <input type="number" class="param-input" id="param-min-output" value="0" step="1">
+                    </div>
+                    <div class="param-item">
+                        <label>爬坡率上限（MW/min）</label>
+                        <input type="number" class="param-input" id="param-ramp-up" value="10" step="0.1">
+                    </div>
+                    <div class="param-item">
+                        <label>爬坡率下限（MW/min）</label>
+                        <input type="number" class="param-input" id="param-ramp-down" value="-10" step="0.1">
+                    </div>
+                    <div class="param-item" style="grid-column: span 2;">
+                        <label>启停约束（次/日）</label>
+                        <input type="number" class="param-input" id="param-start-stop" value="0" step="1">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeConfigModal()">取消</button>
+                <button class="btn-primary" onclick="closeConfigModal(); alert('场站参数保存成功！')">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function showConfigModal() {
+        var modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;';
+        
+        var content = document.createElement('div');
+        content.style.cssText = 'background:#fff;border-radius:8px;width:480px;max-width:90%;box-shadow:0 10px 30px rgba(0,0,0,0.2);';
+        
+        content.innerHTML = `
+            <div style="padding:16px 20px;border-bottom:1px solid #e8e8e8;display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:16px;font-weight:600;color:#333;">场站参数配置</span>
+                <button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;font-size:24px;color:#999;cursor:pointer;">×</button>
+            </div>
+            <div style="padding:20px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div>
+                        <label style="font-size:13px;color:#666;">装机容量（MW）</label>
+                        <input type="number" id="param-capacity" value="200" step="1" style="padding:10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;width:100%;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:13px;color:#666;">最小技术出力（MW）</label>
+                        <input type="number" id="param-min-output" value="0" step="1" style="padding:10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;width:100%;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:13px;color:#666;">爬坡率上限（MW/min）</label>
+                        <input type="number" id="param-ramp-up" value="10" step="0.1" style="padding:10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;width:100%;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:13px;color:#666;">爬坡率下限（MW/min）</label>
+                        <input type="number" id="param-ramp-down" value="-10" step="0.1" style="padding:10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;width:100%;box-sizing:border-box;">
+                    </div>
+                    <div style="grid-column:span 2;">
+                        <label style="font-size:13px;color:#666;">启停约束（次/日）</label>
+                        <input type="number" id="param-start-stop" value="0" step="1" style="padding:10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;width:100%;box-sizing:border-box;">
+                    </div>
+                </div>
+            </div>
+            <div style="padding:14px 20px;border-top:1px solid #e8e8e8;display:flex;justify-content:flex-end;gap:12px;">
+                <button onclick="this.closest('.modal-overlay').remove()" style="padding:8px 16px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;cursor:pointer;background:#fff;color:#333;">取消</button>
+                <button onclick="saveConfig(this)" style="padding:8px 16px;border:none;border-radius:4px;font-size:14px;cursor:pointer;background:#1890ff;color:#fff;">保存</button>
+            </div>
+        `;
+        
+        modal.className = 'modal-overlay';
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+        
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        };
+    }
+    
+    function saveConfig(btn) {
+        var modal = btn.closest('.modal-overlay');
+        // var capacity = document.getElementById('param-capacity').value;
+        // var minOutput = document.getElementById('param-min-output').value;
+        // var rampUp = document.getElementById('param-ramp-up').value;
+        // var rampDown = document.getElementById('param-ramp-down').value;
+        // var startStop = document.getElementById('param-start-stop').value;
+        
+        modal.remove();
+        alert('场站参数保存成功！');
+    }
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

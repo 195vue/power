@@ -55,7 +55,9 @@
                     <option value="r2">决定系数</option>
                 </select>
             </div>
-            <button class="btn-primary">查询</button>
+            <button class="btn-primary" id="query-btn">查询</button>
+            <button class="btn-secondary" id="export-btn">导出报表</button>
+            <span class="query-status" id="query-status"></span>
         </div>
 
         <!-- 预测对比图表 - 双栏布局 -->
@@ -112,14 +114,17 @@
 
         <!-- 功率预测数据表格 -->
         <div class="table-card">
-            <h3 class="chart-title">功率预测数据</h3>
+            <div class="table-header">
+                <h3 class="chart-title">功率预测数据</h3>
+            </div>
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>时间</th>
                         <th>实际功率 (MW)</th>
-                        <th>短期预测 (MW)</th>
-                        <th>超短期预测 (MW)</th>
+                        <th>预测功率 (MW)</th>
+                        <th>偏差 (MW)</th>
+                        <th>偏差率 (%)</th>
                     </tr>
                 </thead>
                 <tbody id="power-data-table-body"></tbody>

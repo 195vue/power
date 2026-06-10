@@ -9,263 +9,225 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body>
-    <!-- 主内容区域 - 由主入口提供Header和Sidebar -->
-        <main class="main-content">
-            <!-- 页面标题 -->
-            <div class="page-header">
-                <h2 class="page-title">复盘看板</h2>
-                <p class="page-subtitle">交易结果分析与结算对比</p>
-            </div>
+    <main class="main-content">
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h2 class="page-title">复盘看板</h2>
+            <p class="page-subtitle">交易结果分析与结算对比</p>
+        </div>
 
-            <!-- 日期筛选栏 -->
-            <div class="filter-bar">
-                <div class="filter-item">
-                    <label>日期选择</label>
-                    <input type="date" class="filter-input" value="2026-05-01">
-                    <span style="margin: 0 8px;">至</span>
-                    <input type="date" class="filter-input" value="2026-05-26">
-                </div>
-                <button class="btn-primary">查询</button>
-                <button class="btn-secondary">导出</button>
+        <!-- 日期筛选栏 -->
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>日期选择</label>
+                <input type="date" id="start-date" class="filter-input" value="2026-05-01">
+                <span style="margin: 0 8px;">至</span>
+                <input type="date" id="end-date" class="filter-input" value="2026-05-26">
             </div>
+            <button class="btn-primary" id="query-btn">查询</button>
+            <button class="btn-secondary">导出</button>
+        </div>
 
-            <!-- 数据卡片 -->
-            <div class="stats-cards">
-                <div class="stat-card">
-                    <div class="stat-card-icon"></div>
-                    <div class="stat-card-label">中长期合约</div>
-                    <div class="stat-card-value">128.46 <span class="unit">MWh</span></div>
-                    <div class="stat-card-detail">
-                        <div>电费: 6.42 万元</div>
-                        <div>电价: 498.6 元/MWh</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-icon"></div>
-                    <div class="stat-card-label">日前偏差</div>
-                    <div class="stat-card-value">15.32 <span class="unit">MWh</span></div>
-                    <div class="stat-card-detail">
-                        <div>电费: 0.76 万元</div>
-                        <div>电价: 496.8 元/MWh</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-icon"></div>
-                    <div class="stat-card-label">实时偏差</div>
-                    <div class="stat-card-value">6.85 <span class="unit">MWh</span></div>
-                    <div class="stat-card-detail">
-                        <div>电费: 0.34 万元</div>
-                        <div>电价: 502.4 元/MWh</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-icon"></div>
-                    <div class="stat-card-label">发电机组超额回收</div>
-                    <div class="stat-card-value">2.18 <span class="unit">万元</span></div>
+        <!-- 数据卡片 -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-card-icon"></div>
+                <div class="stat-card-label">中长期合约</div>
+                <div class="stat-card-value">128.46 <span class="unit">MWh</span></div>
+                <div class="stat-card-detail">
+                    <div>电费: 6.42 万元</div>
+                    <div>电价: 498.6 元/MWh</div>
                 </div>
             </div>
-
-            <!-- 结算单对比表格 -->
-            <div class="table-section">
-                <h3 class="section-title">结算单对比</h3>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>项目</th>
-                            <th>本期值</th>
-                            <th>上期值</th>
-                            <th>差值</th>
-                            <th>变化率</th>
-                            <th>备注</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>中长期合约电量</td>
-                            <td>128.46 MWh</td>
-                            <td>120.38 MWh</td>
-                            <td class="positive">+8.08 MWh</td>
-                            <td class="positive">+6.71%</td>
-                            <td>合约量增加</td>
-                        </tr>
-                        <tr>
-                            <td>日前偏差电量</td>
-                            <td>15.32 MWh</td>
-                            <td>18.45 MWh</td>
-                            <td class="decrease">-3.13 MWh</td>
-                            <td class="decrease">-16.96%</td>
-                            <td>偏差率降低</td>
-                        </tr>
-                        <tr>
-                            <td>实时偏差电量</td>
-                            <td>6.85 MWh</td>
-                            <td>7.21 MWh</td>
-                            <td class="decrease">-0.36 MWh</td>
-                            <td class="decrease">-4.99%</td>
-                            <td>运行稳定</td>
-                        </tr>
-                        <tr>
-                            <td>总电费</td>
-                            <td>7.52 万元</td>
-                            <td>7.38 万元</td>
-                            <td class="increase">+0.14 万元</td>
-                            <td class="increase">+1.90%</td>
-                            <td>电价小幅上涨</td>
-                        </tr>
-                        <tr>
-                            <td>超额回收金额</td>
-                            <td>2.18 万元</td>
-                            <td>1.95 万元</td>
-                            <td class="positive">+0.23 万元</td>
-                            <td class="positive">+11.79%</td>
-                            <td>回收效率提升</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 图表区域 -->
-            <div class="charts-row">
-                <!-- 当日交易电量曲线 -->
-                <div class="chart-card">
-                    <h3 class="chart-title">当日交易电量曲线</h3>
-                    <div id="volume-chart" class="chart-container"></div>
-                </div>
-
-                <!-- 电价曲线 -->
-                <div class="chart-card">
-                    <h3 class="chart-title">当日交易电价曲线</h3>
-                    <div id="price-chart" class="chart-container"></div>
+            <div class="stat-card">
+                <div class="stat-card-icon"></div>
+                <div class="stat-card-label">日前偏差</div>
+                <div class="stat-card-value">15.32 <span class="unit">MWh</span></div>
+                <div class="stat-card-detail">
+                    <div>电费: 0.76 万元</div>
+                    <div>电价: 496.8 元/MWh</div>
                 </div>
             </div>
-        </main>
+            <div class="stat-card">
+                <div class="stat-card-icon"></div>
+                <div class="stat-card-label">实时偏差</div>
+                <div class="stat-card-value">6.85 <span class="unit">MWh</span></div>
+                <div class="stat-card-detail">
+                    <div>电费: 0.34 万元</div>
+                    <div>电价: 502.4 元/MWh</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon"></div>
+                <div class="stat-card-label">发电机组超额回收</div>
+                <div class="stat-card-value">2.18 <span class="unit">万元</span></div>
+            </div>
+        </div>
+
+        <!-- 结算单对比表格 -->
+        <div class="table-section">
+            <h3 class="section-title">结算单对比</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>项目</th>
+                        <th>本期值</th>
+                        <th>上期值</th>
+                        <th>差值</th>
+                        <th>变化率</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>中长期合约电量</td>
+                        <td>128.46 MWh</td>
+                        <td>120.38 MWh</td>
+                        <td style="color: #22c55e;">+8.08 MWh</td>
+                        <td style="color: #22c55e;">+6.71%</td>
+                        <td>合约量增加</td>
+                    </tr>
+                    <tr>
+                        <td>日前偏差电量</td>
+                        <td>15.32 MWh</td>
+                        <td>18.45 MWh</td>
+                        <td style="color: #3b82f6;">-3.13 MWh</td>
+                        <td style="color: #3b82f6;">-16.96%</td>
+                        <td>偏差率降低</td>
+                    </tr>
+                    <tr>
+                        <td>实时偏差电量</td>
+                        <td>6.85 MWh</td>
+                        <td>7.21 MWh</td>
+                        <td style="color: #3b82f6;">-0.36 MWh</td>
+                        <td style="color: #3b82f6;">-4.99%</td>
+                        <td>运行稳定</td>
+                    </tr>
+                    <tr>
+                        <td>总电费</td>
+                        <td>7.52 万元</td>
+                        <td>7.38 万元</td>
+                        <td style="color: #22c55e;">+0.14 万元</td>
+                        <td style="color: #22c55e;">+1.90%</td>
+                        <td>电价小幅上涨</td>
+                    </tr>
+                    <tr>
+                        <td>超额回收金额</td>
+                        <td>2.18 万元</td>
+                        <td>1.95 万元</td>
+                        <td style="color: #22c55e;">+0.23 万元</td>
+                        <td style="color: #22c55e;">+11.79%</td>
+                        <td>回收效率提升</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 图表区域 -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <h3 class="chart-title">当日交易电量曲线</h3>
+                <div id="volume-chart" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">当日交易电价曲线</h3>
+                <div id="price-chart" class="chart-container"></div>
+            </div>
+        </div>
+    </main>
 
     <script>
-        // 当日交易电量曲线
-        const volumeChart = echarts.init(document.getElementById('volume-chart'));
-        volumeChart.setOption({
-            tooltip: {
-                trigger: 'axis'
-            },
-            legend: {
-                data: ['实际执行电量', '日前出清电量(预测)'],
-                top: 0,
-                right: 0,
-                itemWidth: 14,
-                itemHeight: 14
-            },
-            grid: {
-                left: '45',
-                right: '20',
-                bottom: '40',
-                top: '40'
-            },
-            xAxis: {
-                type: 'category',
-                boundaryGap: false,
-                data: ['0:00', '4:00', '8:00', '12:00', '16:00', '20:00', '24:00']
-            },
-            yAxis: {
-                type: 'value',
-                name: '电量 (MWh)',
-                max: 20,
-                min: 4
-            },
-            series: [
-                {
-                    name: '实际执行电量',
-                    type: 'line',
-                    smooth: true,
-                    data: [7, 11.5, 10.5, 14.5, 13, 15.5, 11],
-                    symbol: 'circle',
-                    symbolSize: 6,
-                    itemStyle: {
-                        color: '#2f6feb'
-                    },
-                    lineStyle: {
-                        width: 2
-                    }
-                },
-                {
-                    name: '日前出清电量(预测)',
-                    type: 'line',
-                    smooth: true,
-                    data: [8, 9.5, 9, 12.5, 11.5, 13.5, 10],
-                    symbol: 'circle',
-                    symbolSize: 6,
-                    itemStyle: {
-                        color: '#17a34a'
-                    },
-                    lineStyle: {
-                        width: 2,
-                        type: 'dashed'
-                    }
-                }
-            ]
-        });
+        // 生成24小时时间标签
+        var hours = [];
+        for (var i = 0; i < 24; i++) {
+            hours.push(i + ':00');
+        }
 
-        // 电价曲线
-        const priceChart = echarts.init(document.getElementById('price-chart'));
-        priceChart.setOption({
-            tooltip: {
-                trigger: 'axis'
-            },
-            legend: {
-                data: ['实际出清电价', '日前出清电价(预测)'],
-                top: 0,
-                right: 0,
-                itemWidth: 14,
-                itemHeight: 14
-            },
-            grid: {
-                left: '45',
-                right: '20',
-                bottom: '40',
-                top: '40'
-            },
-            xAxis: {
-                type: 'category',
-                boundaryGap: false,
-                data: ['0:00', '4:00', '8:00', '12:00', '16:00', '20:00', '24:00']
-            },
-            yAxis: {
-                type: 'value',
-                name: '电价 (元/MWh)',
-                min: 150,
-                max: 600
-            },
-            series: [
-                {
-                    name: '实际出清电价',
-                    type: 'line',
-                    smooth: true,
-                    data: [350, 420, 400, 460, 440, 470, 400],
-                    symbol: 'circle',
-                    symbolSize: 6,
-                    itemStyle: {
-                        color: '#eab308'
-                    },
-                    lineStyle: {
-                        width: 2
+        // 电量数据
+        var volumeData = [7, 8.5, 9, 11.5, 12, 13, 14.5, 15, 14, 13.5, 13, 14.5, 15.5, 14, 12.5, 11, 10.5, 11.5, 13, 15, 16, 15.5, 13, 11];
+        var forecastVolumeData = [8, 9, 9.5, 10, 11, 12, 12.5, 13, 12, 11.5, 11, 12.5, 13.5, 14, 13, 12, 11, 10, 11, 12, 13.5, 14, 13, 10];
+
+        // 电价数据
+        var priceData = [350, 365, 380, 420, 440, 450, 460, 470, 480, 460, 440, 420, 410, 400, 380, 360, 340, 350, 370, 400, 430, 450, 440, 400];
+        var forecastPriceData = [310, 325, 340, 360, 380, 400, 420, 440, 430, 410, 390, 370, 360, 350, 340, 320, 300, 310, 330, 360, 390, 410, 400, 350];
+
+        // 初始化图表函数
+        function initCharts() {
+            var volumeChartEl = document.getElementById('volume-chart');
+            var priceChartEl = document.getElementById('price-chart');
+            
+            if (!volumeChartEl || !priceChartEl) {
+                setTimeout(initCharts, 50);
+                return;
+            }
+
+            window.volumeChart = echarts.init(volumeChartEl);
+            window.volumeChart.setOption({
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['实际执行电量', '日前出清电量(预测)'], top: 0, right: 0 },
+                grid: { left: '45', right: '20', bottom: '40', top: '40' },
+                xAxis: { type: 'category', boundaryGap: false, data: hours },
+                yAxis: { type: 'value', name: '电量 (MWh)', max: 20, min: 0 },
+                series: [
+                    { name: '实际执行电量', type: 'line', smooth: true, data: volumeData, symbol: 'circle', symbolSize: 4, itemStyle: { color: '#2f6feb' }, lineStyle: { width: 2 } },
+                    { name: '日前出清电量(预测)', type: 'line', smooth: true, data: forecastVolumeData, symbol: 'circle', symbolSize: 4, itemStyle: { color: '#17a34a' }, lineStyle: { width: 2, type: 'dashed' } }
+                ]
+            });
+
+            window.priceChart = echarts.init(priceChartEl);
+            window.priceChart.setOption({
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['实际出清电价', '日前出清电价(预测)'], top: 0, right: 0 },
+                grid: { left: '45', right: '20', bottom: '40', top: '40' },
+                xAxis: { type: 'category', boundaryGap: false, data: hours },
+                yAxis: { type: 'value', name: '电价 (元/MWh)', min: 200, max: 550 },
+                series: [
+                    { name: '实际出清电价', type: 'line', smooth: true, data: priceData, symbol: 'circle', symbolSize: 4, itemStyle: { color: '#eab308' }, lineStyle: { width: 2 } },
+                    { name: '日前出清电价(预测)', type: 'line', smooth: true, data: forecastPriceData, symbol: 'circle', symbolSize: 4, itemStyle: { color: '#dc2626' }, lineStyle: { width: 2, type: 'dashed' } }
+                ]
+            });
+        }
+
+        // 初始化查询按钮事件
+        function initQueryButton() {
+            var queryBtn = document.getElementById('query-btn');
+            if (queryBtn) {
+                queryBtn.onclick = function() {
+                    var newVolumeData = [];
+                    var newPriceData = [];
+                    for (var i = 0; i < 24; i++) {
+                        newVolumeData.push(Math.round((10 + Math.random() * 6) * 100) / 100);
+                        newPriceData.push(Math.round((350 + Math.random() * 130) * 100) / 100);
                     }
-                },
-                {
-                    name: '日前出清电价(预测)',
-                    type: 'line',
-                    smooth: true,
-                    data: [310, 340, 320, 380, 360, 410, 350],
-                    symbol: 'circle',
-                    symbolSize: 6,
-                    itemStyle: {
-                        color: '#dc2626'
-                    },
-                    lineStyle: {
-                        width: 2,
-                        type: 'dashed'
+                    
+                    if (window.volumeChart) {
+                        window.volumeChart.setOption({ series: [{ data: newVolumeData }, { data: forecastVolumeData }] });
                     }
-                }
-            ]
-        });
+                    if (window.priceChart) {
+                        window.priceChart.setOption({ series: [{ data: newPriceData }, { data: forecastPriceData }] });
+                    }
+                };
+            } else {
+                setTimeout(initQueryButton, 50);
+            }
+        }
+
+        // 页面加载完成后执行
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                initCharts();
+                initQueryButton();
+            });
+        } else {
+            initCharts();
+            initQueryButton();
+        }
+
+        // 全局图表resize函数（供component-loader调用）
+        window.resizeReviewCharts = function() {
+            if (window.volumeChart) window.volumeChart.resize();
+            if (window.priceChart) window.priceChart.resize();
+        };
     </script>
 </body>
 </html>

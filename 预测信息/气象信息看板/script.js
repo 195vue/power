@@ -1,4 +1,4 @@
-﻿// 场址点位数据
+// 场址点位数据
 const SITE_DATA = [
     // 长沙市
     {name: '长沙望城风电场', city: '长沙市', coords: [112.82, 28.38], type: '风电', capacity: 48},
@@ -461,10 +461,43 @@ function startInit() {
     powerForecast.setOption(provincePowerOption);
 
     // 初始渲染右侧面板
-    renderStationOverview('湖南省', null, null);
-    renderMonthlyForecast('湖南省');
+        renderStationOverview('湖南省', null, null);
+        renderMonthlyForecast('湖南省');
 
-    // ── 省份切换事件（右侧面板） ─────────────────────────────────────
+        // ── 气象数据源选择器事件 ────────────────────────────────────────
+        document.getElementById('data-source-select').addEventListener('change', function() {
+            document.getElementById('current-source').textContent = this.options[this.selectedIndex].text;
+        });
+
+        // ── 查询数据按钮事件 ────────────────────────────────────────────
+        document.getElementById('query-data-btn').addEventListener('click', function() {
+            var btn = this;
+            var originalText = btn.textContent;
+            btn.textContent = '查询中...';
+            btn.disabled = true;
+            
+            setTimeout(function() {
+                btn.textContent = '查询完成';
+                setTimeout(function() {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            }, 1500);
+        });
+
+        // ── 刷新按钮事件 ────────────────────────────────────────────────
+        document.getElementById('refresh-btn').addEventListener('click', function() {
+            var now = new Date();
+            var timeStr = now.getFullYear() + '-' + 
+                         String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                         String(now.getDate()).padStart(2, '0') + ' ' + 
+                         String(now.getHours()).padStart(2, '0') + ':' + 
+                         String(now.getMinutes()).padStart(2, '0') + ':' + 
+                         String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('last-update-time').textContent = timeStr;
+        });
+
+        // ── 省份切换事件（右侧面板） ─────────────────────────────────────
     document.getElementById('region-select').addEventListener('change', function() {
         if (!selectedSite && drillLevel === 'province') {
             // 同步左侧地图省份

@@ -21,25 +21,69 @@
             <div class="filter-bar">
                 <div class="filter-item">
                     <label>数据周期</label>
-                    <select class="filter-select">
-                        <option>日</option>
-                        <option selected>月</option>
-                        <option>年</option>
+                    <select class="filter-select" id="data-period" onchange="updateDateInput()">
+                        <option value="day">日</option>
+                        <option value="month" selected>月</option>
                     </select>
                 </div>
                 <div class="filter-item">
-                    <label>日期</label>
-                    <input type="date" class="filter-input" value="2026-05-26">
+                    <label id="date-label-day" style="display:none;">日期</label>
+                    <input type="date" class="filter-input" id="date-input-day" value="2026-05-26" style="display:none;">
+                    <label id="date-label-month">月份</label>
+                    <input type="month" class="filter-input" id="date-input-month" value="2026-05">
                 </div>
-                <button class="btn-primary">查询</button>
+                <button class="btn-primary" onclick="refreshData()">查询</button>
                 <button class="btn-secondary">导出</button>
-                <span class="update-time">数据更新时间：2026-03-26 15:30:25</span>
+                <span class="update-time">数据更新于 2026-03-26 15:30:25</span>
             </div>
+            
+            <script>
+            window.updateDateInput = function() {
+                const period = document.getElementById('data-period').value;
+                const dateLabelDay = document.getElementById('date-label-day');
+                const dateInputDay = document.getElementById('date-input-day');
+                const dateLabelMonth = document.getElementById('date-label-month');
+                const dateInputMonth = document.getElementById('date-input-month');
+
+                if (period === 'day') {
+                    dateLabelDay.style.display = 'block';
+                    dateInputDay.style.display = 'block';
+                    dateLabelMonth.style.display = 'none';
+                    dateInputMonth.style.display = 'none';
+                } else if (period === 'month') {
+                    dateLabelDay.style.display = 'none';
+                    dateInputDay.style.display = 'none';
+                    dateLabelMonth.style.display = 'block';
+                    dateInputMonth.style.display = 'block';
+                }
+                
+                window.refreshData();
+            };
+
+            window.refreshData = function() {
+                const period = document.getElementById('data-period').value;
+                let dateValue;
+                
+                if (period === 'day') {
+                    dateValue = document.getElementById('date-input-day').value;
+                } else if (period === 'month') {
+                    dateValue = document.getElementById('date-input-month').value;
+                }
+                
+                console.log('刷新数据 - 周期:', period, ', 日期:', dateValue);
+                
+                if (period === 'day') {
+                    console.log('加载日维度数据');
+                } else if (period === 'month') {
+                    console.log('加载月维度数据');
+                }
+            };
+            </script>
 
             <!-- 宏观数据区域 -->
             <div class="macro-data-section">
                 <div class="macro-header">
-                    <h3 class="section-title">宏观数</h3>
+                    <h3 class="section-title">宏观数据</h3>
                 </div>
                 <div class="macro-cards">
                     <div class="macro-card">
@@ -121,6 +165,12 @@
                                 <td>378.8</td>
                                 <td>32800</td>
                             </tr>
+                            <tr>
+                                <td>现货实时</td>
+                                <td>400</td>
+                                <td>395.2</td>
+                                <td>18500</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -142,9 +192,9 @@
                     <div id="market-price-chart" class="chart-container"></div>
                 </div>
 
-                <!-- 出力预测偏差 -->
+                <!-- 出力预测偏差率 -->
                 <div class="chart-card">
-                    <h3 class="chart-title">出力预测偏差</h3>
+                    <h3 class="chart-title">出力预测偏差率</h3>
                     <h4 class="chart-subtitle">出力预测偏差率</h4>
                     <div id="forecast-deviation-chart" class="chart-container"></div>
                 </div>

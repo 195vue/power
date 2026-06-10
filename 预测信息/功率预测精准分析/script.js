@@ -200,6 +200,7 @@ const DANGER = '#dc2626';
                 if (!p) return '';
                 let html = `<div style="font-weight:600;margin-bottom:4px">${p.axisValue}</div>`;
                 params.forEach(s => {
+                    if (s.seriesName.includes('置信区间')) return;
                     const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${s.color};margin-right:6px"></span>`;
                     html += `<div style="display:flex;justify-content:space-between;gap:20px;font-size:11px;padding:1px 0">${dot}${s.seriesName}<span style="font-weight:500;font-variant-numeric:tabular-nums">${s.value} MW</span></div>`;
                 });
@@ -679,11 +680,60 @@ const powerData = [
 
 powerData.slice(0, 10).forEach(row => {
     const tr = document.createElement('tr');
+    const deviation = row.actual - row.ultraShort;
+    const deviationRate = row.actual !== 0 ? ((deviation / row.actual) * 100).toFixed(1) : '--';
     tr.innerHTML = `
         <td>${row.time}</td>
-        <td>${row.actual}</td>
-        <td>${row.short}</td>
-        <td>${row.ultraShort}</td>
+        <td>${row.actual.toFixed(1)}</td>
+        <td>${row.ultraShort.toFixed(1)}</td>
+        <td>${deviation.toFixed(2)}</td>
+        <td>${deviationRate}</td>
     `;
     powerDataTableBody.appendChild(tr);
+});
+
+/* ============================================================
+   8. 查询按钮交互
+   ============================================================ */
+document.getElementById('query-btn').addEventListener('click', function() {
+    const btn = this;
+    const statusEl = document.getElementById('query-status');
+    const originalText = btn.textContent;
+    
+    btn.textContent = '查询中...';
+    btn.disabled = true;
+    statusEl.textContent = '';
+    
+    setTimeout(function() {
+        btn.textContent = originalText;
+        btn.disabled = false;
+        statusEl.textContent = '查询完成';
+        statusEl.style.color = '#28a745';
+        
+        setTimeout(function() {
+            statusEl.textContent = '';
+        }, 3000);
+    }, 1000);
+});
+
+/* ============================================================
+   9. 导出报表功能
+   ============================================================ */
+document.getElementById('export-btn').addEventListener('click', function() {
+    let csvContent = '时间,实际功率(MW),预测功率(MW),偏差(MW),偏差率(%)\n';
+    powerData.forEach(row => {
+        const deviation = row.actual - row.ultraShort;
+        const deviationRate = row.actual !== 0 ? (deviation / row.actual * 100).toFixed(1) : '--';
+        csvContent += `${row.time},${+(row.actual).toFixed(1)},${+(row.ultraShort).toFixed(1)},${deviation.toFixed(2)},${deviationRate}\n`;
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `功率预测数据_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 });

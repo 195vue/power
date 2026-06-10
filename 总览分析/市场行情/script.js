@@ -1,3 +1,48 @@
+// 全局函数定义
+function updateDateInput() {
+    const period = document.getElementById('data-period').value;
+    const dateLabelDay = document.getElementById('date-label-day');
+    const dateInputDay = document.getElementById('date-input-day');
+    const dateLabelMonth = document.getElementById('date-label-month');
+    const dateInputMonth = document.getElementById('date-input-month');
+
+    if (period === 'day') {
+        dateLabelDay.style.display = 'block';
+        dateInputDay.style.display = 'block';
+        dateLabelMonth.style.display = 'none';
+        dateInputMonth.style.display = 'none';
+    } else if (period === 'month') {
+        dateLabelDay.style.display = 'none';
+        dateInputDay.style.display = 'none';
+        dateLabelMonth.style.display = 'block';
+        dateInputMonth.style.display = 'block';
+    }
+    
+    // 切换周期后自动刷新数据
+    refreshData();
+}
+
+function refreshData() {
+    const period = document.getElementById('data-period').value;
+    let dateValue;
+    
+    if (period === 'day') {
+        dateValue = document.getElementById('date-input-day').value;
+    } else if (period === 'month') {
+        dateValue = document.getElementById('date-input-month').value;
+    }
+    
+    console.log('刷新数据 - 周期:', period, ', 日期:', dateValue);
+    
+    // 这里可以根据周期和日期刷新图表数据
+    // 模拟数据刷新
+    if (period === 'day') {
+        console.log('加载日维度数据');
+    } else if (period === 'month') {
+        console.log('加载月维度数据');
+    }
+}
+
 // 湖南省电源装机结构 - 环形图
 const powerStructureChart = echarts.init(document.getElementById('power-structure-chart'));
 powerStructureChart.setOption({

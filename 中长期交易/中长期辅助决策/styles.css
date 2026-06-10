@@ -410,3 +410,93 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* 全时段过签提示 */
+.warning-banner {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 编辑提示 */
+.edit-hint {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 可编辑列表头 */
+.editable-col {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.edit-icon {
+    font-size: 11px;
+    color: var(--accent);
+    margin-left: 4px;
+}
+
+/* 可编辑单元格样式 */
+.strategy-table tbody tr td:nth-child(2),
+.strategy-table tbody tr td:nth-child(3) {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.strategy-table tbody tr td:nth-child(2):hover,
+.strategy-table tbody tr td:nth-child(3):hover {
+    background-color: color-mix(in oklab, var(--accent), transparent 92%);
+}
+
+/* 收益表可编辑单元格 */
+.revenue-table tbody tr td:not(:first-child) {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.revenue-table tbody tr td:not(:first-child):hover {
+    background-color: color-mix(in oklab, var(--accent), transparent 92%);
+}
+
+/* 可编辑单元格样式 */
+.editable-cell {
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.editable-cell:hover {
+    background-color: color-mix(in oklab, var(--accent), transparent 92%);
+}
+
+.editable-cell input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: center;
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    outline: none;
+}
+
+.editable-cell input:focus {
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent), transparent 80%);
+}
