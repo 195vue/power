@@ -235,15 +235,12 @@ function renderStationOverview(province, filterCity, highlightStation) {
     tbody.innerHTML = '';
     var totals = { windRt: 0, windFc: 0, irradRt: 0, irradFc: 0, temp: 0 };
     var count = Math.min(stations.length, 20);
-    var fc = PROVINCE_MONTHLY_FORECAST[province] || PROVINCE_MONTHLY_FORECAST['湖南省'];
-    var monthFc = fc ? fc[0] : null;
     for (var i = 0; i < count; i++) {
         var s = stations[i];
         var w = getStationWeather(s, province);
-        var monthStr = monthFc ? (monthFc.windAvg.toFixed(1) + '/' + monthFc.irradAvg) : '--';
         var tr = document.createElement('tr');
         if (highlightStation && s.name === highlightStation) tr.className = 'hl-row';
-        tr.innerHTML = '<td class="c-name">' + s.name + '</td><td>' + s.type + '</td><td class="c-num">' + w.windRt + '</td><td class="c-num">' + w.windFc + '</td><td class="c-num">' + w.irradRt + '</td><td class="c-num">' + w.irradFc + '</td><td class="c-num c-fc">' + monthStr + '</td>';
+        tr.innerHTML = '<td class="c-name">' + s.name + '</td><td>' + s.type + '</td><td class="c-num">' + w.windRt + '</td><td class="c-num">' + w.windFc + '</td><td class="c-num">' + w.irradRt + '</td><td class="c-num">' + w.irradFc + '</td><td class="c-num">' + w.temp + '</td>';
         tbody.appendChild(tr);
         totals.windRt += parseFloat(w.windRt);
         totals.windFc += parseFloat(w.windFc);
@@ -254,7 +251,7 @@ function renderStationOverview(province, filterCity, highlightStation) {
     var n = count || 1;
     var sr = document.createElement('tr');
     sr.className = 's-row';
-    sr.innerHTML = '<td class="c-name">合计/平均</td><td></td><td class="c-num">' + (totals.windRt / n).toFixed(1) + '</td><td class="c-num">' + (totals.windFc / n).toFixed(1) + '</td><td class="c-num">' + Math.round(totals.irradRt / n) + '</td><td class="c-num">' + Math.round(totals.irradFc / n) + '</td><td class="c-num c-fc">' + (monthFc ? monthFc.energyFc : '--') + '</td>';
+    sr.innerHTML = '<td class="c-name">合计/平均</td><td></td><td class="c-num">' + (totals.windRt / n).toFixed(1) + '</td><td class="c-num">' + (totals.windFc / n).toFixed(1) + '</td><td class="c-num">' + Math.round(totals.irradRt / n) + '</td><td class="c-num">' + Math.round(totals.irradFc / n) + '</td><td class="c-num">' + (totals.temp / n).toFixed(1) + '</td>';
     tbody.appendChild(sr);
     var titleEl = document.querySelector('.station-section .section-header h3');
     if (titleEl) titleEl.textContent = '场站气象要素一览' + (filterCity ? ' — ' + filterCity : ' — ' + province);
@@ -497,22 +494,7 @@ function startInit() {
             document.getElementById('last-update-time').textContent = timeStr;
         });
 
-        // ── 省份切换事件（右侧面板） ─────────────────────────────────────
-    document.getElementById('region-select').addEventListener('change', function() {
-        if (!selectedSite && drillLevel === 'province') {
-            // 同步左侧地图省份
-            var p = this.value;
-            var mapSel = document.getElementById('map-province-select');
-            if (mapSel && mapSel.value !== p) {
-                mapSel.value = p;
-                switchMapProvince(p);
-            }
-            renderStationOverview(p, null, null);
-            renderMonthlyForecast(p);
-        } else {
-            this.value = currentProvince;
-        }
-    });
+        
 
     // ── 地图 drill-down ────────────────────────────────────────────
     var mapChart, drillLevel = 'province', currentCity = null;
@@ -522,7 +504,6 @@ function startInit() {
 
     function updateRightPanel() {
         var p = currentProvince;
-        if (!selectedSite && drillLevel === 'province') p = document.getElementById('region-select').value;
         renderStationOverview(p, !selectedSite && drillLevel === 'city' ? currentCity : null, selectedSite ? selectedSite.name : null);
         renderMonthlyForecast(p);
     }
@@ -666,12 +647,8 @@ function startInit() {
         if (drillLevel === 'city' || selectedSite) {
             backToProvince();
         }
-        var rSel = document.getElementById('region-select');
-        if (rSel && rSel.value !== province) {
-            rSel.value = province;
-            renderStationOverview(province, null, null);
-            renderMonthlyForecast(province);
-        }
+        renderStationOverview(province, null, null);
+        renderMonthlyForecast(province);
         switchMapProvince(province);
     });
 

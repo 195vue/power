@@ -71,33 +71,43 @@
         </div>
 
 
+        <!-- 提示区域 -->
+        <div id="toast-message" class="toast-message"></div>
+
         <!-- 负荷预测图表 -->
         <div class="chart-card">
             <div class="chart-header">
-                <span class="chart-status">数据已加载</span>
+                <span class="chart-status" id="chart-status">数据已加载</span>
             </div>
             
             <div class="load-summary">
-                <span class="summary-label">负荷</span>
-                <span class="summary-value">7.06 MWh</span>
+                <span class="summary-label" id="summary-label">总用电量</span>
+                <span class="summary-value" id="summary-value">-- MWh</span>
             </div>
             
             <div id="load-forecast-chart" class="chart-container-large"></div>
+            <div class="confidence-label">95% 置信区间</div>
         </div>
 
         <!-- 负荷预测数据表格 -->
         <div class="table-card">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>时段(15分钟)</th>
-                        <th>预测负荷(MW)</th>
-                        <th>置信区间(95%)</th>
-                        <th>偏差率(%)</th>
-                    </tr>
-                </thead>
-                <tbody id="load-forecast-table-body"></tbody>
-            </table>
+            <div class="table-header">
+                <span class="table-title">预测负荷</span>
+            </div>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>预测负荷(MW)</th>
+                            <th>实际负荷(MW)</th>
+                            <th>置信区间(MW)</th>
+                            <th>偏差率(%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="load-forecast-table-body"></tbody>
+                </table>
+            </div>
         </div>
     </main>
 

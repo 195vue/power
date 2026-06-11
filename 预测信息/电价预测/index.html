@@ -24,20 +24,40 @@
             </div>
             <div class="filter-item">
                 <label>实时算法方案</label>
-                <select class="filter-select"><option>请选择训练样本</option></select>
+                <select class="filter-select" id="real-time-scheme">
+                    <option>请选择实时算法方案</option>
+                    <option>LSTM时序模型</option>
+                    <option>XGBoost回归</option>
+                    <option>LightGBM预测</option>
+                    <option>Transformer模型</option>
+                </select>
             </div>
             <div class="filter-item">
                 <label>日前算法方案</label>
-                <select class="filter-select"><option>请选择训练样本</option></select>
+                <select class="filter-select" id="day-ahead-scheme">
+                    <option>请选择日前算法方案</option>
+                    <option>LSTM时序模型</option>
+                    <option>XGBoost回归</option>
+                    <option>LightGBM预测</option>
+                    <option>Transformer模型</option>
+                    <option>Prophet时序</option>
+                </select>
             </div>
             <div class="filter-item">
                 <label>预测日期</label>
                 <input type="date" class="filter-input" id="forecast-date" value="2026-05-26">
             </div>
-            <button class="btn-primary">实时预测</button>
-            <button class="btn-primary">日前预测</button>
+            <button class="btn-primary" id="btn-real-time">实时预测</button>
+            <button class="btn-primary" id="btn-day-ahead">日前预测</button>
+            <div class="filter-item">
+                <label>查询日期</label>
+                <input type="date" class="filter-input" id="query-date">
+            </div>
             <button class="btn-primary" id="query-btn">查询</button>
         </div>
+
+        <!-- 提示消息 -->
+        <div id="toast-message" class="toast-message"></div>
 
         <!-- 结果区一：日前+实时现货价格预测（合并） -->
         <div class="result-section" id="section-combined">

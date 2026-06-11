@@ -26,6 +26,16 @@
         <!-- 筛选栏 -->
         <div class="filter-bar">
             <div class="filter-item">
+                <label>省份</label>
+                <select class="filter-select" id="map-province-select">
+                    <option value="湖南省">湖南省</option>
+                    <option value="广东省">广东省</option>
+                    <option value="江西省">江西省</option>
+                    <option value="湖北省">湖北省</option>
+                    <option value="贵州省">贵州省</option>
+                </select>
+            </div>
+            <div class="filter-item">
                 <label>气象数据源</label>
                 <select class="filter-select" id="data-source-select">
                     <option value="ECMWF">ECMWF</option>
@@ -60,38 +70,31 @@
             </div>
         </div>
 
-        <!-- Tab标签 -->
-        <div class="tabs">
-            <div class="tab active">出力预测</div>
-        </div>
-
         <!-- 统计卡片 -->
         <div class="stats-cards-row">
             <div class="stat-card">
+                <span class="stat-icon">🌬️</span>
                 <div class="stat-header">
                     <span class="stat-label">实时平均风速</span>
-                    <select class="stat-select">
-                        <option>15min</option>
-                    </select>
                 </div>
                 <div class="stat-value">5.8<span class="stat-unit">m/s</span></div>
             </div>
             <div class="stat-card">
+                <span class="stat-icon">📊</span>
                 <div class="stat-header">
                     <span class="stat-label">预测平均风速</span>
-                    <select class="stat-select">
-                        <option>15min</option>
-                    </select>
                 </div>
                 <div class="stat-value">6.3<span class="stat-unit">m/s</span></div>
             </div>
             <div class="stat-card">
+                <span class="stat-icon">⚡</span>
                 <div class="stat-header">
                     <span class="stat-label">当日累计电量</span>
                 </div>
                 <div class="stat-value">289<span class="stat-unit">MWh</span></div>
             </div>
             <div class="stat-card">
+                <span class="stat-icon">📈</span>
                 <div class="stat-header">
                     <span class="stat-label">当月累计电量</span>
                 </div>
@@ -104,35 +107,30 @@
             <div class="map-section">
                 <div class="section-header">
                     <h3><span id="map-province-title">湖南省</span>气象要素热力地图（风速/辐照）</h3>
-                    <select id="map-province-select" class="filter-select map-province-select"><option value="湖南省">湖南省</option><option value="广东省">广东省</option><option value="江西省">江西省</option><option value="湖北省">湖北省</option><option value="贵州省">贵州省</option></select>
                     <div class="drill-indicator" id="drill-indicator">
                         <span class="drill-path" id="drill-path-label">湖南省</span>
                         <span class="drill-sep">›</span>
                         <span class="drill-current" id="drill-current">长沙市</span>
                         <button class="drill-back" id="drill-back-btn">返回全省</button>
                     </div>
-                    <span class="hint">点击地市查看该市场址点位</span>
+                    <span class="hint">点击地市可查看下属场站分布</span>
                 </div>
                 <div id="map-chart" class="map-container"></div>
             </div>
             <div class="station-section">
                 <div class="section-header">
                     <h3>场站气象要素一览</h3>
-                    <div class="overview-controls">
-                        <select id="region-select" class="filter-select"><option value="湖南省">湖南省</option><option value="广东省">广东省</option><option value="江西省">江西省</option><option value="湖北省">湖北省</option><option value="贵州省">贵州省</option></select>
-                        <select id="forecast-month-select" class="filter-select"><option value="0">下月预测</option><option value="1">未来2月</option><option value="2">未来3月</option></select>
-                    </div>
                 </div>
                 <div class="overview-table-wrap">
                     <table class="overview-table" id="station-overview-table">
                         <colgroup>
-                            <col style="width:22%">
-                            <col style="width:8%">
+                            <col style="width:28%">
+                            <col style="width:10%">
                             <col style="width:12%">
                             <col style="width:12%">
+                            <col style="width:13%">
+                            <col style="width:13%">
                             <col style="width:12%">
-                            <col style="width:12%">
-                            <col style="width:22%">
                         </colgroup>
                         <thead><tr>
                             <th>场站名称</th>
@@ -141,7 +139,7 @@
                             <th>预测风速<br><span class="sub-hint">m/s</span></th>
                             <th>实时辐照<br><span class="sub-hint">W/m²</span></th>
                             <th>预测辐照<br><span class="sub-hint">W/m²</span></th>
-                            <th>月预测<br><span class="sub-hint">风速/辐照</span></th>
+                            <th>实时温度<br><span class="sub-hint">°C</span></th>
                         </tr></thead>
                         <tbody id="overview-tbody"></tbody>
                     </table>
@@ -150,12 +148,12 @@
                     <h4 class="forecast-title">未来三个月场站气象预测</h4>
                     <table class="forecast-table" id="forecast-table">
                         <thead><tr>
-                            <th>月份</th>
+                            <th>预测月份</th>
                             <th>平均风速<br><span class="sub-hint">m/s</span></th>
                             <th>平均辐照<br><span class="sub-hint">W/m²</span></th>
                             <th>平均温度<br><span class="sub-hint">°C</span></th>
                             <th>平均湿度<br><span class="sub-hint">%</span></th>
-                            <th>电量预测<br><span class="sub-hint">MWh</span></th>
+                            <th>预计发电量<br><span class="sub-hint">MWh</span></th>
                         </tr></thead>
                         <tbody id="forecast-tbody"></tbody>
                     </table>
