@@ -20,6 +20,39 @@
         <!-- 筛选栏 -->
         <div class="filter-bar">
             <div class="filter-item">
+                <label>场站</label>
+                <select class="filter-select" id="station-select">
+                    <option value="changsha-wangcheng" selected>长沙望城风电场</option>
+                    <option value="changsha-ningxiang">长沙宁乡光伏站</option>
+                    <option value="changsha-liuyang">长沙浏阳风光互补</option>
+                    <option value="yueyang-junshan">岳阳君山风电场</option>
+                    <option value="yueyang-dongting">岳阳洞庭湖光伏</option>
+                    <option value="changsha-xingsha">长沙星沙分布式光伏</option>
+                    <option value="changde-taoyuan">常德桃源风电场</option>
+                    <option value="changde-dingcheng">常德鼎城光伏站</option>
+                    <option value="hengyang-yanfeng">衡阳雁峰风电场</option>
+                    <option value="hengyang-leiyang">衡阳耒阳光伏站</option>
+                    <option value="zhuzhou-yanling">株洲炎陵风电场</option>
+                    <option value="zhuzhou-liling">株洲醴陵光伏站</option>
+                    <option value="xiangtan-shaoshan">湘潭韶山光伏站</option>
+                    <option value="xiangtan-xiangxiang">湘潭湘乡风电场</option>
+                    <option value="shaoyang-longhui">邵阳隆回风电场</option>
+                    <option value="shaoyang-wugang">邵阳武冈光伏站</option>
+                    <option value="yiyang-yuanjiang">益阳沅江风电场</option>
+                    <option value="yiyang-taojiang">益阳桃江光伏站</option>
+                    <option value="yongzhou-lengshuitan">永州冷水滩风电场</option>
+                    <option value="yongzhou-jianghua">永州江华光伏站</option>
+                    <option value="huaihua-zhijiang">怀化芷江风电场</option>
+                    <option value="huaihua-mayang">怀化麻阳光伏站</option>
+                    <option value="loudi-xinhua">娄底新化风电场</option>
+                    <option value="loudi-lianyuan">娄底涟源光伏站</option>
+                    <option value="xiangxi-fenghuang">湘西凤凰风电场</option>
+                    <option value="zhangjiajie-cili">张家界慈利风电场</option>
+                    <option value="chenzhou-beihu">郴州北湖风电场</option>
+                    <option value="chenzhou-zixing">郴州资兴光伏站</option>
+                </select>
+            </div>
+            <div class="filter-item">
                 <label>开始时间</label>
                 <input type="date" class="filter-input" value="2026-05-01">
             </div>
@@ -47,16 +80,16 @@
                     <option value="7d">7d</option>
                 </select>
             </div>
-            <div class="filter-item">
+            <!-- <div class="filter-item">
                 <label>评价指标</label>
                 <select class="filter-select">
                     <option value="rmse">均方根误差</option>
                     <option value="mae">平均绝对误差</option>
                     <option value="r2">决定系数</option>
                 </select>
-            </div>
+            </div> -->
             <button class="btn-primary" id="query-btn">查询</button>
-            <button class="btn-secondary" id="export-btn">导出报表</button>
+            <button class="btn-secondary" id="export-btn" style="display: none;">导出报表</button>
             <span class="query-status" id="query-status"></span>
         </div>
 
@@ -102,13 +135,13 @@
 
         <!-- 近7天功率预测准确率图表 -->
         <div class="chart-card">
-            <h3 class="chart-title">近7天功率预测准确率</h3>
+            <h3 class="chart-title">近7天功率预测准确率 <span class="chart-subtitle">（统计周期：从今天往前推7天）</span></h3>
             <div id="accuracy-7days-chart" class="chart-container-large"></div>
         </div>
 
         <!-- 近30天功率预测准确率图表 -->
         <div class="chart-card">
-            <h3 class="chart-title">近30天功率预测准确率趋势</h3>
+            <h3 class="chart-title">近30天功率预测准确率趋势 <span class="chart-subtitle">（统计周期：从今天往前推30天）</span></h3>
             <div id="accuracy-30days-chart" class="chart-container-large"></div>
         </div>
 

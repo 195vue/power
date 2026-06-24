@@ -233,25 +233,24 @@ function renderStationOverview(province, filterCity, highlightStation) {
     var tbody = document.getElementById('overview-tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
-    var totals = { windRt: 0, windFc: 0, irradRt: 0, irradFc: 0, temp: 0 };
+    var totals = { windRt: 0, windFc: 0, irradRt: 0, irradFc: 0 };
     var count = Math.min(stations.length, 20);
     for (var i = 0; i < count; i++) {
         var s = stations[i];
         var w = getStationWeather(s, province);
         var tr = document.createElement('tr');
         if (highlightStation && s.name === highlightStation) tr.className = 'hl-row';
-        tr.innerHTML = '<td class="c-name">' + s.name + '</td><td>' + s.type + '</td><td class="c-num">' + w.windRt + '</td><td class="c-num">' + w.windFc + '</td><td class="c-num">' + w.irradRt + '</td><td class="c-num">' + w.irradFc + '</td><td class="c-num">' + w.temp + '</td>';
+        tr.innerHTML = '<td class="c-name">' + s.name + '</td><td>' + s.type + '</td><td class="c-num">' + w.windRt + '</td><td class="c-num">' + w.windFc + '</td><td class="c-num">' + w.irradRt + '</td><td class="c-num">' + w.irradFc + '</td>';
         tbody.appendChild(tr);
         totals.windRt += parseFloat(w.windRt);
         totals.windFc += parseFloat(w.windFc);
         totals.irradRt += w.irradRt;
         totals.irradFc += w.irradFc;
-        totals.temp += parseFloat(w.temp);
     }
     var n = count || 1;
     var sr = document.createElement('tr');
     sr.className = 's-row';
-    sr.innerHTML = '<td class="c-name">合计/平均</td><td></td><td class="c-num">' + (totals.windRt / n).toFixed(1) + '</td><td class="c-num">' + (totals.windFc / n).toFixed(1) + '</td><td class="c-num">' + Math.round(totals.irradRt / n) + '</td><td class="c-num">' + Math.round(totals.irradFc / n) + '</td><td class="c-num">' + (totals.temp / n).toFixed(1) + '</td>';
+    sr.innerHTML = '<td class="c-name">合计/平均</td><td></td><td class="c-num">' + (totals.windRt / n).toFixed(1) + '</td><td class="c-num">' + (totals.windFc / n).toFixed(1) + '</td><td class="c-num">' + Math.round(totals.irradRt / n) + '</td><td class="c-num">' + Math.round(totals.irradFc / n) + '</td>';
     tbody.appendChild(sr);
     var titleEl = document.querySelector('.station-section .section-header h3');
     if (titleEl) titleEl.textContent = '场站气象要素一览' + (filterCity ? ' — ' + filterCity : ' — ' + province);
@@ -621,6 +620,14 @@ function startInit() {
     document.getElementById('drill-back-btn').addEventListener('click', backToProvince);
     document.getElementById('clear-site-btn').addEventListener('click', clearStationSelection);
 
+    // 更新气象预测标题
+    function updateForecastTitle(regionName) {
+        var titleEl = document.getElementById('forecast-region');
+        if (titleEl) {
+            titleEl.textContent = regionName;
+        }
+    }
+
     // ── 省份切换 ──────────────────────────────────────────────────
     function switchMapProvince(province) {
         if (province === currentProvince && mapChart) return;
@@ -631,6 +638,7 @@ function startInit() {
         document.getElementById('drill-indicator').style.display = 'none';
         document.getElementById('map-province-title').textContent = province;
         document.getElementById('drill-path-label').textContent = province;
+        updateForecastTitle(province);
 
         if (loadedGeo[province]) {
             initMap(province);
@@ -710,6 +718,7 @@ function startInit() {
             var dn = cityName.replace('市', '').replace('土家族苗族自治州', '州').replace('湘西州', '湘西');
             document.getElementById('drill-current').textContent = dn;
             document.getElementById('drill-indicator').style.display = 'flex';
+            updateForecastTitle(cityName);
             updateRightPanel();
             return;
         }
@@ -723,6 +732,7 @@ function startInit() {
         var displayName = cityName.replace('市', '').replace('土家族苗族自治州', '州').replace('湘西州', '湘西');
         document.getElementById('drill-current').textContent = displayName;
         document.getElementById('drill-indicator').style.display = 'flex';
+        updateForecastTitle(cityName);
 
         var citySites = SITE_DATA.filter(function(s) { return s.city === cityName; });
 
@@ -799,6 +809,7 @@ function startInit() {
         clearStationSelection();
 
         document.getElementById('drill-indicator').style.display = 'none';
+        updateForecastTitle(currentProvince);
 
         var cfg = PROVINCE_MAP_CFG[currentProvince];
 
@@ -929,6 +940,7 @@ function startInit() {
     }
 
     startInit();
+    updateForecastTitle(currentProvince);
 
     // 响应式调整
     window.addEventListener('resize', function() {

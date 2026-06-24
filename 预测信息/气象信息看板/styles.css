@@ -116,13 +116,14 @@
 
 .stat-card {
     background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
-    padding: 16px;
-    border-radius: 12px;
+    padding: 18px;
+    border-radius: 14px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.06);
     border: 1px solid rgba(255,255,255,0.8);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    min-height: 140px;
 }
 
 .stat-card::before {
@@ -207,6 +208,113 @@
     color: var(--meta);
     margin-left: 4px;
     font-weight: 400;
+}
+
+.stat-content {
+    margin-top: 8px;
+}
+
+.stat-main {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 12px;
+}
+
+.stat-main .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+}
+
+.stat-main .stat-unit {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 5px;
+    font-weight: 500;
+}
+
+.stat-plan-bar {
+    height: 6px;
+    background: rgba(0,0,0,0.08);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.plan-progress {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.stat-card:nth-child(1) .plan-progress { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.stat-card:nth-child(2) .plan-progress { background: linear-gradient(90deg, #10b981, #34d399); }
+.stat-card:nth-child(3) .plan-progress { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.stat-card:nth-child(4) .plan-progress { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+.stat-plan {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.plan-label {
+    font-size: 11px;
+    color: var(--meta);
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.plan-value {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.plan-target {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+}
+
+.plan-percent {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.05);
+    min-width: 48px;
+    text-align: center;
+}
+
+.stat-card:nth-child(1) .plan-percent { 
+    color: #fff; 
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+.stat-card:nth-child(2) .plan-percent { 
+    color: #fff; 
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+.stat-card:nth-child(3) .plan-percent { 
+    color: #fff; 
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+.stat-card:nth-child(4) .plan-percent { 
+    color: #fff; 
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
 }
 
 .map-calendar-row {
