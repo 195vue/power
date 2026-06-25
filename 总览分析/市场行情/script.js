@@ -43,139 +43,50 @@ function refreshData() {
     }
 }
 
-// 湖南省电源装机结构 - 炫酷环形图
+// 湖南省电源装机结构 - 环形图
 const powerStructureChart = echarts.init(document.getElementById('power-structure-chart'));
 powerStructureChart.setOption({
     tooltip: {
         trigger: 'item',
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        borderColor: 'rgba(255, 255, 255, 0.15)',
-        borderWidth: 1,
-        padding: [12, 16],
-        textStyle: { color: '#fff', fontSize: 13 },
-        formatter: (params) => {
-            return `<div style="font-weight: 600; margin-bottom: 6px; font-size: 14px;">${params.name}</div>
-                    <div style="display: flex; justify-content: space-between; gap: 20px;">
-                        <span>装机容量:</span>
-                        <span style="color: ${params.color}; font-weight: 600;">${params.value} MW</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; gap: 20px;">
-                        <span>占比:</span>
-                        <span style="color: ${params.color}; font-weight: 600;">${params.percent}%</span>
-                    </div>`;
-        }
+        formatter: '{b}: {c} ({d}%)'
     },
     legend: {
         orient: 'horizontal',
-        bottom: 8,
-        left: 'center',
+        top: 0,
         data: ['光伏', '风电', '水电', '火电'],
-        itemWidth: 18,
-        itemHeight: 12,
-        itemGap: 28,
-        textStyle: { color: '#9ca3af', fontSize: 13, padding: [0, 8] }
+        itemWidth: 14,
+        itemHeight: 14
     },
     series: [
         {
             name: '装机结构',
             type: 'pie',
-            radius: ['38%', '68%'],
-            center: ['50%', '42%'],
-            avoidLabelOverlap: true,
-            itemStyle: {
-                borderRadius: 8,
-                borderColor: '#1e293b',
-                borderWidth: 4
-            },
-            label: { show: false },
-            labelLine: { show: false },
-            emphasis: {
-                scale: true,
-                scaleSize: 10,
-                itemStyle: {
-                    shadowBlur: 30,
-                    shadowColor: 'rgba(0, 0, 0, 0.5)'
-                }
-            },
-            animationType: 'expansion',
-            animationEasing: 'cubicOut',
-            animationDelay: (idx) => idx * 100,
-            data: [
-                { 
-                    value: 100, 
-                    name: '光伏', 
-                    itemStyle: { 
-                        color: {
-                            type: 'linear',
-                            x: 0, y: 0, x2: 1, y2: 1,
-                            colorStops: [
-                                { offset: 0, color: '#60a5fa' },
-                                { offset: 0.5, color: '#3b82f6' },
-                                { offset: 1, color: '#2563eb' }
-                            ]
-                        }
-                    } 
-                },
-                { 
-                    value: 150, 
-                    name: '风电', 
-                    itemStyle: { 
-                        color: {
-                            type: 'linear',
-                            x: 0, y: 0, x2: 1, y2: 1,
-                            colorStops: [
-                                { offset: 0, color: '#86efac' },
-                                { offset: 0.5, color: '#22c55e' },
-                                { offset: 1, color: '#16a34a' }
-                            ]
-                        }
-                    } 
-                },
-                { 
-                    value: 206, 
-                    name: '水电', 
-                    itemStyle: { 
-                        color: {
-                            type: 'linear',
-                            x: 0, y: 0, x2: 1, y2: 1,
-                            colorStops: [
-                                { offset: 0, color: '#fde047' },
-                                { offset: 0.5, color: '#eab308' },
-                                { offset: 1, color: '#ca8a04' }
-                            ]
-                        }
-                    } 
-                },
-                { 
-                    value: 224, 
-                    name: '火电', 
-                    itemStyle: { 
-                        color: {
-                            type: 'linear',
-                            x: 0, y: 0, x2: 1, y2: 1,
-                            colorStops: [
-                                { offset: 0, color: '#fca5a5' },
-                                { offset: 0.5, color: '#ef4444' },
-                                { offset: 1, color: '#dc2626' }
-                            ]
-                        }
-                    } 
-                }
-            ]
-        },
-        {
-            name: '中心装饰',
-            type: 'pie',
-            radius: ['0%', '32%'],
-            center: ['50%', '42%'],
+            radius: ['40%', '70%'],
+            center: ['50%', '55%'],
             avoidLabelOverlap: false,
             itemStyle: {
-                color: 'transparent',
-                borderColor: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: 8,
+                borderColor: '#fff',
                 borderWidth: 2
             },
-            label: { show: false },
-            data: [{ value: 1 }]
+            label: {
+                show: true,
+                position: 'outside',
+                formatter: '{b}\n{c}'
+            },
+            emphasis: {
+                label: {
+                    show: true,
+                    fontSize: 14,
+                    fontWeight: 'bold'
+                }
+            },
+            data: [
+                { value: 100, name: '光伏', itemStyle: { color: '#5470c6' } },
+                { value: 150, name: '风电', itemStyle: { color: '#91cc75' } },
+                { value: 206, name: '水电', itemStyle: { color: '#fac858' } },
+                { value: 224, name: '火电', itemStyle: { color: '#ee6666' } }
+            ]
         }
     ]
 });
