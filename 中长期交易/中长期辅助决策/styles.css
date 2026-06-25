@@ -500,3 +500,368 @@
 .editable-cell input:focus {
     box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent), transparent 80%);
 }
+
+/* 策略生成模块样式 */
+.decision-panel {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+}
+
+.decision-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.decision-title {
+    font-size: 18px;
+    color: white;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+}
+
+.decision-desc {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+}
+
+.decision-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-ghost {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-generate {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-generate:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* 交易方式选择 */
+.trade-modes {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.mode-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+}
+
+.mode-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid transparent;
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.mode-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.mode-btn.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.mode-desc {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-left: auto;
+}
+
+/* 策略卡片（精确匹配设计图） */
+.strategy-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.strategy-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.strategy-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--card-color);
+    opacity: 0.3;
+}
+
+.strategy-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.strategy-card.active {
+    border-color: var(--card-color);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.strategy-card.active::before {
+    opacity: 1;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.card-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.card-title {
+    font-size: 13px;
+    color: white;
+    font-weight: 500;
+}
+
+.card-badge {
+    margin-left: auto;
+    font-size: 10px;
+    color: white;
+    background: var(--card-color);
+    padding: 1px 6px;
+    border-radius: 8px;
+}
+
+.card-params {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.card-params .param-tag {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.08);
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.card-body {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.stat-value {
+    font-size: 13px;
+    color: white;
+    font-weight: 600;
+    font-family: 'Monaco', 'Consolas', monospace;
+}
+
+.stat-value.profit-positive {
+    color: #52c41a;
+}
+
+.stat-value.profit-negative {
+    color: #f56c6c;
+}
+
+.param-tag {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+/* 参数微调面板（精确匹配设计图） */
+.tune-panel {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 12px;
+    display: block;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tune-header {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tune-title {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.tune-body {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.tune-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tune-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tune-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.tune-value {
+    font-size: 12px;
+    color: #52c41a;
+    font-weight: 600;
+    font-family: 'Monaco', 'Consolas', monospace;
+}
+
+.tune-hint {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 2px;
+}
+
+.tune-slider {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(82, 196, 26, 0.3);
+    border-radius: 2px;
+    outline: none;
+}
+
+.tune-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #52c41a;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.tune-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+
+.tune-slider::-moz-range-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(82, 196, 26, 0.3);
+    border-radius: 2px;
+    border: none;
+}
+
+.tune-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #52c41a;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.tune-range {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* 过签行样式 */
+.over-row {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.over-row td {
+    color: rgba(239, 68, 68, 0.7);
+}
+
+/* 保存按钮禁用状态 */
+.btn-save:disabled {
+    background: var(--border);
+    cursor: not-allowed;
+    opacity: 0.6;
+}

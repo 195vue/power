@@ -39,8 +39,36 @@
                         <option value="strategy-b">激进策略</option>
                     </select>
                 </div>
-                <button class="btn-primary">查询</button>
-                <button class="btn-save">保存策略</button>
+                <button class="btn-primary" onclick="queryData()">查询</button>
+                <button class="btn-save" id="saveBtn" disabled>保存策略</button>
+            </div>
+
+            <!-- 策略生成模块 -->
+            <div class="decision-panel">
+                <div class="decision-header">
+                    <div>
+                        <h3 class="decision-title">⚡ 中长期辅助决策 · 三档策略生成</h3>
+                        <p class="decision-desc">选交易方式 + 风险偏好，规则引擎参照对应参考价生成申报策略</p>
+                    </div>
+                    <div class="decision-actions">
+                        <button class="btn-ghost" id="tuneBtn" onclick="toggleTune()">收起参数</button>
+                        <button class="btn-generate" id="genBtn" onclick="generateStrategy()">生成策略并回填</button>
+                    </div>
+                </div>
+                <!-- 交易方式选择 -->
+                <div class="trade-modes" id="trade-modes">
+                    <span class="mode-label">交易方式：</span>
+                    <button class="mode-btn active" data-mode="daily" onclick="setTradeMode('daily')">日滚动</button>
+                    <button class="mode-btn" data-mode="intraMonth" onclick="setTradeMode('intraMonth')">月内</button>
+                    <button class="mode-btn" data-mode="month" onclick="setTradeMode('month')">月度</button>
+                    <button class="mode-btn" data-mode="multiMonth" onclick="setTradeMode('multiMonth')">多月</button>
+                    <button class="mode-btn" data-mode="year" onclick="setTradeMode('year')">年度</button>
+                    <span class="mode-desc" id="mode-desc">连续撮合·贴日前现货报价</span>
+                </div>
+                <!-- 三档策略卡片 -->
+                <div class="strategy-cards" id="strategy-cards"></div>
+                <!-- 参数微调面板 -->
+                <div class="tune-panel" id="tune-panel"></div>
             </div>
 
             <!-- 四象限布局 -->
