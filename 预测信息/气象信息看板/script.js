@@ -948,6 +948,34 @@ function startInit() {
         try { weatherTrend.resize(); } catch(e) {}
         try { powerForecast.resize(); } catch(e) {}
     });
+
+    // 场站选择联动逻辑 - 统一由场站筛选栏控制
+    var siteMap = {
+        'site1': {name: '长沙风电场', city: '长沙市', coords: [112.82, 28.38], type: '风电', capacity: 48},
+        'site2': {name: '株洲光伏站', city: '株洲市', coords: [113.50, 26.55], type: '光伏', capacity: 28},
+        'site3': {name: '湘潭风电场', city: '湘潭市', coords: [112.30, 27.73], type: '风电', capacity: 33},
+        'site4': {name: '衡阳光伏站', city: '衡阳市', coords: [112.40, 26.95], type: '光伏', capacity: 32}
+    };
+
+    function handleSiteSelect(siteId) {
+        if (!siteId) {
+            // 选择"全部场站"时清除选中
+            clearStationSelection();
+            return;
+        }
+
+        if (siteMap[siteId]) {
+            selectSite(siteMap[siteId]);
+        }
+    }
+
+    // 场站筛选栏 - 统一控制日月季度年度电量、新能源出力预测、全省气象要素
+    var siteSelectMain = document.getElementById('site-select-main');
+    if (siteSelectMain) {
+        siteSelectMain.addEventListener('change', function() {
+            handleSiteSelect(this.value);
+        });
+    }
 });
 
 

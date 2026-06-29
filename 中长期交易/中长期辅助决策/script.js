@@ -13,6 +13,7 @@ const TRADE_MODES = {
     year: { name: '年度', desc: '年度长约·稳定收益' }
 };
 
+
 // 策略预设参数（精确匹配设计图）
 const PRESETS = {
     conservative: { name: '保守方案', color: '#5b8ff9', alpha: 0.6, beta: -0.004, delta: 0.026 },
