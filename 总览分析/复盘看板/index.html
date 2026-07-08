@@ -124,34 +124,110 @@
         </div>
 
         <!-- 图表区域 -->
-        <div class="charts-row">
-            <div class="chart-card">
-                <h3 class="chart-title">当日交易电量曲线</h3>
-                <div id="volume-chart" class="chart-container"></div>
+        <div class="charts-section">
+            <div class="charts-header">
+                <div class="charts-title-wrapper">
+                    <h3 class="charts-section-title">当日交易曲线</h3>
+                    <span class="charts-section-hint">选择日期查看该日的电量与电价执行情况</span>
+                </div>
+                <div class="charts-date-selector">
+                    <span class="date-selector-label">📅 选择日期：</span>
+                    <select class="date-selector" id="chart-date-selector">
+                        <option value="2026-05-01">2026-05-01</option>
+                        <option value="2026-05-02">2026-05-02</option>
+                        <option value="2026-05-03">2026-05-03</option>
+                        <option value="2026-05-04">2026-05-04</option>
+                        <option value="2026-05-05">2026-05-05</option>
+                        <option value="2026-05-06">2026-05-06</option>
+                        <option value="2026-05-07">2026-05-07</option>
+                        <option value="2026-05-08">2026-05-08</option>
+                        <option value="2026-05-09">2026-05-09</option>
+                        <option value="2026-05-10">2026-05-10</option>
+                        <option value="2026-05-11">2026-05-11</option>
+                        <option value="2026-05-12">2026-05-12</option>
+                        <option value="2026-05-13">2026-05-13</option>
+                        <option value="2026-05-14">2026-05-14</option>
+                        <option value="2026-05-15">2026-05-15</option>
+                        <option value="2026-05-16">2026-05-16</option>
+                        <option value="2026-05-17">2026-05-17</option>
+                        <option value="2026-05-18">2026-05-18</option>
+                        <option value="2026-05-19">2026-05-19</option>
+                        <option value="2026-05-20">2026-05-20</option>
+                        <option value="2026-05-21">2026-05-21</option>
+                        <option value="2026-05-22">2026-05-22</option>
+                        <option value="2026-05-23">2026-05-23</option>
+                        <option value="2026-05-24">2026-05-24</option>
+                        <option value="2026-05-25">2026-05-25</option>
+                        <option value="2026-05-26">2026-05-26</option>
+                    </select>
+                    <span class="date-selector-tip">💡 仅可查看查询时间段内的日期数据</span>
+                </div>
             </div>
-            <div class="chart-card">
-                <h3 class="chart-title">当日交易电价曲线</h3>
-                <div id="price-chart" class="chart-container"></div>
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3 class="chart-title">当日交易电量曲线</h3>
+                    <div id="volume-chart" class="chart-container"></div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">当日交易电价曲线</h3>
+                    <div id="price-chart" class="chart-container"></div>
+                </div>
             </div>
         </div>
     </main>
 
     <script>
-        // 生成24小时时间标签
         var hours = [];
         for (var i = 0; i < 24; i++) {
             hours.push(i + ':00');
         }
 
-        // 电量数据
-        var volumeData = [7, 8.5, 9, 11.5, 12, 13, 14.5, 15, 14, 13.5, 13, 14.5, 15.5, 14, 12.5, 11, 10.5, 11.5, 13, 15, 16, 15.5, 13, 11];
         var forecastVolumeData = [8, 9, 9.5, 10, 11, 12, 12.5, 13, 12, 11.5, 11, 12.5, 13.5, 14, 13, 12, 11, 10, 11, 12, 13.5, 14, 13, 10];
-
-        // 电价数据
-        var priceData = [350, 365, 380, 420, 440, 450, 460, 470, 480, 460, 440, 420, 410, 400, 380, 360, 340, 350, 370, 400, 430, 450, 440, 400];
         var forecastPriceData = [310, 325, 340, 360, 380, 400, 420, 440, 430, 410, 390, 370, 360, 350, 340, 320, 300, 310, 330, 360, 390, 410, 400, 350];
 
-        // 初始化图表函数
+        var chartDataCache = {};
+
+        function generateChartData(date) {
+            if (chartDataCache[date]) {
+                return chartDataCache[date];
+            }
+            
+            var seed = parseInt(date.replace(/-/g, ''));
+            var volumeData = [];
+            var priceData = [];
+            
+            for (var i = 0; i < 24; i++) {
+                var random = Math.sin(seed + i * 100) * 0.5 + 0.5;
+                volumeData.push(Math.round((8 + random * 8) * 100) / 100);
+                priceData.push(Math.round((320 + random * 180) * 100) / 100);
+            }
+            
+            chartDataCache[date] = { volume: volumeData, price: priceData };
+            return chartDataCache[date];
+        }
+
+        function updateCharts(date) {
+            var data = generateChartData(date);
+            
+            if (window.volumeChart) {
+                window.volumeChart.setOption({
+                    series: [
+                        { name: '实际执行电量', data: data.volume },
+                        { name: '日前出清电量(预测)', data: forecastVolumeData }
+                    ]
+                });
+            }
+            
+            if (window.priceChart) {
+                window.priceChart.setOption({
+                    series: [
+                        { name: '实际出清电价', data: data.price },
+                        { name: '日前出清电价(预测)', data: forecastPriceData }
+                    ]
+                });
+            }
+        }
+
         function initCharts() {
             var volumeChartEl = document.getElementById('volume-chart');
             var priceChartEl = document.getElementById('price-chart');
@@ -163,67 +239,113 @@
 
             window.volumeChart = echarts.init(volumeChartEl);
             window.volumeChart.setOption({
-                tooltip: { trigger: 'axis' },
+                tooltip: { 
+                    trigger: 'axis',
+                    formatter: function(params) {
+                        var result = '<div style="font-weight:bold;margin-bottom:8px;">' + params[0].axisValue + '</div>';
+                        params.forEach(item => {
+                            var val = item.value.toFixed(2);
+                            result += '<div style="display:flex;justify-content:space-between;gap:20px;">' +
+                                '<span>' + item.marker + item.seriesName + '</span>' +
+                                '<span style="font-weight:bold;">' + val + ' MWh</span>' +
+                                '</div>';
+                        });
+                        return result;
+                    }
+                },
                 legend: { data: ['实际执行电量', '日前出清电量(预测)'], top: 0, right: 0 },
                 grid: { left: '45', right: '20', bottom: '40', top: '40' },
                 xAxis: { type: 'category', boundaryGap: false, data: hours },
                 yAxis: { type: 'value', name: '电量 (MWh)', max: 20, min: 0 },
                 series: [
-                    { name: '实际执行电量', type: 'line', smooth: true, data: volumeData, symbol: 'circle', symbolSize: 4, itemStyle: { color: '#2f6feb' }, lineStyle: { width: 2 } },
+                    { name: '实际执行电量', type: 'line', smooth: true, data: [], symbol: 'circle', symbolSize: 4, itemStyle: { color: '#2f6feb' }, lineStyle: { width: 2 }, areaStyle: { color: 'rgba(47,111,235,0.1)' } },
                     { name: '日前出清电量(预测)', type: 'line', smooth: true, data: forecastVolumeData, symbol: 'circle', symbolSize: 4, itemStyle: { color: '#17a34a' }, lineStyle: { width: 2, type: 'dashed' } }
                 ]
             });
 
             window.priceChart = echarts.init(priceChartEl);
             window.priceChart.setOption({
-                tooltip: { trigger: 'axis' },
+                tooltip: { 
+                    trigger: 'axis',
+                    formatter: function(params) {
+                        var result = '<div style="font-weight:bold;margin-bottom:8px;">' + params[0].axisValue + '</div>';
+                        params.forEach(item => {
+                            var val = item.value.toFixed(2);
+                            result += '<div style="display:flex;justify-content:space-between;gap:20px;">' +
+                                '<span>' + item.marker + item.seriesName + '</span>' +
+                                '<span style="font-weight:bold;">' + val + ' 元/MWh</span>' +
+                                '</div>';
+                        });
+                        return result;
+                    }
+                },
                 legend: { data: ['实际出清电价', '日前出清电价(预测)'], top: 0, right: 0 },
                 grid: { left: '45', right: '20', bottom: '40', top: '40' },
                 xAxis: { type: 'category', boundaryGap: false, data: hours },
                 yAxis: { type: 'value', name: '电价 (元/MWh)', min: 200, max: 550 },
                 series: [
-                    { name: '实际出清电价', type: 'line', smooth: true, data: priceData, symbol: 'circle', symbolSize: 4, itemStyle: { color: '#eab308' }, lineStyle: { width: 2 } },
+                    { name: '实际出清电价', type: 'line', smooth: true, data: [], symbol: 'circle', symbolSize: 4, itemStyle: { color: '#eab308' }, lineStyle: { width: 2 }, areaStyle: { color: 'rgba(234,179,8,0.1)' } },
                     { name: '日前出清电价(预测)', type: 'line', smooth: true, data: forecastPriceData, symbol: 'circle', symbolSize: 4, itemStyle: { color: '#dc2626' }, lineStyle: { width: 2, type: 'dashed' } }
                 ]
             });
         }
 
-        // 初始化查询按钮事件
-        function initQueryButton() {
+        function generateDateOptions(startDate, endDate) {
+            var selector = document.getElementById('chart-date-selector');
+            if (!selector) return;
+            
+            selector.innerHTML = '';
+            
+            var start = new Date(startDate);
+            var end = new Date(endDate);
+            
+            while (start <= end) {
+                var dateStr = start.toISOString().split('T')[0];
+                var option = document.createElement('option');
+                option.value = dateStr;
+                option.textContent = dateStr;
+                selector.appendChild(option);
+                start.setDate(start.getDate() + 1);
+            }
+            
+            selector.value = startDate;
+            updateCharts(startDate);
+        }
+
+        function initEvents() {
             var queryBtn = document.getElementById('query-btn');
+            var dateSelector = document.getElementById('chart-date-selector');
+            
+            if (dateSelector) {
+                dateSelector.addEventListener('change', function() {
+                    updateCharts(this.value);
+                });
+            }
+
             if (queryBtn) {
-                queryBtn.onclick = function() {
-                    var newVolumeData = [];
-                    var newPriceData = [];
-                    for (var i = 0; i < 24; i++) {
-                        newVolumeData.push(Math.round((10 + Math.random() * 6) * 100) / 100);
-                        newPriceData.push(Math.round((350 + Math.random() * 130) * 100) / 100);
-                    }
-                    
-                    if (window.volumeChart) {
-                        window.volumeChart.setOption({ series: [{ data: newVolumeData }, { data: forecastVolumeData }] });
-                    }
-                    if (window.priceChart) {
-                        window.priceChart.setOption({ series: [{ data: newPriceData }, { data: forecastPriceData }] });
-                    }
-                };
-            } else {
-                setTimeout(initQueryButton, 50);
+                queryBtn.addEventListener('click', function() {
+                    var startDate = document.getElementById('start-date').value || '2026-05-01';
+                    var endDate = document.getElementById('end-date').value || '2026-05-26';
+                    generateDateOptions(startDate, endDate);
+                });
             }
         }
 
-        // 页面加载完成后执行
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                initCharts();
-                initQueryButton();
-            });
-        } else {
+        function init() {
+            var startDate = document.getElementById('start-date').value || '2026-05-01';
+            var endDate = document.getElementById('end-date').value || '2026-05-26';
+            
             initCharts();
-            initQueryButton();
+            generateDateOptions(startDate, endDate);
+            initEvents();
         }
 
-        // 全局图表resize函数（供component-loader调用）
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
         window.resizeReviewCharts = function() {
             if (window.volumeChart) window.volumeChart.resize();
             if (window.priceChart) window.priceChart.resize();

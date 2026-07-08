@@ -208,24 +208,120 @@
 }
 
 /* 图表区域 */
-.charts-row {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 16px;
-}
-
-.chart-card {
+.charts-section {
     background: var(--surface);
-    padding: 20px;
-    border-radius: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 16px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.chart-title {
+.charts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.charts-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.charts-section-title {
     font-size: 15px;
+    font-weight: 600;
     color: var(--fg);
-    margin-bottom: 16px;
+    margin: 0;
+}
+
+.charts-section-hint {
+    font-size: 12px;
+    color: var(--muted);
+    background: rgba(59, 130, 246, 0.08);
+    padding: 3px 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.charts-date-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.date-selector-label {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.date-selector {
+    padding: 5px 20px 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--surface);
+    color: var(--fg);
+    cursor: pointer;
+    outline: none;
+    min-width: 130px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b6b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    transition: all 0.2s ease;
+}
+
+.date-selector:hover {
+    border-color: var(--accent);
+}
+
+.date-selector:focus {
+    border-color: var(--accent);
+    box-shadow: var(--focus-ring);
+}
+
+.date-selector option {
+    background: var(--surface);
+    color: var(--fg);
+    padding: 6px;
+}
+
+.date-selector-tip {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+    white-space: nowrap;
+}
+
+.charts-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+}
+
+.chart-card {
+    padding: 16px 20px;
+    border-right: 1px solid var(--border);
+}
+
+.chart-card:last-child {
+    border-right: none;
+}
+
+.chart-title {
+    font-size: 14px;
+    color: var(--fg);
+    margin-bottom: 14px;
     font-weight: 600;
 }
 
