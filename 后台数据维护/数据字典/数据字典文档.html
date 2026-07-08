@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电力市场交易辅助决策系统 - 数据字典文档</title>
+    <style>
+        :root {
+            --bg: #0a0e17;
+            --surface: #121722;
+            --surface-hover: #1a202c;
+            --border: #2a3344;
+            --fg: #e8ecf0;
+            --muted: #6b7a8c;
+            --primary: #4a9eff;
+            --success: #52c41a;
+            --warning: #faad14;
+            --danger: #ff4d4f;
+            --text-xs: 11px;
+            --text-sm: 12px;
+            --text-base: 13px;
+            --text-lg: 14px;
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; padding: var(--space-5); }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: var(--space-5); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border); }
+        .header h1 { font-size: 22px; font-weight: 600; margin-bottom: var(--space-2); }
+        .header p { color: var(--muted); font-size: var(--text-sm); }
+
+        .dict-section { margin-bottom: var(--space-5); }
+        .section-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3); background: var(--surface); border-radius: var(--radius-md); margin-bottom: var(--space-3); }
+        .section-header h2 { font-size: var(--text-base); font-weight: 600; }
+        .section-header .badge { font-size: var(--text-xs); padding: 2px 8px; border-radius: 4px; background: rgba(74, 158, 255, 0.15); color: var(--primary); }
+        .section-desc { font-size: var(--text-xs); color: var(--muted); margin-bottom: var(--space-2); padding: 0 var(--space-1); }
+
+        table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius-md); overflow: hidden; }
+        th, td { padding: var(--space-2) var(--space-3); text-align: left; border-bottom: 1px solid var(--border); font-size: var(--text-xs); }
+        th { background: var(--surface-hover); font-weight: 500; color: var(--muted); white-space: nowrap; }
+        td.code { font-family: var(--font-mono); color: var(--primary); }
+        td.status { white-space: nowrap; }
+        td.status .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; }
+        td.status .dot.enabled { background: var(--success); }
+        td.status .dot.disabled { background: var(--danger); }
+
+        .type-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-3); margin-top: var(--space-5); padding: var(--space-4); background: var(--surface); border-radius: var(--radius-md); }
+        .summary-item { padding: var(--space-3); background: var(--surface-hover); border-radius: var(--radius-sm); }
+        .summary-item .count { font-size: 24px; font-weight: 600; color: var(--primary); }
+        .summary-item .label { font-size: var(--text-xs); color: var(--muted); margin-top: 2px; }
+
+        .footer { text-align: center; margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border); color: var(--muted); font-size: var(--text-xs); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>电力市场交易辅助决策系统</h1>
+            <p>数据字典文档 v1.0 | 生成日期：2026-07-08</p>
+        </div>
+
+        <div class="type-summary">
+            <div class="summary-item">
+                <div class="count">28</div>
+                <div class="label">字典类型总数</div>
+            </div>
+            <div class="summary-item">
+                <div class="count">210+</div>
+                <div class="label">数据项总数</div>
+            </div>
+            <div class="summary-item">
+                <div class="count">100%</div>
+                <div class="label">启用状态</div>
+            </div>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>交易品种 (trade-type)</h2>
+                <span class="badge">9项</span>
+            </div>
+            <div class="section-desc">用于中长期交易、现货交易等业务场景，标识不同类型的交易方式。<br><strong>数据库字段名：</strong><code>trade_type</code></div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">PRIORITY</td><td>优先发电</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">BILATERAL</td><td>双边协商</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">AUCTION</td><td>集中竞价</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">LISTED</td><td>挂牌交易</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">GREEN_PV</td><td>绿电(光伏)</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">GREEN_WIND</td><td>绿电(风电)</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">TRANSFER</td><td>合同转让</td><td>7</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">SPOT</td><td>现货交易</td><td>8</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">DAY_AHEAD</td><td>日前交易</td><td>9</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>电源类型 (power-type)</h2>
+                <span class="badge">8项</span>
+            </div>
+            <div class="section-desc">标识发电设施的能源类型，用于电源装机结构统计、交易分类等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">PV</td><td>光伏</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">WIND</td><td>风电</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">HYDRO</td><td>水电</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">THERMAL_COAL</td><td>燃煤火电</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">THERMAL_GAS</td><td>燃气火电</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">STORAGE</td><td>独立储能</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">BIOMASS</td><td>生物质垃圾</td><td>7</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">OTHER</td><td>其他</td><td>8</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>发电类型 (generation-type)</h2>
+                <span class="badge">5项</span>
+            </div>
+            <div class="section-desc">按发电类型分类的交易统计，用于各类交易价格汇总、市场信息披露报告。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">COAL_FIRE</td><td>燃煤火电</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">NEW_ENERGY</td><td>新能源</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">GREEN_PV</td><td>绿电(光伏)</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">GREEN_WIND</td><td>绿电(风电)</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">PRIORITY</td><td>优先电量</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>场站类型 (station-type)</h2>
+                <span class="badge">6项</span>
+            </div>
+            <div class="section-desc">标识发电场站的类型，用于场站信息管理、功率预测等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">PV_STATION</td><td>光伏电站</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">WIND_FARM</td><td>风电场</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">HYDRO_STATION</td><td>水电站</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">THERMAL_PLANT</td><td>火电厂</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">STORAGE_STATION</td><td>储能电站</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">BIOMASS_PLANT</td><td>生物质垃圾发电站</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>计量单位 (unit-type)</h2>
+                <span class="badge">13项</span>
+            </div>
+            <div class="section-desc">系统中使用的各类计量单位，用于电量、功率、电价、时间等数据的单位标识。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">MWH</td><td>兆瓦时(MWh)</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">WAN_KWH</td><td>万千瓦时(万kWh)</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">YI_KWH</td><td>亿千瓦时(亿kWh)</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MW</td><td>兆瓦(MW)</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">CNY_MWH</td><td>元/兆瓦时(元/MWh)</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">H</td><td>小时(h)</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">PCT</td><td>百分比(%)</td><td>7</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">M_S</td><td>米/秒(m/s)</td><td>8</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">W_M2</td><td>瓦/平方米(W/m²)</td><td>9</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">C</td><td>摄氏度(°C)</td><td>10</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">YEAR</td><td>年度</td><td>11</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MONTH</td><td>月度</td><td>12</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">DAY</td><td>日度</td><td>13</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>中长期交易方式 (midlong-trade-mode)</h2>
+                <span class="badge">5项</span>
+            </div>
+            <div class="section-desc">中长期交易的具体方式分类，用于交易策略生成、合约管理等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">DAILY</td><td>日滚动</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">INTRA_MONTH</td><td>月内</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MONTH</td><td>月度</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MULTI_MONTH</td><td>多月</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">YEAR</td><td>年度</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>现货市场类型 (spot-market-type)</h2>
+                <span class="badge">2项</span>
+            </div>
+            <div class="section-desc">现货市场的交易时段分类，用于现货交易、日前/实时出清等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">DAY_AHEAD</td><td>日前</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">REAL_TIME</td><td>实时</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>风险偏好 (risk-level)</h2>
+                <span class="badge">3项</span>
+            </div>
+            <div class="section-desc">用户的风险偏好设置，用于交易策略生成、报价策略推荐等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">CONSERVATIVE</td><td>保守</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MODERATE</td><td>稳健</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">AGGRESSIVE</td><td>激进</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>气象类型 (weather-type)</h2>
+                <span class="badge">6项</span>
+            </div>
+            <div class="section-desc">气象要素的类型分类，用于气象信息看板、功率预测等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">WIND_SPEED</td><td>风速</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">IRRADIANCE</td><td>辐照度</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">TEMPERATURE</td><td>温度</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">HUMIDITY</td><td>湿度</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">PRECIPITATION</td><td>降水</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">PRESSURE</td><td>气压</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>气象数据源 (weather-source)</h2>
+                <span class="badge">5项</span>
+            </div>
+            <div class="section-desc">气象数据的来源渠道，用于气象数据对接配置。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">ECMWF</td><td>ECMWF</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">NMC</td><td>国家气象中心(NMC)</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">OPEN_METEO</td><td>Open-Meteo API</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">WRF</td><td>WRF模式</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">LOCAL</td><td>本地观测</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>预测时长 (forecast-duration)</h2>
+                <span class="badge">8项</span>
+            </div>
+            <div class="section-desc">预测模型的预测时间范围，用于负荷预测、功率预测、电价预测等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">REALTIME</td><td>实时（1h内）</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">SHORT</td><td>短期（1D内）</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MEDIUM_3D</td><td>中期（3D内）</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MEDIUM_7D</td><td>中期（1周内）</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">LONG_15D</td><td>长期（15天内）</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">LONG_MONTH</td><td>长期（1个月）</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">LONG_QUARTER</td><td>长期（3个月）</td><td>7</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">LONG_YEAR</td><td>长期（12个月）</td><td>8</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>预测间隔 (forecast-interval)</h2>
+                <span class="badge">3项</span>
+            </div>
+            <div class="section-desc">预测数据的时间间隔，用于功率预测精度分析（15分钟/1小时/24小时）等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">MIN_15</td><td>15分钟</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">HOUR_1</td><td>1小时</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">HOUR_24</td><td>24小时</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>算法方案类型 (algorithm-type)</h2>
+                <span class="badge">8项</span>
+            </div>
+            <div class="section-desc">预测模型使用的算法类型，用于算法方案管理、模型对接等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">TIME_SERIES</td><td>时序预测模型</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">REGRESSION</td><td>回归预测模型</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">NEURAL_NET</td><td>神经网络模型</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">ENSEMBLE</td><td>集成学习模型</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">HYBRID</td><td>混合架构</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">BASELINE</td><td>基线模型</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MACHINE_LEARNING</td><td>机器学习模型</td><td>7</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">DEEP_LEARNING</td><td>深度学习模型</td><td>8</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>训练节点类型 (train-node-type)</h2>
+                <span class="badge">8项</span>
+            </div>
+            <div class="section-desc">模型训练任务的节点类型，用于训练节点管理。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">DAY_AHEAD_PRICE</td><td>日前电价预测节点</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">REALTIME_PRICE</td><td>实时电价预测节点</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">LOAD_FORECAST</td><td>负荷预测节点</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">POWER_FORECAST</td><td>功率预测节点</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">WEATHER_FORECAST</td><td>气象预测节点</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">REGIONAL_PRICE</td><td>区域电价专项节点</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">GLOBAL_MODEL</td><td>全网通用模型节点</td><td>7</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">SPECIAL_TASK</td><td>专项任务训练节点</td><td>8</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>用户角色 (user-role)</h2>
+                <span class="badge">4项</span>
+            </div>
+            <div class="section-desc">系统用户的角色类型，用于权限管理。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">ADMIN</td><td>管理员</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">ANALYST</td><td>预测分析师</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">TRADER</td><td>交易员</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">OPS</td><td>运维人员</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>公司类型 (company-type)</h2>
+                <span class="badge">4项</span>
+            </div>
+            <div class="section-desc">公司/企业的类型分类，用于场站所属公司、市场主体等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">NEW_ENERGY</td><td>新能源公司</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">TRADITIONAL</td><td>传统能源公司</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">INDEPENDENT</td><td>独立售电公司</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">GRID_COMPANY</td><td>电网企业</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>设备状态 (device-status)</h2>
+                <span class="badge">4项</span>
+            </div>
+            <div class="section-desc">设备/模型的运行状态，用于模型对接管理、设备监控等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">RUNNING</td><td>运行中</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">STOPPED</td><td>已停止</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">FAULT</td><td>故障</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MAINTENANCE</td><td>维护中</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>告警级别 (alarm-level)</h2>
+                <span class="badge">4项</span>
+            </div>
+            <div class="section-desc">系统告警的严重级别，用于告警通知、日志管理等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">INFO</td><td>提示</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">WARNING</td><td>警告</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">ERROR</td><td>错误</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">CRITICAL</td><td>严重</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>交易节点 (node-type)</h2>
+                <span class="badge">4项</span>
+            </div>
+            <div class="section-desc">电力市场的交易节点，用于电价预测、交易出清等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">HN_AVERAGE</td><td>湖南省均价</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">POYAO</td><td>坡窑山</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">QIUJIAHU</td><td>邱家湖</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">QINGSHANJIE</td><td>青山界</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>市场主体类型 (market-entity-type)</h2>
+                <span class="badge">8项</span>
+            </div>
+            <div class="section-desc">参与电力市场交易的主体类型，用于交易管理、市场信息披露等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">GRID_COMPANY</td><td>电网企业</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">DIRECT_GEN</td><td>直购发电企业</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">WHOLESALE_USER</td><td>批发交易用户</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">RETAIL_USER</td><td>零售用户</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">LOCAL_RETAILER</td><td>售电公司(省内)</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">OUTSIDE_RETAILER</td><td>售电公司(外省推送)</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">INDEP_STORAGE</td><td>独立储能企业</td><td>7</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">VIRTUAL_POWER_PLANT</td><td>虚拟电厂</td><td>8</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>合约周期 (contract-period)</h2>
+                <span class="badge">5项</span>
+            </div>
+            <div class="section-desc">中长期合约的时间周期，用于合约管理、交易策略生成等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">YEAR</td><td>年度</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">QUARTER</td><td>季度</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MONTH</td><td>月度</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">WEEK</td><td>周度</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">DAY</td><td>日度</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>合约类型 (contract-type)</h2>
+                <span class="badge">3项</span>
+            </div>
+            <div class="section-desc">中长期合约的具体类型，基于桂阳月和合约模拟数据：年度双边协商40%、月度集中竞价50-60%、现货10%。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">ANNUAL_BILATERAL</td><td>年度双边协商合约</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MONTHLY_AUCTION</td><td>月度集中竞价合约</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">SPOT</td><td>现货合约</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>结算类型 (settlement-type)</h2>
+                <span class="badge">4项</span>
+            </div>
+            <div class="section-desc">交易结算的类型，用于结算管理、偏差结算等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">DAY_AHEAD</td><td>日前结算</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">REAL_TIME</td><td>实时结算</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">DEVIATION</td><td>偏差结算</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">CLEARING</td><td>清算分摊</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>结算周期 (settlement-cycle)</h2>
+                <span class="badge">3项</span>
+            </div>
+            <div class="section-desc">结算的时间周期，用于结算管理、对账等场景。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">DAILY</td><td>日结算</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MONTHLY</td><td>月结算</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">QUARTERLY</td><td>季度结算</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>预测指标类型 (metric-type)</h2>
+                <span class="badge">4项</span>
+            </div>
+            <div class="section-desc">功率预测精度分析使用的评估指标，用于预测准确率统计。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">MAE</td><td>平均绝对误差(MAE)</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">RMSE</td><td>均方根误差(RMSE)</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">RMSPE</td><td>均方根百分比误差(RMSPE)</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">ACCURACY</td><td>预测准确率(%)</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>模型来源 (model-source)</h2>
+                <span class="badge">2项</span>
+            </div>
+            <div class="section-desc">预测模型的来源渠道，用于模型对接管理。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">WHU</td><td>武大功率预测模型</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">TUDE</td><td>图德电价预测模型</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>数据来源 (data-source)</h2>
+                <span class="badge">12项</span>
+            </div>
+            <div class="section-desc">系统数据的来源系统/渠道，用于数据溯源、数据归集管理。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">SCADA</td><td>升压站SCADA系统</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">WIND_SCADA</td><td>风机SCADA系统</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">ENERGY_METER</td><td>关口电能表计量系统</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">ASSET_LEDGER</td><td>资产台账</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">TRANSACTION_CENTER</td><td>省电力交易中心</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">GRID_COMPANY</td><td>省电力公司</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">CONTRACT_SYSTEM</td><td>内部合约管理系统</td><td>7</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">FINANCE_SYSTEM</td><td>内部财务/结算系统</td><td>8</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">PRODUCTION_PLAN</td><td>内部生产计划/年度预算系统</td><td>9</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">POWER_FORECAST</td><td>功率预测系统</td><td>10</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">PRICE_FORECAST</td><td>电价预测模型</td><td>11</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">LOAD_FORECAST</td><td>负荷预测模型</td><td>12</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>数据采集渠道 (data-channel)</h2>
+                <span class="badge">8项</span>
+            </div>
+            <div class="section-desc">数据采集的具体方式，用于数据归集管理。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">INTERFACE_API</td><td>数据接口API</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">SCADA_DIRECT</td><td>SCADA直采</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">METER_READING</td><td>电能表读数</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">FILE_IMPORT</td><td>文件导入</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">MANUAL_INPUT</td><td>人工录入</td><td>5</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">SYSTEM_CALC</td><td>系统计算</td><td>6</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">PUBLIC_DATA</td><td>公开数据</td><td>7</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">SIMULATION</td><td>模拟数据</td><td>8</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>数据状态 (data-status)</h2>
+                <span class="badge">4项</span>
+            </div>
+            <div class="section-desc">数据的归集状态，用于数据梳理、数据管理。</div>
+            <table>
+                <thead>
+                    <tr><th>编码</th><th>名称</th><th>排序</th><th>状态</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">COLLECTED</td><td>已归集</td><td>1</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">COLLECTING</td><td>归集中</td><td>2</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">SIMULATED</td><td>模拟数据</td><td>3</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                    <tr><td class="code">UNAVAILABLE</td><td>无法归集</td><td>4</td><td class="status"><span class="dot enabled"></span>启用</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dict-section">
+            <div class="section-header">
+                <h2>字典-页面映射表</h2>
+                <span class="badge">28项</span>
+            </div>
+            <div class="section-desc">每个字典类型在系统页面/模块中的使用场景映射，方便开发人员理解字典的实际用途。</div>
+            <table>
+                <thead>
+                    <tr><th>字典类型编码</th><th>字典类型名称</th><th>使用页面/模块</th><th>用途说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="code">trade-type</td><td>交易品种</td><td>中长期持仓、中长期辅助决策、复盘看板</td><td>交易方式筛选、合约分类统计</td></tr>
+                    <tr><td class="code">power-type</td><td>电源类型</td><td>市场行情看板、场站信息管理</td><td>电源装机结构统计、场站分类</td></tr>
+                    <tr><td class="code">generation-type</td><td>发电类型</td><td>市场信息披露报告、各类交易价格汇总</td><td>按发电类型统计交易数据</td></tr>
+                    <tr><td class="code">station-type</td><td>场站类型</td><td>场站信息管理、功率预测精度分析</td><td>场站分类、预测模型选择</td></tr>
+                    <tr><td class="code">unit-type</td><td>计量单位</td><td>全站通用</td><td>数据单位标识、单位换算</td></tr>
+                    <tr><td class="code">midlong-trade-mode</td><td>中长期交易方式</td><td>中长期辅助决策、中长期持仓</td><td>策略生成、合约管理</td></tr>
+                    <tr><td class="code">spot-market-type</td><td>现货市场类型</td><td>现货交易、现货辅助决策</td><td>日前/实时交易区分</td></tr>
+                    <tr><td class="code">risk-level</td><td>风险偏好</td><td>中长期辅助决策、报价策略管理</td><td>策略推荐、风险控制</td></tr>
+                    <tr><td class="code">weather-type</td><td>气象类型</td><td>气象信息看板、功率预测精度分析</td><td>气象要素展示、预测输入</td></tr>
+                    <tr><td class="code">weather-source</td><td>气象数据源</td><td>气象数据对接、系统参数配置</td><td>数据源配置、数据溯源</td></tr>
+                    <tr><td class="code">forecast-duration</td><td>预测时长</td><td>负荷预测、电价预测、功率预测精度分析</td><td>预测时间范围选择</td></tr>
+                    <tr><td class="code">forecast-interval</td><td>预测间隔</td><td>功率预测精度分析</td><td>15分钟/1小时/24小时预测对比</td></tr>
+                    <tr><td class="code">algorithm-type</td><td>算法方案类型</td><td>算法方案管理、模型对接管理</td><td>算法分类、模型配置</td></tr>
+                    <tr><td class="code">train-node-type</td><td>训练节点类型</td><td>训练节点管理</td><td>训练任务分类</td></tr>
+                    <tr><td class="code">user-role</td><td>用户角色</td><td>用户管理</td><td>权限控制</td></tr>
+                    <tr><td class="code">company-type</td><td>公司类型</td><td>场站信息管理、用户管理</td><td>公司分类、所属公司选择</td></tr>
+                    <tr><td class="code">device-status</td><td>设备状态</td><td>模型对接管理、算法方案管理</td><td>设备/模型运行状态</td></tr>
+                    <tr><td class="code">alarm-level</td><td>告警级别</td><td>操作日志、系统参数配置</td><td>告警通知、日志分级</td></tr>
+                    <tr><td class="code">node-type</td><td>交易节点</td><td>电价预测、现货交易</td><td>节点电价预测、出清计算</td></tr>
+                    <tr><td class="code">market-entity-type</td><td>市场主体类型</td><td>市场信息披露报告、交易管理</td><td>市场主体分类统计</td></tr>
+                    <tr><td class="code">contract-period</td><td>合约周期</td><td>中长期持仓、中长期辅助决策</td><td>合约时间周期选择</td></tr>
+                    <tr><td class="code">contract-type</td><td>合约类型</td><td>中长期持仓、中长期辅助决策</td><td>年度双边/月度竞价/现货合约分类</td></tr>
+                    <tr><td class="code">settlement-type</td><td>结算类型</td><td>复盘看板、结算管理</td><td>日前/实时/偏差/清算分摊</td></tr>
+                    <tr><td class="code">settlement-cycle</td><td>结算周期</td><td>结算管理、系统参数配置</td><td>日/月/季度结算周期</td></tr>
+                    <tr><td class="code">metric-type</td><td>预测指标类型</td><td>功率预测精度分析</td><td>MAE/RMSE/RMSPE/准确率</td></tr>
+                    <tr><td class="code">model-source</td><td>模型来源</td><td>模型对接管理</td><td>自研/武大功率/图德电价</td></tr>
+                    <tr><td class="code">data-source</td><td>数据来源</td><td>数据梳理、系统参数配置</td><td>数据溯源、来源标识</td></tr>
+                    <tr><td class="code">data-channel</td><td>数据采集渠道</td><td>数据梳理、系统参数配置</td><td>采集方式标识</td></tr>
+                    <tr><td class="code">data-status</td><td>数据状态</td><td>数据梳理</td><td>已归集/归集中/模拟/无法归集</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>文档说明：本数据字典文档基于系统页面内容及外部数据文件整理生成，包含系统中所有基础编码数据，用于支撑系统所有下拉选择和编码映射。</p>
+            <p>生成日期：2026-07-08 | 版本：v1.0</p>
+        </div>
+    </div>
+</body>
+</html>

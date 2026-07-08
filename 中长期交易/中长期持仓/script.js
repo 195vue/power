@@ -1,11 +1,11 @@
-// 合约电量情况 - 多折线图
+// 合约电量情况 - 多折线图（基于桂阳月和合约模拟：1-9月年度双边40%+月度竞价60%；10-12月年度双边40%+月度竞价50%+现货10%）
 const contractVolumeChart = echarts.init(document.getElementById('contract-volume-chart'));
 contractVolumeChart.setOption({
     tooltip: {
         trigger: 'axis'
     },
     legend: {
-        data: ['优先发电合约', '双边协商', '集中竞价', '挂牌交易', '绿电交易', '合同转让', '累计交易限额'],
+        data: ['年度双边协商合约', '月度集中竞价合约', '现货交易', '累计交易限额'],
         top: 0,
         itemWidth: 14,
         itemHeight: 14,
@@ -31,70 +31,40 @@ contractVolumeChart.setOption({
     },
     series: [
         {
-            name: '优先发电合约',
+            name: '年度双边协商合约',
             type: 'line',
             smooth: true,
-            data: [800, 850, 900, 950, 1000, 1050, 1100, 1150, 1100, 1050, 1000, 950],
+            data: [3200, 3400, 3500, 3600, 3800, 4000, 4200, 4300, 4100, 3800, 3700, 3600],
             symbol: 'circle',
             symbolSize: 4,
             itemStyle: { color: '#5470c6' },
             lineStyle: { width: 2 }
         },
         {
-            name: '双边协商',
+            name: '月度集中竞价合约',
             type: 'line',
             smooth: true,
-            data: [3000, 3200, 3250, 3500, 3750, 4000, 4200, 4300, 4000, 3800, 3700, 3600],
+            data: [4800, 5000, 5200, 5400, 5600, 5800, 6200, 6400, 6100, 4700, 4600, 4500],
             symbol: 'circle',
             symbolSize: 4,
             itemStyle: { color: '#91cc75' },
             lineStyle: { width: 2 }
         },
         {
-            name: '集中竞价',
+            name: '现货交易',
             type: 'line',
             smooth: true,
-            data: [1500, 1550, 1600, 1650, 1700, 1750, 1800, 1850, 1800, 1750, 1700, 1650],
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 950, 920, 900],
             symbol: 'circle',
             symbolSize: 4,
             itemStyle: { color: '#fac858' },
             lineStyle: { width: 2 }
         },
         {
-            name: '挂牌交易',
-            type: 'line',
-            smooth: true,
-            data: [1400, 1450, 1500, 1550, 1600, 1650, 1700, 1750, 1700, 1650, 1600, 1550],
-            symbol: 'circle',
-            symbolSize: 4,
-            itemStyle: { color: '#ee6666' },
-            lineStyle: { width: 2 }
-        },
-        {
-            name: '绿电交易',
-            type: 'line',
-            smooth: true,
-            data: [600, 650, 700, 750, 800, 850, 900, 950, 900, 850, 800, 750],
-            symbol: 'circle',
-            symbolSize: 4,
-            itemStyle: { color: '#73c0de' },
-            lineStyle: { width: 2 }
-        },
-        {
-            name: '合同转让',
-            type: 'line',
-            smooth: true,
-            data: [400, 420, 440, 460, 480, 500, 520, 540, 520, 500, 480, 460],
-            symbol: 'circle',
-            symbolSize: 4,
-            itemStyle: { color: '#3ba272' },
-            lineStyle: { width: 2 }
-        },
-        {
             name: '累计交易限额',
             type: 'line',
             smooth: true,
-            data: [6000, 6200, 6500, 6800, 7000, 7300, 7600, 7800, 7600, 7400, 7200, 7000],
+            data: [8000, 8400, 8700, 9000, 9400, 9800, 10400, 10700, 10200, 9450, 9220, 9000],
             symbol: 'circle',
             symbolSize: 4,
             itemStyle: { color: '#fc8452' },
@@ -206,18 +176,18 @@ contractGrowthChart.setOption({
     ]
 });
 
-// 合同占比情况 - 饼图
+// 合同占比情况 - 饼图（基于桂阳月和合约模拟：年度双边40% + 月度竞价50-60% + 现货10%）
 const contractProportionChart = echarts.init(document.getElementById('contract-proportion-chart'));
 contractProportionChart.setOption({
     tooltip: {
         trigger: 'item',
-        formatter: '{b}: {c} ({d}%)'
+        formatter: '{b}: {c}% ({d}%)'
     },
     legend: {
         orient: 'vertical',
         right: '5%',
         top: 'center',
-        data: ['用户A', '用户B', '用户C']
+        data: ['年度双边协商合约', '月度集中竞价合约', '现货交易']
     },
     series: [
         {
@@ -231,9 +201,9 @@ contractProportionChart.setOption({
                 formatter: '{b}'
             },
             data: [
-                { value: 35, name: '用户A', itemStyle: { color: '#5470c6' } },
-                { value: 30, name: '用户B', itemStyle: { color: '#91cc75' } },
-                { value: 35, name: '用户C', itemStyle: { color: '#fac858' } }
+                { value: 40, name: '年度双边协商合约', itemStyle: { color: '#5470c6' } },
+                { value: 50, name: '月度集中竞价合约', itemStyle: { color: '#91cc75' } },
+                { value: 10, name: '现货交易', itemStyle: { color: '#fac858' } }
             ]
         }
     ]

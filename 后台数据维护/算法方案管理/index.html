@@ -11,7 +11,7 @@
     <main class="main-content">
         <div class="page-header">
             <h2 class="page-title">算法方案管理</h2>
-            <p class="page-subtitle">维护负荷预测、电价预测等算法方案与训练节点</p>
+            <p class="page-subtitle">维护负荷预测、电价预测、功率预测等算法方案与训练节点</p>
         </div>
 
         <div class="filter-bar">
@@ -19,18 +19,30 @@
                 <label>所属模块</label>
                 <select class="filter-select" style="width:160px" id="scheme-filter-module">
                     <option value="all">全部模块</option>
-                    <option value="load">负荷预测</option>
-                    <option value="dayahead">日前电价预测</option>
-                    <option value="real">实时电价预测</option>
-                    <option value="node">训练节点</option>
+                    <option>负荷预测</option>
+                    <option>日前电价预测</option>
+                    <option>实时电价预测</option>
+                    <option>功率预测</option>
+                    <option>训练节点</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>算法类型</label>
+                <select class="filter-select" style="width:140px" id="scheme-filter-algo">
+                    <option value="all">全部类型</option>
+                    <option>LSTM</option>
+                    <option>GRU</option>
+                    <option>XGBoost</option>
+                    <option>Transformer</option>
+                    <option>Prophet</option>
                 </select>
             </div>
             <div class="filter-item">
                 <label>状态</label>
                 <select class="filter-select" style="width:120px" id="scheme-filter-status">
                     <option value="all">全部</option>
-                    <option value="published">已发布</option>
-                    <option value="draft">草稿</option>
+                    <option>已发布</option>
+                    <option>草稿</option>
                 </select>
             </div>
             <button class="btn-primary" onclick="filterSchemes()">查询</button>
@@ -44,6 +56,7 @@
                     <tr>
                         <th>方案名称</th>
                         <th>所属模块</th>
+                        <th>算法类型</th>
                         <th>版本号</th>
                         <th>训练日期范围</th>
                         <th>创建时间</th>
@@ -64,7 +77,7 @@
 
     <!-- 新增/编辑弹窗 -->
     <div class="modal-overlay" id="scheme-modal" style="display:none">
-        <div class="modal-panel" style="width:520px">
+        <div class="modal-panel" style="width:560px">
             <div class="modal-header">
                 <h3 id="scheme-modal-title">新增方案</h3>
                 <button class="modal-close" onclick="closeSchemeModal()">&times;</button>
@@ -72,7 +85,7 @@
             <div class="modal-body">
                 <div class="form-row">
                     <div class="form-section" style="flex:1">
-                        <label class="form-label">方案名称</label>
+                        <label class="form-label">方案名称 <span style="color:var(--danger)">*</span></label>
                         <input class="form-input" id="scheme-name" placeholder="请输入方案名称">
                     </div>
                     <div class="form-section" style="flex:1">
@@ -82,19 +95,26 @@
                 </div>
                 <div class="form-row">
                     <div class="form-section" style="flex:1">
-                        <label class="form-label">所属模块</label>
+                        <label class="form-label">所属模块 <span style="color:var(--danger)">*</span></label>
                         <select class="form-input" id="scheme-module">
                             <option>负荷预测</option>
                             <option>日前电价预测</option>
                             <option>实时电价预测</option>
+                            <option>功率预测</option>
                             <option>训练节点</option>
                         </select>
                     </div>
                     <div class="form-section" style="flex:1">
-                        <label class="form-label">状态</label>
-                        <select class="form-input" id="scheme-status">
-                            <option>已发布</option>
-                            <option>草稿</option>
+                        <label class="form-label">算法类型</label>
+                        <select class="form-input" id="scheme-algo">
+                            <option>LSTM</option>
+                            <option>GRU</option>
+                            <option>XGBoost</option>
+                            <option>LightGBM</option>
+                            <option>Transformer</option>
+                            <option>Prophet</option>
+                            <option>基线模型</option>
+                            <option>混合架构</option>
                         </select>
                     </div>
                 </div>
@@ -108,6 +128,23 @@
                         <input class="form-input" id="scheme-train-end" type="date">
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">状态</label>
+                        <select class="form-input" id="scheme-status">
+                            <option>已发布</option>
+                            <option>草稿</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">评估指标</label>
+                        <input class="form-input" id="scheme-metric" placeholder="如 RMSE=12.3">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">方案描述</label>
+                    <textarea class="form-input" id="scheme-desc" rows="2" placeholder="描述算法原理、特征工程、模型架构等" style="resize:vertical;min-height:48px"></textarea>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeSchemeModal()">取消</button>
@@ -118,23 +155,27 @@
 
     <script>
         var schemeData = [
-            { name: '负荷预测基线模型 v3', module: '负荷预测', version: 'v3.1.0', trainStart: '2025-10-01', trainEnd: '2026-02-28', created: '2026-03-01 09:00', status: '已发布' },
-            { name: '日前电价 GRU 模型', module: '日前电价预测', version: 'v2.0.0', trainStart: '2025-12-01', trainEnd: '2026-03-31', created: '2026-04-05 14:30', status: '已发布' },
-            { name: '实时电价 LSTM 模型', module: '实时电价预测', version: 'v1.5.0', trainStart: '2025-11-01', trainEnd: '2026-02-28', created: '2026-03-10 10:15', status: '已发布' },
-            { name: '淮南矿业集团售电训练节点', module: '训练节点', version: 'v1.0.0', trainStart: '2026-01-01', trainEnd: '2026-04-30', created: '2026-05-01 08:45', status: '已发布' },
-            { name: '负荷预测 Transformer 实验', module: '负荷预测', version: 'v0.9.0', trainStart: '2026-03-01', trainEnd: '2026-04-30', created: '2026-05-10 16:20', status: '草稿' },
-            { name: '实时电价优化模型 v2', module: '实时电价预测', version: 'v2.0-beta', trainStart: '2026-02-01', trainEnd: '2026-05-15', created: '2026-05-20 11:00', status: '草稿' }
+            { name: '负荷预测基线模型 v3', module: '负荷预测', algo: '基线模型', version: 'v3.1.0', trainStart: '2025-10-01', trainEnd: '2026-02-28', created: '2026-03-01 09:00', status: '已发布', metric: 'RMSE=2.3%', desc: '基于历史同期均值的基线预测方法，作为评估基准' },
+            { name: '负荷预测 LSTM 模型', module: '负荷预测', algo: 'LSTM', version: 'v2.0.0', trainStart: '2025-12-01', trainEnd: '2026-03-31', created: '2026-04-05 14:30', status: '已发布', metric: 'RMSE=1.8%', desc: '多层LSTM网络，融合气象特征和节假日因子' },
+            { name: '日前电价 GRU 模型', module: '日前电价预测', algo: 'GRU', version: 'v2.1.0', trainStart: '2025-12-01', trainEnd: '2026-03-31', created: '2026-04-05 14:30', status: '已发布', metric: 'RMSE=8.5', desc: '门控循环单元网络，96点日前电价预测' },
+            { name: '实时电价 LSTM 模型', module: '实时电价预测', algo: 'LSTM', version: 'v1.5.0', trainStart: '2025-11-01', trainEnd: '2026-02-28', created: '2026-03-10 10:15', status: '已发布', metric: 'RMSE=5.2', desc: '实时滚动预测，15分钟粒度更新' },
+            { name: '功率预测 XGBoost 模型', module: '功率预测', algo: 'XGBoost', version: 'v2.0.0', trainStart: '2025-08-01', trainEnd: '2026-01-31', created: '2026-02-15 11:20', status: '已发布', metric: 'MAE=3.2%', desc: '集成学习模型，融合NWP气象数据' },
+            { name: '淮南矿业集团售电训练节点', module: '训练节点', algo: 'GRU', version: 'v1.0.0', trainStart: '2026-01-01', trainEnd: '2026-04-30', created: '2026-05-01 08:45', status: '已发布', metric: '-', desc: '基于2026年Q1-Q2数据训练' },
+            { name: '负荷预测 Transformer 实验', module: '负荷预测', algo: 'Transformer', version: 'v0.9.0', trainStart: '2026-03-01', trainEnd: '2026-04-30', created: '2026-05-10 16:20', status: '草稿', metric: 'RMSE=1.5%', desc: '基于注意力机制的时序模型，实验性版本' },
+            { name: '实时电价优化模型 v2', module: '实时电价预测', algo: '混合架构', version: 'v2.0-beta', trainStart: '2026-02-01', trainEnd: '2026-05-15', created: '2026-05-20 11:00', status: '草稿', metric: '-', desc: 'LSTM+XGBoost混合架构，待验证' }
         ];
         var schemeEditIndex = -1;
 
-        function renderSchemes() {
+        function renderSchemes(data) {
             var tbody = document.getElementById('scheme-table-body');
             tbody.innerHTML = '';
-            schemeData.forEach(function(s, i) {
+            var list = data || schemeData;
+            list.forEach(function(s, i) {
                 var cls = s.status === '已发布' ? 'badge-success' : 'badge-muted';
                 tbody.innerHTML += '<tr>' +
-                    '<td>' + s.name + '</td>' +
+                    '<td><strong>' + s.name + '</strong></td>' +
                     '<td>' + s.module + '</td>' +
+                    '<td>' + s.algo + '</td>' +
                     '<td>' + s.version + '</td>' +
                     '<td>' + s.trainStart + ' ~ ' + s.trainEnd + '</td>' +
                     '<td>' + s.created + '</td>' +
@@ -144,7 +185,7 @@
                     '<button class="btn-delete" onclick="deleteScheme(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>' +
                     '</td></tr>';
             });
-            document.getElementById('scheme-count').textContent = '共 ' + schemeData.length + ' 条记录';
+            document.getElementById('scheme-count').textContent = '共 ' + list.length + ' 条记录';
         }
 
         function openSchemeModal(index) {
@@ -155,9 +196,12 @@
                 document.getElementById('scheme-name').value = '';
                 document.getElementById('scheme-version').value = '';
                 document.getElementById('scheme-module').value = '负荷预测';
+                document.getElementById('scheme-algo').value = 'LSTM';
                 document.getElementById('scheme-status').value = '草稿';
                 document.getElementById('scheme-train-start').value = '';
                 document.getElementById('scheme-train-end').value = '';
+                document.getElementById('scheme-metric').value = '';
+                document.getElementById('scheme-desc').value = '';
             } else {
                 schemeEditIndex = index;
                 document.getElementById('scheme-modal-title').textContent = '编辑方案';
@@ -165,9 +209,12 @@
                 document.getElementById('scheme-name').value = s.name;
                 document.getElementById('scheme-version').value = s.version;
                 document.getElementById('scheme-module').value = s.module;
+                document.getElementById('scheme-algo').value = s.algo;
                 document.getElementById('scheme-status').value = s.status;
                 document.getElementById('scheme-train-start').value = s.trainStart;
                 document.getElementById('scheme-train-end').value = s.trainEnd;
+                document.getElementById('scheme-metric').value = s.metric || '';
+                document.getElementById('scheme-desc').value = s.desc || '';
             }
             modal.style.display = 'flex';
         }
@@ -180,11 +227,14 @@
             var data = {
                 name: document.getElementById('scheme-name').value,
                 module: document.getElementById('scheme-module').value,
+                algo: document.getElementById('scheme-algo').value,
                 version: document.getElementById('scheme-version').value,
                 trainStart: document.getElementById('scheme-train-start').value,
                 trainEnd: document.getElementById('scheme-train-end').value,
                 created: new Date().toISOString().slice(0, 16).replace('T', ' '),
-                status: document.getElementById('scheme-status').value
+                status: document.getElementById('scheme-status').value,
+                metric: document.getElementById('scheme-metric').value,
+                desc: document.getElementById('scheme-desc').value
             };
             if (!data.name) { alert('请输入方案名称'); return; }
             if (schemeEditIndex === -1) {
@@ -204,7 +254,16 @@
         }
 
         function filterSchemes() {
-            renderSchemes();
+            var module = document.getElementById('scheme-filter-module').value;
+            var algo = document.getElementById('scheme-filter-algo').value;
+            var status = document.getElementById('scheme-filter-status').value;
+            var filtered = schemeData.filter(function(s) {
+                if (module !== 'all' && s.module !== module) return false;
+                if (algo !== 'all' && s.algo !== algo) return false;
+                if (status !== 'all' && s.status !== status) return false;
+                return true;
+            });
+            renderSchemes(filtered);
         }
 
         var _schemeModal = document.getElementById('scheme-modal');

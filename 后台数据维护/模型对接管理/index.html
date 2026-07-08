@@ -46,7 +46,9 @@
                     <tr>
                         <th>模型名称</th>
                         <th>模型类型</th>
+                        <th>模型来源</th>
                         <th>版本号</th>
+                        <th>模型描述</th>
                         <th>服务地址</th>
                         <th>运行状态</th>
                         <th>最后心跳</th>
@@ -188,11 +190,11 @@
 
     <script>
         var modelList = [
-            { name: '负荷预测模型', type: '负荷预测', version: 'v2.1.0', endpoint: 'http://192.168.1.100:8081/predict/load', status: '运行中', heartbeat: '2026-05-26 23:20:15', updated: '2026-05-20', desc: '全省负荷96点预测，基于时序Transformer网络', token: 'sk-load-****', timeout: 30, retry: 3 },
-            { name: '电价预测模型', type: '电价预测', version: 'v2.3.1', endpoint: 'http://192.168.1.100:8082/predict/price', status: '运行中', heartbeat: '2026-05-26 23:21:02', updated: '2026-05-18', desc: '日前及实时电价预测，96点粒度，融合气象特征', token: 'sk-price-****', timeout: 45, retry: 3 },
-            { name: '功率预测模型', type: '功率预测', version: 'v1.8.0', endpoint: 'http://192.168.1.100:8083/predict/power', status: '运行中', heartbeat: '2026-05-26 23:19:58', updated: '2026-05-15', desc: '光伏/风电功率预测，集成NWP数值天气预报', token: 'sk-power-****', timeout: 30, retry: 5 },
-            { name: '气象预测模型', type: '气象预测', version: 'v1.5.2', endpoint: 'http://192.168.1.101:9090/weather/forecast', status: '已停止', heartbeat: '2026-05-25 18:00:00', updated: '2026-04-28', desc: '风速、辐照度、温湿度72h预测，ECMWF驱动', token: 'sk-wthr-****', timeout: 60, retry: 3 },
-            { name: '现货价格预测模型', type: '现货价格预测', version: 'v1.2.0', endpoint: 'http://192.168.1.100:8084/predict/spot', status: '异常', heartbeat: '2026-05-26 22:45:10', updated: '2026-05-10', desc: '日前/实时现货价格预测，15分钟粒度输出', token: 'sk-spot-****', timeout: 30, retry: 2 }
+            { name: '负荷预测模型', type: '负荷预测', source: '自研', version: 'v2.1.0', endpoint: 'http://192.168.1.100:8081/predict/load', status: '运行中', heartbeat: '2026-05-26 23:20:15', updated: '2026-05-20', desc: '全省负荷96点预测，基于时序Transformer网络', token: 'sk-load-****', timeout: 30, retry: 3 },
+            { name: '电价预测模型', type: '电价预测', source: '图德电价预测模型', version: 'v2.3.1', endpoint: 'http://192.168.1.100:8082/predict/price', status: '运行中', heartbeat: '2026-05-26 23:21:02', updated: '2026-05-18', desc: '日前及实时电价预测，96点粒度，融合气象特征', token: 'sk-price-****', timeout: 45, retry: 3 },
+            { name: '功率预测模型', type: '功率预测', source: '武大功率预测模型', version: 'v1.8.0', endpoint: 'http://192.168.1.100:8083/predict/power', status: '运行中', heartbeat: '2026-05-26 23:19:58', updated: '2026-05-15', desc: '光伏/风电功率预测，集成NWP数值天气预报', token: 'sk-power-****', timeout: 30, retry: 5 },
+            { name: '气象预测模型', type: '气象预测', source: '自研', version: 'v1.5.2', endpoint: 'http://192.168.1.101:9090/weather/forecast', status: '已停止', heartbeat: '2026-05-25 18:00:00', updated: '2026-04-28', desc: '风速、辐照度、温湿度72h预测，ECMWF驱动', token: 'sk-wthr-****', timeout: 60, retry: 3 },
+            { name: '现货价格预测模型', type: '现货价格预测', source: '图德电价预测模型', version: 'v1.2.0', endpoint: 'http://192.168.1.100:8084/predict/spot', status: '异常', heartbeat: '2026-05-26 22:45:10', updated: '2026-05-10', desc: '日前/实时现货价格预测，15分钟粒度输出', token: 'sk-spot-****', timeout: 30, retry: 2 }
         ];
         var editIndex = -1;
 
@@ -205,7 +207,9 @@
                 tbody.innerHTML += '<tr>' +
                     '<td><strong>' + m.name + '</strong></td>' +
                     '<td>' + m.type + '</td>' +
+                    '<td>' + (m.source || '-') + '</td>' +
                     '<td><code style="font-size:var(--text-xs);background:var(--bg);padding:2px 6px;border-radius:4px">' + m.version + '</code></td>' +
+                    '<td style="font-size:var(--text-xs);color:var(--muted);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (m.desc || '') + '">' + (m.desc || '-') + '</td>' +
                     '<td><span class="mono-text">' + m.endpoint + '</span></td>' +
                     '<td><span class="badge ' + statusClass + '">' + m.status + '</span></td>' +
                     '<td style="font-size:var(--text-xs);color:var(--muted)">' + m.heartbeat + '</td>' +

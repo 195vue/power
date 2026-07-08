@@ -56,7 +56,7 @@
                         <th style="width:80px">结果</th>
                     </tr>
                 </thead>
-                <tbody id="log-table-body"></tbody>
+                <tbody id="log-table-body" onclick="showLogDetail(event)"></tbody>
             </table>
             <div class="pagination">
                 <span class="info-text" id="log-count">共 0 条记录</span>
@@ -70,6 +70,32 @@
             </div>
         </div>
     </main>
+
+    <div class="modal-overlay" id="log-detail-modal" style="display:none">
+        <div class="modal-panel" style="width:520px">
+            <div class="modal-header">
+                <h3 id="detail-title">日志详情</h3>
+                <button class="modal-close" onclick="closeLogDetail()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+                    <div class="detail-item"><span style="font-size:var(--text-xs);color:var(--muted)">操作时间</span><span style="font-size:var(--text-sm);font-weight:500;color:var(--fg);font-family:var(--font-mono)" id="detail-time">-</span></div>
+                    <div class="detail-item"><span style="font-size:var(--text-xs);color:var(--muted)">操作人</span><span style="font-size:var(--text-sm);font-weight:500;color:var(--fg)" id="detail-user">-</span></div>
+                    <div class="detail-item"><span style="font-size:var(--text-xs);color:var(--muted)">IP地址</span><span style="font-size:var(--text-sm);font-weight:500;color:var(--fg);font-family:var(--font-mono)" id="detail-ip">-</span></div>
+                    <div class="detail-item"><span style="font-size:var(--text-xs);color:var(--muted)">操作类型</span><span style="font-size:var(--text-sm);font-weight:500;color:var(--fg)" id="detail-type">-</span></div>
+                    <div class="detail-item"><span style="font-size:var(--text-xs);color:var(--muted)">操作对象</span><span style="font-size:var(--text-sm);font-weight:500;color:var(--fg)" id="detail-object">-</span></div>
+                    <div class="detail-item"><span style="font-size:var(--text-xs);color:var(--muted)">操作结果</span><span style="font-size:var(--text-sm);font-weight:500;color:var(--fg)" id="detail-result">-</span></div>
+                </div>
+                <div style="margin-top:var(--space-4)">
+                    <span style="font-size:var(--text-xs);color:var(--muted)">操作详情</span>
+                    <p style="font-size:var(--text-sm);color:var(--fg);margin-top:4px;line-height:1.6;padding:var(--space-3);background:var(--surface);border-radius:var(--radius-sm)" id="detail-detail">-</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeLogDetail()">关闭</button>
+            </div>
+        </div>
+    </div>
 
     <style>
         .page-btn { padding: var(--space-1) var(--space-3); }
@@ -103,9 +129,9 @@
             var pageData = logData.slice(start, end);
             var tbody = document.getElementById('log-table-body');
             tbody.innerHTML = '';
-            pageData.forEach(function(log) {
+            pageData.forEach(function(log, i) {
                 var cls = log.result === '成功' ? 'badge-success' : 'badge-muted';
-                tbody.innerHTML += '<tr>' +
+                tbody.innerHTML += '<tr data-index="' + i + '" style="cursor:pointer">' +
                     '<td style="font-family:var(--font-mono);font-size:12px">' + log.time + '</td>' +
                     '<td>' + log.user + '</td>' +
                     '<td style="font-family:var(--font-mono);font-size:12px">' + log.ip + '</td>' +
@@ -128,6 +154,32 @@
         }
 
         function exportLogs() { alert('日志导出功能将生成 Excel 文件'); }
+
+        function showLogDetail(e) {
+            var target = e.target.closest('tr');
+            if (!target || !target.dataset.index) return;
+            var idx = parseInt(target.dataset.index);
+            var start = (currentPage - 1) * pageSize;
+            var log = logData[start + idx];
+            if (!log) return;
+            document.getElementById('detail-time').textContent = log.time;
+            document.getElementById('detail-user').textContent = log.user;
+            document.getElementById('detail-ip').textContent = log.ip;
+            document.getElementById('detail-type').textContent = log.type;
+            document.getElementById('detail-object').textContent = log.object;
+            document.getElementById('detail-result').textContent = log.result;
+            document.getElementById('detail-detail').textContent = log.detail;
+            document.getElementById('log-detail-modal').style.display = 'flex';
+        }
+
+        function closeLogDetail() {
+            document.getElementById('log-detail-modal').style.display = 'none';
+        }
+
+        var _detailModal = document.getElementById('log-detail-modal');
+        if (_detailModal) {
+            _detailModal.addEventListener('click', function(e) { if (e.target === this) closeLogDetail(); });
+        }
 
         renderLogs();
     </script>

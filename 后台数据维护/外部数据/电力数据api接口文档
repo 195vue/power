@@ -1,0 +1,377 @@
+# 电力数据 API 接口文档
+
+基础路径：`/api/electricity`
+
+---
+
+## 1. 查询单日出力
+
+**`GET /api/electricity/generation`**
+
+查询指定日期的出力数据，包含真实值、预测值1和预测值2。
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `date` | DateTime | 是 | 查询日期，格式 `yyyy-MM-dd`，如 `2026-06-15` |
+| `interval` | string | 是 | 时间粒度，取值 `"15min"` 或 `"1hour"` |
+
+### 响应示例
+
+```json
+{
+  "date": "2026-06-15",
+  "type": "generation",
+  "interval": "15min",
+  "data": [
+    {
+      "timeSlot": "00:00",
+      "actualValue": 350.5000,
+      "predictedValue1": 348.2100,
+      "predictedValue2": 351.7800
+    },
+    {
+      "timeSlot": "00:15",
+      "actualValue": 340.2000,
+      "predictedValue1": 342.1000,
+      "predictedValue2": 339.5000
+    }
+  ]
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `date` | string | 查询日期，格式 `yyyy-MM-dd` |
+| `type` | string | 固定值 `"generation"` |
+| `interval` | string | 时间粒度 |
+| `data` | array | 数据点列表 |
+| `data[].timeSlot` | string | 时间槽，15min 粒度为 `HH:mm`（如 `00:15`），1hour 粒度为 `HH:00`（如 `01:00`） |
+| `data[].actualValue` | decimal | 真实出力 |
+| `data[].predictedValue1` | decimal | 预测值1 |
+| `data[].predictedValue2` | decimal | 预测值2 |
+
+---
+
+## 2. 查询单日负荷
+
+**`GET /api/electricity/consumption`**
+
+查询指定日期的负荷数据，包含真实值、预测值及误差上下界。
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `date` | DateTime | 是 | 查询日期，格式 `yyyy-MM-dd` |
+| `interval` | string | 是 | 时间粒度，取值 `"15min"` 或 `"1hour"` |
+
+### 响应示例
+
+```json
+{
+  "date": "2026-06-15",
+  "type": "consumption",
+  "interval": "15min",
+  "data": [
+    {
+      "timeSlot": "00:00",
+      "actualValue": 150.5000,
+      "predictedValue": 148.2100,
+      "errorUp": 149.1200,
+      "errorDown": 147.3000
+    }
+  ]
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `date` | string | 查询日期 |
+| `type` | string | 固定值 `"consumption"` |
+| `interval` | string | 时间粒度 |
+| `data` | array | 数据点列表 |
+| `data[].timeSlot` | string | 时间槽 |
+| `data[].actualValue` | decimal | 真实负荷 |
+| `data[].predictedValue` | decimal | 预测值 |
+| `data[].errorUp` | decimal | 误差上界 |
+| `data[].errorDown` | decimal | 误差下界 |
+
+---
+
+## 3. 出力预测误差分析
+
+**`GET /api/electricity/generation/error-analysis`**
+
+查询指定日期范围内出力预测值1与真实值的误差分析，包括误差分布、正态拟合参数和评估指标。
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `startDate` | DateTime | 是 | 起始日期，格式 `yyyy-MM-dd` |
+| `endDate` | DateTime | 是 | 结束日期，格式 `yyyy-MM-dd`，须 >= startDate |
+| `interval` | string | 是 | 时间粒度，取值 `"15min"` 或 `"1hour"` |
+
+### 响应示例
+
+```json
+{
+  "startDate": "2026-05-01",
+  "endDate": "2026-05-31",
+  "type": "generation",
+  "interval": "15min",
+  "totalCount": 2976,
+  "errorDistribution": [
+    { "rangeStart": -1.0, "rangeEnd": -0.8, "count": 45 },
+    { "rangeStart": -0.8, "rangeEnd": -0.6, "count": 120 },
+    { "rangeStart": -0.6, "rangeEnd": -0.4, "count": 210 },
+    { "rangeStart": -0.4, "rangeEnd": -0.2, "count": 380 },
+    { "rangeStart": -0.2, "rangeEnd": 0.0, "count": 520 },
+    { "rangeStart": 0.0, "rangeEnd": 0.2, "count": 510 },
+    { "rangeStart": 0.2, "rangeEnd": 0.4, "count": 390 },
+    { "rangeStart": 0.4, "rangeEnd": 0.6, "count": 200 },
+    { "rangeStart": 0.6, "rangeEnd": 0.8, "count": 115 },
+    { "rangeStart": 0.8, "rangeEnd": 1.0, "count": 48 }
+  ],
+  "normalFit": {
+    "mean": 0.0123,
+    "stdDev": 0.4567
+  },
+  "metrics": {
+    "mae": 0.3456,
+    "rmse": 0.4567,
+    "mape": 2.34
+  }
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `startDate` | string | 起始日期 |
+| `endDate` | string | 结束日期 |
+| `type` | string | 固定值 `"generation"` |
+| `interval` | string | 时间粒度 |
+| `totalCount` | int | 数据总条数 |
+| `errorDistribution` | array | 误差分布列表，按区间从小到大排列 |
+| `errorDistribution[].rangeStart` | double | 区间左端点（含） |
+| `errorDistribution[].rangeEnd` | double | 区间右端点（不含，最后一个区间含右端点） |
+| `errorDistribution[].count` | int | 落入该区间的误差个数 |
+| `normalFit` | object | 正态分布拟合参数 |
+| `normalFit.mean` | double | 误差均值 (μ) |
+| `normalFit.stdDev` | double | 误差标准差 (σ) |
+| `metrics` | object | 评估指标 |
+| `metrics.mae` | double | 平均绝对误差：mean(\|error\|) |
+| `metrics.rmse` | double | 均方根误差：sqrt(mean(error²)) |
+| `metrics.mape` | double | 平均绝对百分比误差，百分比形式（如 2.34 表示 2.34%），过滤 ActualValue=0 的记录 |
+
+### 计算说明
+
+- **误差** = `PredictedValue1 - ActualValue`
+- **误差分布区间**：以 0.2 为步长，从数据最小误差向下取整到最大误差向上取整，动态生成覆盖全部数据的区间
+- **正态拟合**：对全部误差值计算均值和标准差
+- **MAPE**：`mean(|error / ActualValue|) × 100`，排除 ActualValue=0 的记录
+
+---
+
+## 4. 出力预测准确率
+
+**`GET /api/electricity/generation/accuracy`**
+
+查询指定日期之前 N 天的出力预测值1和预测值2的准确率，按天返回。
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `date` | DateTime | 是 | 基准日期，格式 `yyyy-MM-dd`，该日不包含在查询范围内 |
+| `period` | int | 是 | 回溯天数，取值 `7` 或 `30` |
+| `interval` | string | 是 | 时间粒度，取值 `"15min"` 或 `"1hour"` |
+
+查询范围：`[date - period天, date - 1天]`，不包含 date 当天。
+
+### 响应示例
+
+```json
+{
+  "date": "2026-06-15",
+  "period": 7,
+  "type": "generation",
+  "interval": "15min",
+  "dailyAccuracy": [
+    { "date": "2026-06-08", "accuracyValue1": 0.9678, "accuracyValue2": 0.9582 },
+    { "date": "2026-06-09", "accuracyValue1": 0.9701, "accuracyValue2": 0.9645 },
+    { "date": "2026-06-10", "accuracyValue1": 0.9654, "accuracyValue2": 0.9601 },
+    { "date": "2026-06-11", "accuracyValue1": 0.9723, "accuracyValue2": 0.9634 },
+    { "date": "2026-06-12", "accuracyValue1": 0.9698, "accuracyValue2": 0.9612 },
+    { "date": "2026-06-13", "accuracyValue1": 0.9689, "accuracyValue2": 0.9598 },
+    { "date": "2026-06-14", "accuracyValue1": 0.9710, "accuracyValue2": 0.9627 }
+  ]
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `date` | string | 基准日期 |
+| `period` | int | 回溯天数 |
+| `type` | string | 固定值 `"generation"` |
+| `interval` | string | 时间粒度 |
+| `dailyAccuracy` | array | 每日准确率列表，按日期升序 |
+| `dailyAccuracy[].date` | string | 日期 |
+| `dailyAccuracy[].accuracyValue1` | double | 预测值1的准确率，值域 [0, 1]，越接近 1 越准确 |
+| `dailyAccuracy[].accuracyValue2` | double | 预测值2的准确率 |
+
+### 计算说明
+
+- **准确率** = `1 - mean(|预测值 - 真实值| / 真实值)`
+- 对每天内所有时间槽取平均，排除 ActualValue=0 的记录
+- 准确率范围 [0, 1]，值越大表示预测越准确
+
+---
+
+## 5. 查询时间段内出力
+
+**`GET /api/electricity/generation/range`**
+
+查询指定日期范围内每天的出力数据，按天分组返回。
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `startDate` | DateTime | 是 | 起始日期，格式 `yyyy-MM-dd` |
+| `endDate` | DateTime | 是 | 结束日期，格式 `yyyy-MM-dd`，须 >= startDate |
+| `interval` | string | 是 | 时间粒度，取值 `"15min"` 或 `"1hour"` |
+
+### 响应示例
+
+```json
+{
+  "startDate": "2026-05-01",
+  "endDate": "2026-05-03",
+  "type": "generation",
+  "interval": "15min",
+  "data": [
+    {
+      "date": "2026-05-01",
+      "points": [
+        { "timeSlot": "00:00", "actualValue": 350.5000, "predictedValue1": 348.2100, "predictedValue2": 351.7800 },
+        { "timeSlot": "00:15", "actualValue": 340.2000, "predictedValue1": 342.1000, "predictedValue2": 339.5000 }
+      ]
+    },
+    {
+      "date": "2026-05-02",
+      "points": [
+        { "timeSlot": "00:00", "actualValue": 360.1000, "predictedValue1": 358.9000, "predictedValue2": 362.3000 }
+      ]
+    },
+    {
+      "date": "2026-05-03",
+      "points": [
+        { "timeSlot": "00:00", "actualValue": 345.8000, "predictedValue1": 347.2000, "predictedValue2": 344.1000 }
+      ]
+    }
+  ]
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `startDate` | string | 起始日期 |
+| `endDate` | string | 结束日期 |
+| `type` | string | 固定值 `"generation"` |
+| `interval` | string | 时间粒度 |
+| `data` | array | 按天分组的数据列表，按日期升序 |
+| `data[].date` | string | 日期 |
+| `data[].points` | array | 该天的数据点列表 |
+| `data[].points[].timeSlot` | string | 时间槽 |
+| `data[].points[].actualValue` | decimal | 真实出力 |
+| `data[].points[].predictedValue1` | decimal | 预测值1 |
+| `data[].points[].predictedValue2` | decimal | 预测值2 |
+
+---
+
+## 6. 查询时间段内负荷
+
+**`GET /api/electricity/consumption/range`**
+
+查询指定日期范围内每天的负荷数据，按天分组返回。
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `startDate` | DateTime | 是 | 起始日期，格式 `yyyy-MM-dd` |
+| `endDate` | DateTime | 是 | 结束日期，格式 `yyyy-MM-dd`，须 >= startDate |
+| `interval` | string | 是 | 时间粒度，取值 `"15min"` 或 `"1hour"` |
+
+### 响应示例
+
+```json
+{
+  "startDate": "2026-05-01",
+  "endDate": "2026-05-03",
+  "type": "consumption",
+  "interval": "15min",
+  "data": [
+    {
+      "date": "2026-05-01",
+      "points": [
+        { "timeSlot": "00:00", "actualValue": 150.5000, "predictedValue": 148.2100, "errorUp": 149.1200, "errorDown": 147.3000 }
+      ]
+    },
+    {
+      "date": "2026-05-02",
+      "points": [
+        { "timeSlot": "00:00", "actualValue": 155.2000, "predictedValue": 153.8000, "errorUp": 154.6000, "errorDown": 152.9000 }
+      ]
+    },
+    {
+      "date": "2026-05-03",
+      "points": [
+        { "timeSlot": "00:00", "actualValue": 148.7000, "predictedValue": 150.1000, "errorUp": 151.0000, "errorDown": 149.2000 }
+      ]
+    }
+  ]
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `startDate` | string | 起始日期 |
+| `endDate` | string | 结束日期 |
+| `type` | string | 固定值 `"consumption"` |
+| `interval` | string | 时间粒度 |
+| `data` | array | 按天分组的数据列表，按日期升序 |
+| `data[].date` | string | 日期 |
+| `data[].points` | array | 该天的数据点列表 |
+| `data[].points[].timeSlot` | string | 时间槽 |
+| `data[].points[].actualValue` | decimal | 真实负荷 |
+| `data[].points[].predictedValue` | decimal | 预测值 |
+| `data[].points[].errorUp` | decimal | 误差上界  |
+| `data[].points[].errorDown` | decimal | 误差下界 |
+
+---
+
+## 通用错误响应
+
+所有接口在参数校验失败时返回 HTTP 400：
+
+```json
+{ "error": "interval must be '15min' or '1hour'" }
+{ "error": "startDate must be less than or equal to endDate" }
+{ "error": "period must be 7 or 30" }
+```

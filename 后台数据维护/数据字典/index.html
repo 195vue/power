@@ -5,60 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数据字典 - 新能源电力交易辅助决策系统</title>
     <link rel="stylesheet" href="../../styles.css">
-    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <main class="main-content">
         <div class="page-header">
             <h2 class="page-title">数据字典</h2>
-            <p class="page-subtitle">维护系统基础编码数据，如交易品种、电源类型、场站类型等</p>
+            <p class="page-subtitle">维护系统基础编码数据，如交易品种、电源类型、场站类型等，支撑系统所有下拉选择和编码映射</p>
         </div>
 
-        <!-- 字典类型 Tab -->
-        <div class="tab-bar" id="dict-tabs" style="margin-bottom: var(--space-4)">
-            <button class="tab-btn active" data-tab="trade-type">交易品种</button>
-            <button class="tab-btn" data-tab="power-type">电源类型</button>
-            <button class="tab-btn" data-tab="station-type">场站类型</button>
-            <button class="tab-btn" data-tab="unit-type">计量单位</button>
-        </div>
-
-        <div class="filter-bar">
-            <div class="filter-item">
-                <label>编码</label>
-                <input class="filter-input" placeholder="搜索编码" style="width:150px" id="dict-search-code">
+        <div class="dict-layout">
+            <!-- 左侧：字典类型列表 -->
+            <div class="dict-sidebar">
+                <div class="sidebar-header">
+                    <h4>字典类型</h4>
+                    <button class="sidebar-add-btn" onclick="openTypeModal()">+ 新增类型</button>
+                </div>
+                <div class="sidebar-search">
+                    <input type="text" placeholder="搜索字典类型" id="type-search" oninput="filterTypes()">
+                </div>
+                <div class="type-list" id="type-list"></div>
             </div>
-            <div class="filter-item">
-                <label>名称</label>
-                <input class="filter-input" placeholder="搜索名称" style="width:150px" id="dict-search-name">
-            </div>
-            <button class="btn-primary" onclick="filterDict()">查询</button>
-            <div style="flex:1"></div>
-            <button class="btn-primary" onclick="openDictModal()">+ 新增编码</button>
-        </div>
 
-        <div class="table-section" style="margin-top: var(--space-4)">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th style="width:80px">序号</th>
-                        <th>编码</th>
-                        <th>名称</th>
-                        <th>字典类型</th>
-                        <th>排序号</th>
-                        <th>状态</th>
-                        <th style="width:120px">操作</th>
-                    </tr>
-                </thead>
-                <tbody id="dict-table-body"></tbody>
-            </table>
-            <div class="pagination">
-                <span class="info-text" id="dict-count">共 0 条记录</span>
-                <div><button class="page-btn active">1</button></div>
+            <!-- 右侧：编码列表 -->
+            <div class="dict-content">
+                <div class="content-header">
+                    <div class="content-title">
+                        <h3 id="content-title">交易品种</h3>
+                        <span class="content-count" id="content-count">共 0 条记录</span>
+                    </div>
+                    <div class="content-actions">
+                        <button class="btn-primary" onclick="openDictModal()">+ 新增编码</button>
+                    </div>
+                </div>
+
+                <div class="filter-bar" style="margin-bottom: var(--space-4)">
+                    <div class="filter-item">
+                        <label>编码</label>
+                        <input class="filter-input" placeholder="搜索编码" style="width:150px" id="dict-search-code">
+                    </div>
+                    <div class="filter-item">
+                        <label>名称</label>
+                        <input class="filter-input" placeholder="搜索名称" style="width:150px" id="dict-search-name">
+                    </div>
+                    <button class="btn-primary" onclick="filterDict()">查询</button>
+                </div>
+
+                <div class="table-section">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:80px">序号</th>
+                                <th>编码</th>
+                                <th>名称</th>
+                                <th>排序号</th>
+                                <th>状态</th>
+                                <th style="width:150px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dict-table-body"></tbody>
+                    </table>
+                    <div class="pagination">
+                        <span class="info-text" id="dict-count">共 0 条记录</span>
+                        <div><button class="page-btn active">1</button></div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新增/编辑编码弹窗 -->
     <div class="modal-overlay" id="dict-modal" style="display:none">
         <div class="modal-panel" style="width:480px">
             <div class="modal-header">
@@ -68,35 +83,27 @@
             <div class="modal-body">
                 <div class="form-row">
                     <div class="form-section" style="flex:1">
-                        <label class="form-label">编码</label>
-                        <input class="form-input" id="dict-code" placeholder="编码 Key">
+                        <label class="form-label">编码 <span style="color:var(--danger)">*</span></label>
+                        <input class="form-input" id="dict-code" placeholder="编码 Key，如：BILATERAL">
+                        <span class="field-help">编码应为英文大写，无空格，唯一标识</span>
                     </div>
                     <div class="form-section" style="flex:1">
-                        <label class="form-label">名称</label>
+                        <label class="form-label">名称 <span style="color:var(--danger)">*</span></label>
                         <input class="form-input" id="dict-name" placeholder="显示名称">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-section" style="flex:1">
-                        <label class="form-label">字典类型</label>
-                        <select class="form-input" id="dict-type">
-                            <option>交易品种</option>
-                            <option>电源类型</option>
-                            <option>场站类型</option>
-                            <option>计量单位</option>
-                        </select>
+                        <label class="form-label">排序号</label>
+                        <input class="form-input" id="dict-order" type="number" placeholder="排序，数字越小越靠前">
                     </div>
                     <div class="form-section" style="flex:1">
-                        <label class="form-label">排序号</label>
-                        <input class="form-input" id="dict-order" type="number" placeholder="排序">
+                        <label class="form-label">状态</label>
+                        <select class="form-input" id="dict-status">
+                            <option>启用</option>
+                            <option>停用</option>
+                        </select>
                     </div>
-                </div>
-                <div class="form-section">
-                    <label class="form-label">状态</label>
-                    <select class="form-input" id="dict-status">
-                        <option>启用</option>
-                        <option>停用</option>
-                    </select>
                 </div>
             </div>
             <div class="modal-footer">
@@ -106,84 +113,565 @@
         </div>
     </div>
 
+    <!-- 新增字典类型弹窗 -->
+    <div class="modal-overlay" id="type-modal" style="display:none">
+        <div class="modal-panel" style="width:420px">
+            <div class="modal-header">
+                <h3 id="type-modal-title">新增字典类型</h3>
+                <button class="modal-close" onclick="closeTypeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <label class="form-label">类型名称 <span style="color:var(--danger)">*</span></label>
+                    <input class="form-input" id="type-name" placeholder="如：交易品种">
+                </div>
+                <div class="form-section">
+                    <label class="form-label">类型编码 <span style="color:var(--danger)">*</span></label>
+                    <input class="form-input" id="type-code" placeholder="如：trade-type">
+                    <span class="field-help">类型编码应为小写英文，使用连字符，唯一标识</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeTypeModal()">取消</button>
+                <button class="btn-primary" onclick="saveType()">保存</button>
+            </div>
+        </div>
+    </div>
+
     <style>
-        .tab-bar { display: flex; gap: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
-        .tab-btn { flex: 1; padding: var(--space-3) var(--space-4); border: none; background: transparent; cursor: pointer; font: 500 var(--text-sm)/1 var(--font-body); color: var(--muted); transition: background var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
-        .tab-btn:not(:last-child) { border-right: 1px solid var(--border); }
-        .tab-btn:hover { background: var(--bg); color: var(--fg); }
-        .tab-btn.active { background: var(--accent); color: var(--accent-on); }
+        .dict-layout {
+            display: flex;
+            gap: var(--space-4);
+            height: calc(100vh - 180px);
+        }
+
+        .dict-sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-header h4 {
+            margin: 0;
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--fg);
+        }
+
+        .sidebar-add-btn {
+            padding: var(--space-1) var(--space-2);
+            font-size: var(--text-xs);
+            background: var(--accent);
+            color: var(--accent-on);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background var(--motion-fast);
+        }
+
+        .sidebar-add-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .sidebar-search {
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-search input {
+            width: 100%;
+            padding: var(--space-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: var(--text-sm);
+            background: var(--bg);
+            color: var(--fg);
+            outline: none;
+        }
+
+        .sidebar-search input:focus {
+            border-color: var(--accent);
+        }
+
+        .sidebar-search input::placeholder {
+            color: var(--muted);
+        }
+
+        .type-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-2);
+        }
+
+        .type-item {
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: var(--text-sm);
+            color: var(--fg);
+            margin-bottom: 2px;
+            transition: all var(--motion-fast);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .type-item:hover {
+            background: var(--bg);
+        }
+
+        .type-item.active {
+            background: color-mix(in oklab, var(--accent), transparent 90%);
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .type-count {
+            font-size: var(--text-xs);
+            color: var(--muted);
+            background: var(--bg);
+            padding: 2px 8px;
+            border-radius: var(--radius-pill);
+        }
+
+        .dict-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-4);
+        }
+
+        .content-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .content-title h3 {
+            margin: 0;
+            font-size: var(--text-lg);
+            font-weight: 600;
+        }
+
+        .content-count {
+            font-size: var(--text-sm);
+            color: var(--muted);
+        }
+
+        .table-section {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .field-help {
+            font-size: var(--text-xs);
+            color: var(--meta);
+            margin-top: 2px;
+            display: block;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4a5568;
+            transition: 0.3s;
+            border-radius: 12px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #48bb78;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .status-text {
+            font-size: var(--text-xs);
+            color: var(--muted);
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 
     <script>
+        var dictTypes = [
+            { key: 'trade-type', name: '交易品种', field: 'trade_type', count: 9 },
+            { key: 'power-type', name: '电源类型', field: 'power_type', count: 8 },
+            { key: 'generation-type', name: '发电类型', field: 'generation_type', count: 5 },
+            { key: 'station-type', name: '场站类型', field: 'station_type', count: 6 },
+            { key: 'unit-type', name: '计量单位', field: 'unit_type', count: 13 },
+            { key: 'midlong-trade-mode', name: '中长期交易方式', field: 'trade_mode', count: 5 },
+            { key: 'spot-market-type', name: '现货市场类型', field: 'market_type', count: 2 },
+            { key: 'risk-level', name: '风险偏好', field: 'risk_level', count: 3 },
+            { key: 'weather-type', name: '气象类型', field: 'weather_type', count: 6 },
+            { key: 'weather-source', name: '气象数据源', field: 'weather_source', count: 5 },
+            { key: 'forecast-duration', name: '预测时长', field: 'forecast_duration', count: 8 },
+            { key: 'forecast-interval', name: '预测间隔', field: 'forecast_interval', count: 3 },
+            { key: 'algorithm-type', name: '算法方案类型', field: 'algorithm_type', count: 8 },
+            { key: 'train-node-type', name: '训练节点类型', field: 'node_type', count: 8 },
+            { key: 'user-role', name: '用户角色', field: 'user_role', count: 4 },
+            { key: 'company-type', name: '公司类型', field: 'company_type', count: 4 },
+            { key: 'device-status', name: '设备状态', field: 'device_status', count: 4 },
+            { key: 'alarm-level', name: '告警级别', field: 'alarm_level', count: 4 },
+            { key: 'node-type', name: '交易节点', field: 'node_type', count: 4 },
+            { key: 'market-entity-type', name: '市场主体类型', field: 'market_entity_type', count: 8 },
+            { key: 'contract-period', name: '合约周期', field: 'contract_period', count: 5 },
+            { key: 'contract-type', name: '合约类型', field: 'contract_type', count: 3 },
+            { key: 'settlement-type', name: '结算类型', field: 'settlement_type', count: 4 },
+            { key: 'settlement-cycle', name: '结算周期', field: 'settlement_cycle', count: 3 },
+            { key: 'metric-type', name: '预测指标类型', field: 'metric_type', count: 4 },
+            { key: 'model-source', name: '模型来源', field: 'model_source', count: 3 },
+            { key: 'data-source', name: '数据来源', field: 'data_source', count: 12 },
+            { key: 'data-channel', name: '数据采集渠道', field: 'data_channel', count: 8 },
+            { key: 'data-status', name: '数据状态', field: 'data_status', count: 4 }
+        ];
+
         var dictData = {
             'trade-type': [
                 { code: 'PRIORITY', name: '优先发电', order: 1, status: '启用' },
                 { code: 'BILATERAL', name: '双边协商', order: 2, status: '启用' },
                 { code: 'AUCTION', name: '集中竞价', order: 3, status: '启用' },
                 { code: 'LISTED', name: '挂牌交易', order: 4, status: '启用' },
-                { code: 'GREEN', name: '绿电交易', order: 5, status: '启用' },
-                { code: 'TRANSFER', name: '合同转让', order: 6, status: '启用' },
-                { code: 'ROLLING', name: '日滚动', order: 7, status: '启用' }
+                { code: 'GREEN_PV', name: '绿电(光伏)', order: 5, status: '启用' },
+                { code: 'GREEN_WIND', name: '绿电(风电)', order: 6, status: '启用' },
+                { code: 'TRANSFER', name: '合同转让', order: 7, status: '启用' },
+                { code: 'SPOT', name: '现货交易', order: 8, status: '启用' },
+                { code: 'DAY_AHEAD', name: '日前交易', order: 9, status: '启用' }
             ],
             'power-type': [
                 { code: 'PV', name: '光伏', order: 1, status: '启用' },
                 { code: 'WIND', name: '风电', order: 2, status: '启用' },
                 { code: 'HYDRO', name: '水电', order: 3, status: '启用' },
-                { code: 'THERMAL', name: '火电', order: 4, status: '启用' }
+                { code: 'THERMAL_COAL', name: '燃煤火电', order: 4, status: '启用' },
+                { code: 'THERMAL_GAS', name: '燃气火电', order: 5, status: '启用' },
+                { code: 'STORAGE', name: '独立储能', order: 6, status: '启用' },
+                { code: 'BIOMASS', name: '生物质垃圾', order: 7, status: '启用' },
+                { code: 'OTHER', name: '其他', order: 8, status: '启用' }
+            ],
+            'generation-type': [
+                { code: 'THERMAL_COAL', name: '燃煤火电', order: 1, status: '启用' },
+                { code: 'NEW_ENERGY', name: '新能源', order: 2, status: '启用' },
+                { code: 'GREEN_PV', name: '绿电(光伏)', order: 3, status: '启用' },
+                { code: 'GREEN_WIND', name: '绿电(风电)', order: 4, status: '启用' },
+                { code: 'PRIORITY', name: '优先电量', order: 5, status: '启用' }
             ],
             'station-type': [
                 { code: 'PV_STATION', name: '光伏电站', order: 1, status: '启用' },
                 { code: 'WIND_FARM', name: '风电场', order: 2, status: '启用' },
                 { code: 'HYDRO_STATION', name: '水电站', order: 3, status: '启用' },
-                { code: 'THERMAL_PLANT', name: '火电厂', order: 4, status: '启用' }
+                { code: 'THERMAL_PLANT', name: '火电厂', order: 4, status: '启用' },
+                { code: 'STORAGE_STATION', name: '储能电站', order: 5, status: '启用' },
+                { code: 'BIOMASS_PLANT', name: '生物质垃圾发电站', order: 6, status: '启用' }
             ],
             'unit-type': [
                 { code: 'MWH', name: '兆瓦时(MWh)', order: 1, status: '启用' },
-                { code: 'KWH', name: '万千瓦时(万kWh)', order: 2, status: '启用' },
-                { code: 'MW', name: '兆瓦(MW)', order: 3, status: '启用' },
-                { code: 'CNY_MWH', name: '元/兆瓦时(元/MWh)', order: 4, status: '启用' },
-                { code: 'H', name: '小时(h)', order: 5, status: '启用' },
-                { code: 'PCT', name: '百分比(%)', order: 6, status: '启用' }
+                { code: 'WAN_KWH', name: '万千瓦时(万kWh)', order: 2, status: '启用' },
+                { code: 'YI_KWH', name: '亿千瓦时(亿kWh)', order: 3, status: '启用' },
+                { code: 'MW', name: '兆瓦(MW)', order: 4, status: '启用' },
+                { code: 'CNY_MWH', name: '元/兆瓦时(元/MWh)', order: 5, status: '启用' },
+                { code: 'H', name: '小时(h)', order: 6, status: '启用' },
+                { code: 'PCT', name: '百分比(%)', order: 7, status: '启用' },
+                { code: 'M_S', name: '米/秒(m/s)', order: 8, status: '启用' },
+                { code: 'W_M2', name: '瓦/平方米(W/m²)', order: 9, status: '启用' },
+                { code: 'C', name: '摄氏度(°C)', order: 10, status: '启用' },
+                { code: 'YEAR', name: '年度', order: 11, status: '启用' },
+                { code: 'MONTH', name: '月度', order: 12, status: '启用' },
+                { code: 'DAY', name: '日度', order: 13, status: '启用' }
+            ],
+            'midlong-trade-mode': [
+                { code: 'DAILY', name: '日滚动', order: 1, status: '启用' },
+                { code: 'INTRA_MONTH', name: '月内', order: 2, status: '启用' },
+                { code: 'MONTH', name: '月度', order: 3, status: '启用' },
+                { code: 'MULTI_MONTH', name: '多月', order: 4, status: '启用' },
+                { code: 'YEAR', name: '年度', order: 5, status: '启用' }
+            ],
+            'spot-market-type': [
+                { code: 'DAY_AHEAD', name: '日前', order: 1, status: '启用' },
+                { code: 'REAL_TIME', name: '实时', order: 2, status: '启用' }
+            ],
+            'risk-level': [
+                { code: 'CONSERVATIVE', name: '保守', order: 1, status: '启用' },
+                { code: 'MODERATE', name: '稳健', order: 2, status: '启用' },
+                { code: 'AGGRESSIVE', name: '激进', order: 3, status: '启用' }
+            ],
+            'weather-type': [
+                { code: 'WIND_SPEED', name: '风速', order: 1, status: '启用' },
+                { code: 'IRRADIANCE', name: '辐照度', order: 2, status: '启用' },
+                { code: 'TEMPERATURE', name: '温度', order: 3, status: '启用' },
+                { code: 'HUMIDITY', name: '湿度', order: 4, status: '启用' },
+                { code: 'PRECIPITATION', name: '降水', order: 5, status: '启用' },
+                { code: 'PRESSURE', name: '气压', order: 6, status: '启用' }
+            ],
+            'weather-source': [
+                { code: 'ECMWF', name: 'ECMWF', order: 1, status: '启用' },
+                { code: 'NMC', name: '国家气象中心(NMC)', order: 2, status: '启用' },
+                { code: 'OPEN_METEO', name: 'Open-Meteo API', order: 3, status: '启用' },
+                { code: 'WRF', name: 'WRF模式', order: 4, status: '启用' },
+                { code: 'LOCAL', name: '本地观测', order: 5, status: '启用' }
+            ],
+            'forecast-duration': [
+                { code: 'REALTIME', name: '实时（1h内）', order: 1, status: '启用' },
+                { code: 'SHORT', name: '短期（1D内）', order: 2, status: '启用' },
+                { code: 'MEDIUM_3D', name: '中期（3D内）', order: 3, status: '启用' },
+                { code: 'MEDIUM_7D', name: '中期（1周内）', order: 4, status: '启用' },
+                { code: 'LONG_15D', name: '长期（15天内）', order: 5, status: '启用' },
+                { code: 'LONG_MONTH', name: '长期（1个月）', order: 6, status: '启用' },
+                { code: 'LONG_QUARTER', name: '长期（3个月）', order: 7, status: '启用' },
+                { code: 'LONG_YEAR', name: '长期（12个月）', order: 8, status: '启用' }
+            ],
+            'forecast-interval': [
+                { code: 'MIN_15', name: '15分钟', order: 1, status: '启用' },
+                { code: 'HOUR_1', name: '1小时', order: 2, status: '启用' },
+                { code: 'HOUR_24', name: '24小时', order: 3, status: '启用' }
+            ],
+            'algorithm-type': [
+                { code: 'TIME_SERIES', name: '时序预测模型', order: 1, status: '启用' },
+                { code: 'REGRESSION', name: '回归预测模型', order: 2, status: '启用' },
+                { code: 'NEURAL_NET', name: '神经网络模型', order: 3, status: '启用' },
+                { code: 'ENSEMBLE', name: '集成学习模型', order: 4, status: '启用' },
+                { code: 'HYBRID', name: '混合架构', order: 5, status: '启用' },
+                { code: 'BASELINE', name: '基线模型', order: 6, status: '启用' },
+                { code: 'MACHINE_LEARNING', name: '机器学习模型', order: 7, status: '启用' },
+                { code: 'DEEP_LEARNING', name: '深度学习模型', order: 8, status: '启用' }
+            ],
+            'train-node-type': [
+                { code: 'DAY_AHEAD_PRICE', name: '日前电价预测节点', order: 1, status: '启用' },
+                { code: 'REALTIME_PRICE', name: '实时电价预测节点', order: 2, status: '启用' },
+                { code: 'LOAD_FORECAST', name: '负荷预测节点', order: 3, status: '启用' },
+                { code: 'POWER_FORECAST', name: '功率预测节点', order: 4, status: '启用' },
+                { code: 'WEATHER_FORECAST', name: '气象预测节点', order: 5, status: '启用' },
+                { code: 'REGIONAL_PRICE', name: '区域电价专项节点', order: 6, status: '启用' },
+                { code: 'GLOBAL_MODEL', name: '全网通用模型节点', order: 7, status: '启用' },
+                { code: 'SPECIAL_TASK', name: '专项任务训练节点', order: 8, status: '启用' }
+            ],
+            'user-role': [
+                { code: 'ADMIN', name: '管理员', order: 1, status: '启用' },
+                { code: 'ANALYST', name: '预测分析师', order: 2, status: '启用' },
+                { code: 'TRADER', name: '交易员', order: 3, status: '启用' },
+                { code: 'OPS', name: '运维人员', order: 4, status: '启用' }
+            ],
+            'company-type': [
+                { code: 'NEW_ENERGY', name: '新能源公司', order: 1, status: '启用' },
+                { code: 'TRADITIONAL', name: '传统能源公司', order: 2, status: '启用' },
+                { code: 'INDEPENDENT', name: '独立售电公司', order: 3, status: '启用' },
+                { code: 'GRID_COMPANY', name: '电网企业', order: 4, status: '启用' }
+            ],
+            'device-status': [
+                { code: 'RUNNING', name: '运行中', order: 1, status: '启用' },
+                { code: 'STOPPED', name: '已停止', order: 2, status: '启用' },
+                { code: 'FAULT', name: '故障', order: 3, status: '启用' },
+                { code: 'MAINTENANCE', name: '维护中', order: 4, status: '启用' }
+            ],
+            'alarm-level': [
+                { code: 'INFO', name: '提示', order: 1, status: '启用' },
+                { code: 'WARNING', name: '警告', order: 2, status: '启用' },
+                { code: 'ERROR', name: '错误', order: 3, status: '启用' },
+                { code: 'CRITICAL', name: '严重', order: 4, status: '启用' }
+            ],
+            'node-type': [
+                { code: 'HN_AVERAGE', name: '湖南省均价', order: 1, status: '启用' },
+                { code: 'POYAO', name: '坡窑山', order: 2, status: '启用' },
+                { code: 'QIUJIAHU', name: '邱家湖', order: 3, status: '启用' },
+                { code: 'QINGSHANJIE', name: '青山界', order: 4, status: '启用' }
+            ],
+            'market-entity-type': [
+                { code: 'GRID_COMPANY', name: '电网企业', order: 1, status: '启用' },
+                { code: 'DIRECT_GEN', name: '直购发电企业', order: 2, status: '启用' },
+                { code: 'WHOLESALE_USER', name: '批发交易用户', order: 3, status: '启用' },
+                { code: 'RETAIL_USER', name: '零售用户', order: 4, status: '启用' },
+                { code: 'LOCAL_RETAILER', name: '售电公司(省内)', order: 5, status: '启用' },
+                { code: 'OUTSIDE_RETAILER', name: '售电公司(外省推送)', order: 6, status: '启用' },
+                { code: 'INDEP_STORAGE', name: '独立储能企业', order: 7, status: '启用' },
+                { code: 'VIRTUAL_POWER_PLANT', name: '虚拟电厂', order: 8, status: '启用' }
+            ],
+            'contract-period': [
+                { code: 'YEAR', name: '年度', order: 1, status: '启用' },
+                { code: 'QUARTER', name: '季度', order: 2, status: '启用' },
+                { code: 'MONTH', name: '月度', order: 3, status: '启用' },
+                { code: 'WEEK', name: '周度', order: 4, status: '启用' },
+                { code: 'DAY', name: '日度', order: 5, status: '启用' }
+            ],
+            'contract-type': [
+                { code: 'ANNUAL_BILATERAL', name: '年度双边协商合约', order: 1, status: '启用' },
+                { code: 'MONTHLY_AUCTION', name: '月度集中竞价合约', order: 2, status: '启用' },
+                { code: 'SPOT', name: '现货合约', order: 3, status: '启用' }
+            ],
+            'settlement-type': [
+                { code: 'DAY_AHEAD', name: '日前结算', order: 1, status: '启用' },
+                { code: 'REAL_TIME', name: '实时结算', order: 2, status: '启用' },
+                { code: 'DEVIATION', name: '偏差结算', order: 3, status: '启用' },
+                { code: 'CLEARING', name: '清算分摊', order: 4, status: '启用' }
+            ],
+            'settlement-cycle': [
+                { code: 'DAILY', name: '日结算', order: 1, status: '启用' },
+                { code: 'MONTHLY', name: '月结算', order: 2, status: '启用' },
+                { code: 'QUARTERLY', name: '季度结算', order: 3, status: '启用' }
+            ],
+            'model-source': [
+                { code: 'SELF_DEVELOPED', name: '自研', order: 1, status: '启用' },
+                { code: 'WHU', name: '武大功率预测模型', order: 2, status: '启用' },
+                { code: 'TUDE', name: '图德电价预测模型', order: 3, status: '启用' }
+            ],
+            'metric-type': [
+                { code: 'MAE', name: '平均绝对误差(MAE)', order: 1, status: '启用' },
+                { code: 'RMSE', name: '均方根误差(RMSE)', order: 2, status: '启用' },
+                { code: 'RMSPE', name: '均方根百分比误差(RMSPE)', order: 3, status: '启用' },
+                { code: 'ACCURACY', name: '预测准确率(%)', order: 4, status: '启用' }
+            ],
+            'data-source': [
+                { code: 'SCADA', name: '升压站SCADA系统', order: 1, status: '启用' },
+                { code: 'WIND_SCADA', name: '风机SCADA系统', order: 2, status: '启用' },
+                { code: 'ENERGY_METER', name: '关口电能表计量系统', order: 3, status: '启用' },
+                { code: 'ASSET_LEDGER', name: '资产台账', order: 4, status: '启用' },
+                { code: 'TRANSACTION_CENTER', name: '省电力交易中心', order: 5, status: '启用' },
+                { code: 'GRID_COMPANY', name: '省电力公司', order: 6, status: '启用' },
+                { code: 'CONTRACT_SYSTEM', name: '内部合约管理系统', order: 7, status: '启用' },
+                { code: 'FINANCE_SYSTEM', name: '内部财务/结算系统', order: 8, status: '启用' },
+                { code: 'PRODUCTION_PLAN', name: '内部生产计划/年度预算系统', order: 9, status: '启用' },
+                { code: 'POWER_FORECAST', name: '功率预测系统', order: 10, status: '启用' },
+                { code: 'PRICE_FORECAST', name: '电价预测模型', order: 11, status: '启用' },
+                { code: 'LOAD_FORECAST', name: '负荷预测模型', order: 12, status: '启用' }
+            ],
+            'data-channel': [
+                { code: 'INTERFACE_API', name: '数据接口API', order: 1, status: '启用' },
+                { code: 'SCADA_DIRECT', name: 'SCADA直采', order: 2, status: '启用' },
+                { code: 'METER_READING', name: '电能表读数', order: 3, status: '启用' },
+                { code: 'FILE_IMPORT', name: '文件导入', order: 4, status: '启用' },
+                { code: 'MANUAL_INPUT', name: '人工录入', order: 5, status: '启用' },
+                { code: 'SYSTEM_CALC', name: '系统计算', order: 6, status: '启用' },
+                { code: 'PUBLIC_DATA', name: '公开数据', order: 7, status: '启用' },
+                { code: 'SIMULATION', name: '模拟数据', order: 8, status: '启用' }
+            ],
+            'data-status': [
+                { code: 'COLLECTED', name: '已归集', order: 1, status: '启用' },
+                { code: 'COLLECTING', name: '归集中', order: 2, status: '启用' },
+                { code: 'SIMULATED', name: '模拟数据', order: 3, status: '启用' },
+                { code: 'UNAVAILABLE', name: '无法归集', order: 4, status: '启用' }
             ]
         };
-        var currentTab = 'trade-type';
+
+        var currentType = 'trade-type';
         var dictEditIndex = -1;
 
+        function renderTypeList(filterText) {
+            var list = document.getElementById('type-list');
+            list.innerHTML = '';
+            var filtered = dictTypes.filter(function(t) {
+                return !filterText || t.name.toLowerCase().includes(filterText.toLowerCase());
+            });
+            filtered.forEach(function(t) {
+                var cls = t.key === currentType ? 'type-item active' : 'type-item';
+                list.innerHTML += '<div class="' + cls + '" data-key="' + t.key + '" onclick="selectType(\'' + t.key + '\')">' +
+                    '<span>' + t.name + '</span>' +
+                    '<span class="type-count">' + t.count + '</span>' +
+                    '</div>';
+            });
+        }
+
+        function selectType(key) {
+            currentType = key;
+            var type = dictTypes.find(function(t) { return t.key === key; });
+            if (type) {
+                document.getElementById('content-title').textContent = type.name;
+                document.getElementById('content-count').textContent = '共 ' + type.count + ' 条记录';
+            }
+            renderTypeList();
+            renderDict();
+        }
+
+        function filterTypes() {
+            var text = document.getElementById('type-search').value;
+            renderTypeList(text);
+        }
+
         function renderDict() {
-            var data = dictData[currentTab] || [];
+            var data = dictData[currentType] || [];
             var tbody = document.getElementById('dict-table-body');
             tbody.innerHTML = '';
             data.forEach(function(d, i) {
-                var cls = d.status === '启用' ? 'badge-success' : 'badge-muted';
+                var checked = d.status === '启用' ? 'checked' : '';
                 tbody.innerHTML += '<tr>' +
                     '<td>' + (i + 1) + '</td>' +
                     '<td>' + d.code + '</td>' +
                     '<td>' + d.name + '</td>' +
-                    '<td>' + getDictTypeLabel(currentTab) + '</td>' +
                     '<td>' + d.order + '</td>' +
-                    '<td><span class="badge ' + cls + '">' + d.status + '</span></td>' +
-                    '<td><button class="btn-config" onclick="openDictModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> <button class="btn-delete" onclick="deleteDict(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button></td>' +
-                    '</tr>';
+                    '<td>' +
+                    '<label class="toggle-switch">' +
+                    '<input type="checkbox" ' + checked + ' onchange="toggleStatus(' + i + ')">' +
+                    '<span class="toggle-slider"></span>' +
+                    '</label>' +
+                    '<span class="status-text">' + d.status + '</span>' +
+                    '</td>' +
+                    '<td><div class="action-buttons">' +
+                    '<button class="btn-config" onclick="openDictModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button>' +
+                    '<button class="btn-delete" onclick="deleteDict(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>' +
+                    '</div></td></tr>';
             });
             document.getElementById('dict-count').textContent = '共 ' + data.length + ' 条记录';
         }
 
-        function getDictTypeLabel(key) {
-            var map = { 'trade-type': '交易品种', 'power-type': '电源类型', 'station-type': '场站类型', 'unit-type': '计量单位' };
-            return map[key] || key;
-        }
-
-        function switchTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('#dict-tabs .tab-btn').forEach(function(btn) {
-                btn.classList.toggle('active', btn.dataset.tab === tab);
-            });
+        function toggleStatus(index) {
+            var data = dictData[currentType][index];
+            data.status = data.status === '启用' ? '停用' : '启用';
             renderDict();
         }
-
-        document.querySelectorAll('#dict-tabs .tab-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() { switchTab(this.dataset.tab); });
-        });
 
         function openDictModal(index) {
             var modal = document.getElementById('dict-modal');
@@ -192,23 +680,23 @@
                 document.getElementById('dict-modal-title').textContent = '新增编码';
                 document.getElementById('dict-code').value = '';
                 document.getElementById('dict-name').value = '';
-                document.getElementById('dict-type').value = getDictTypeLabel(currentTab);
                 document.getElementById('dict-order').value = '';
                 document.getElementById('dict-status').value = '启用';
             } else {
                 dictEditIndex = index;
                 document.getElementById('dict-modal-title').textContent = '编辑编码';
-                var d = dictData[currentTab][index];
+                var d = dictData[currentType][index];
                 document.getElementById('dict-code').value = d.code;
                 document.getElementById('dict-name').value = d.name;
-                document.getElementById('dict-type').value = getDictTypeLabel(currentTab);
                 document.getElementById('dict-order').value = d.order;
                 document.getElementById('dict-status').value = d.status;
             }
             modal.style.display = 'flex';
         }
 
-        function closeDictModal() { document.getElementById('dict-modal').style.display = 'none'; }
+        function closeDictModal() {
+            document.getElementById('dict-modal').style.display = 'none';
+        }
 
         function saveDict() {
             var data = {
@@ -217,31 +705,69 @@
                 order: parseInt(document.getElementById('dict-order').value) || 0,
                 status: document.getElementById('dict-status').value
             };
-            if (!data.code || !data.name) { alert('请输入编码和名称'); return; }
+            if (!data.code) { alert('请输入编码'); return; }
+            if (!data.name) { alert('请输入名称'); return; }
             if (dictEditIndex === -1) {
-                if (!dictData[currentTab]) dictData[currentTab] = [];
-                dictData[currentTab].push(data);
+                if (!dictData[currentType]) dictData[currentType] = [];
+                dictData[currentType].push(data);
+                var type = dictTypes.find(function(t) { return t.key === currentType; });
+                if (type) type.count++;
             } else {
-                dictData[currentTab][dictEditIndex] = data;
+                dictData[currentType][dictEditIndex] = data;
             }
+            renderTypeList();
             renderDict();
             closeDictModal();
         }
 
         function deleteDict(index) {
-            var name = dictData[currentTab][index].name;
+            var name = dictData[currentType][index].name;
             if (confirm('确认删除编码「' + name + '」？')) {
-                dictData[currentTab].splice(index, 1);
+                dictData[currentType].splice(index, 1);
+                var type = dictTypes.find(function(t) { return t.key === currentType; });
+                if (type) type.count--;
+                renderTypeList();
                 renderDict();
             }
         }
 
-        function filterDict() { renderDict(); }
+        function filterDict() {
+            renderDict();
+        }
+
+        function openTypeModal() {
+            document.getElementById('type-modal-title').textContent = '新增字典类型';
+            document.getElementById('type-name').value = '';
+            document.getElementById('type-code').value = '';
+            document.getElementById('type-modal').style.display = 'flex';
+        }
+
+        function closeTypeModal() {
+            document.getElementById('type-modal').style.display = 'none';
+        }
+
+        function saveType() {
+            var name = document.getElementById('type-name').value;
+            var code = document.getElementById('type-code').value;
+            if (!name) { alert('请输入类型名称'); return; }
+            if (!code) { alert('请输入类型编码'); return; }
+            dictTypes.push({ key: code, name: name, count: 0 });
+            dictData[code] = [];
+            renderTypeList();
+            closeTypeModal();
+        }
 
         var _dictModal = document.getElementById('dict-modal');
         if (_dictModal) {
             _dictModal.addEventListener('click', function(e) { if (e.target === this) closeDictModal(); });
         }
+
+        var _typeModal = document.getElementById('type-modal');
+        if (_typeModal) {
+            _typeModal.addEventListener('click', function(e) { if (e.target === this) closeTypeModal(); });
+        }
+
+        renderTypeList();
         renderDict();
     </script>
 </body>

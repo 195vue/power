@@ -17,19 +17,36 @@
         <div class="filter-bar">
             <div class="filter-item">
                 <label>场站名称</label>
-                <select class="filter-select" style="width:160px">
+                <select class="filter-select" style="width:180px" id="filter-name">
                     <option>全部场站</option>
+                    <option>桂阳月和风电场</option>
                     <option>光伏电站A</option>
                     <option>风电场B</option>
                     <option>光伏电站C</option>
+                    <option>水电站D</option>
+                    <option>煤电厂E</option>
+                    <option>储能电站F</option>
                 </select>
             </div>
             <div class="filter-item">
-                <label>公司</label>
-                <select class="filter-select" style="width:160px">
+                <label>所属公司</label>
+                <select class="filter-select" style="width:160px" id="filter-company">
                     <option>全部公司</option>
                     <option>新能源公司</option>
                     <option>传统能源公司</option>
+                    <option>独立售电公司</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>场站类型</label>
+                <select class="filter-select" style="width:130px" id="filter-type">
+                    <option>全部类型</option>
+                    <option>光伏电站</option>
+                    <option>风电场</option>
+                    <option>水电站</option>
+                    <option>火电厂</option>
+                    <option>储能电站</option>
+                    <option>生物质垃圾发电站</option>
                 </select>
             </div>
             <button class="btn-primary" onclick="filterTable()">查询</button>
@@ -43,76 +60,22 @@
                     <tr>
                         <th>场站名称</th>
                         <th>所属公司</th>
+                        <th>场站类型</th>
                         <th>装机容量(MW)</th>
-                        <th>最小技术出力(MW)</th>
-                        <th>爬坡率上限(MW/min)</th>
-                        <th>爬坡率下限(MW/min)</th>
-                        <th>启停约束(次/日)</th>
+                        <th>风机台数</th>
+                        <th>风机型号</th>
+                        <th>轮毂高度(m)</th>
+                        <th>切入风速(m/s)</th>
+                        <th>切出风速(m/s)</th>
+                        <th>投产日期</th>
                         <th>状态</th>
                         <th style="width:120px">操作</th>
                     </tr>
                 </thead>
-                <tbody id="station-table-body">
-                    <tr>
-                        <td>光伏电站A</td>
-                        <td>新能源公司</td>
-                        <td>150</td>
-                        <td>0</td>
-                        <td>5</td>
-                        <td>5</td>
-                        <td>0</td>
-                        <td><span class="badge badge-success">正常</span></td>
-                        <td>
-                            <button class="btn-config" onclick="openModal(0)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button>
-                            <button class="btn-delete" onclick="deleteStation(0)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>风电场B</td>
-                        <td>新能源公司</td>
-                        <td>200</td>
-                        <td>10</td>
-                        <td>8</td>
-                        <td>6</td>
-                        <td>2</td>
-                        <td><span class="badge badge-success">正常</span></td>
-                        <td>
-                            <button class="btn-config" onclick="openModal(1)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button>
-                            <button class="btn-delete" onclick="deleteStation(1)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>光伏电站C</td>
-                        <td>传统能源公司</td>
-                        <td>100</td>
-                        <td>0</td>
-                        <td>4</td>
-                        <td>4</td>
-                        <td>0</td>
-                        <td><span class="badge badge-muted">停运</span></td>
-                        <td>
-                            <button class="btn-config" onclick="openModal(2)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button>
-                            <button class="btn-delete" onclick="deleteStation(2)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>水电站D</td>
-                        <td>传统能源公司</td>
-                        <td>300</td>
-                        <td>50</td>
-                        <td>12</td>
-                        <td>10</td>
-                        <td>4</td>
-                        <td><span class="badge badge-success">正常</span></td>
-                        <td>
-                            <button class="btn-config" onclick="openModal(3)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button>
-                            <button class="btn-delete" onclick="deleteStation(3)" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>
-                        </td>
-                    </tr>
-                </tbody>
+                <tbody id="station-table-body"></tbody>
             </table>
             <div class="pagination">
-                <span class="info-text">共 4 条记录</span>
+                <span class="info-text">共 <span id="station-count">0</span> 条记录</span>
                 <div>
                     <button class="page-btn active">1</button>
                 </div>
@@ -122,7 +85,7 @@
 
     <!-- 新增/编辑弹窗 -->
     <div class="modal-overlay" id="station-modal" style="display:none">
-        <div class="modal-panel" style="width:560px">
+        <div class="modal-panel" style="width:600px">
             <div class="modal-header">
                 <h3 id="modal-title">新增场站</h3>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -130,42 +93,97 @@
             <div class="modal-body">
                 <div class="form-row">
                     <div class="form-section">
-                        <label class="form-label">场站名称</label>
+                        <label class="form-label">场站名称 <span style="color:var(--danger)">*</span></label>
                         <input class="form-input" id="edit-name" placeholder="请输入场站名称">
                     </div>
                     <div class="form-section">
-                        <label class="form-label">所属公司</label>
+                        <label class="form-label">所属公司 <span style="color:var(--danger)">*</span></label>
                         <select class="form-input" id="edit-company">
                             <option>新能源公司</option>
                             <option>传统能源公司</option>
+                            <option>独立售电公司</option>
+                            <option>电网企业</option>
                         </select>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-section">
-                        <label class="form-label">装机容量 (MW)</label>
-                        <input class="form-input" id="edit-capacity" type="number" placeholder="请输入装机容量">
+                        <label class="form-label">场站类型 <span style="color:var(--danger)">*</span></label>
+                        <select class="form-input" id="edit-station-type">
+                            <option>光伏电站</option>
+                            <option>风电场</option>
+                            <option>水电站</option>
+                            <option>火电厂</option>
+                            <option>储能电站</option>
+                            <option>生物质垃圾发电站</option>
+                        </select>
                     </div>
                     <div class="form-section">
+                        <label class="form-label">投产日期</label>
+                        <input class="form-input" id="edit-commission-date" type="date">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">装机容量 (MW) <span style="color:var(--danger)">*</span></label>
+                        <input class="form-input" id="edit-capacity" type="number" min="0" step="0.1" placeholder="请输入装机容量">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">风机台数</label>
+                        <input class="form-input" id="edit-turbine-count" type="number" min="0" placeholder="风电场参数">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section">
                         <label class="form-label">最小技术出力 (MW)</label>
-                        <input class="form-input" id="edit-min-output" type="number" placeholder="请输入最小技术出力">
+                        <input class="form-input" id="edit-min-output" type="number" min="0" step="0.1" placeholder="请输入最小技术出力">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">风机型号</label>
+                        <input class="form-input" id="edit-turbine-model" placeholder="如：SE16433/SE15530">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-section">
                         <label class="form-label">爬坡率上限 (MW/min)</label>
-                        <input class="form-input" id="edit-ramp-up" type="number" placeholder="请输入爬坡率上限">
+                        <input class="form-input" id="edit-ramp-up" type="number" min="0" step="0.1" placeholder="请输入爬坡率上限">
                     </div>
                     <div class="form-section">
                         <label class="form-label">爬坡率下限 (MW/min)</label>
-                        <input class="form-input" id="edit-ramp-down" type="number" placeholder="请输入爬坡率下限">
+                        <input class="form-input" id="edit-ramp-down" type="number" min="0" step="0.1" placeholder="请输入爬坡率下限">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-section">
                         <label class="form-label">启停约束 (次/日)</label>
-                        <input class="form-input" id="edit-start-stop" type="number" placeholder="0表示无限制">
+                        <input class="form-input" id="edit-start-stop" type="number" min="0" placeholder="0表示无限制">
                     </div>
+                    <div class="form-section">
+                        <label class="form-label">轮毂高度 (m)</label>
+                        <input class="form-input" id="edit-hub-height" type="number" min="0" step="0.1" placeholder="风电场参数">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">切入风速 (m/s)</label>
+                        <input class="form-input" id="edit-cut-in-speed" type="number" min="0" step="0.1" placeholder="风电场参数">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">切出风速 (m/s)</label>
+                        <input class="form-input" id="edit-cut-out-speed" type="number" min="0" step="0.1" placeholder="风电场参数">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">经度</label>
+                        <input class="form-input" id="edit-longitude" type="number" step="0.0001" placeholder="如：112.7765">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">纬度</label>
+                        <input class="form-input" id="edit-latitude" type="number" step="0.0001" placeholder="如：25.6030">
+                    </div>
+                </div>
+                <div class="form-row">
                     <div class="form-section">
                         <label class="form-label">状态</label>
                         <select class="form-input" id="edit-status">
@@ -184,30 +202,40 @@
 
     <script>
         var stationData = [
-            { name: '光伏电站A', company: '新能源公司', capacity: 150, minOutput: 0, rampUp: 5, rampDown: 5, startStop: 0, status: '正常' },
-            { name: '风电场B', company: '新能源公司', capacity: 200, minOutput: 10, rampUp: 8, rampDown: 6, startStop: 2, status: '正常' },
-            { name: '光伏电站C', company: '传统能源公司', capacity: 100, minOutput: 0, rampUp: 4, rampDown: 4, startStop: 0, status: '停运' },
-            { name: '水电站D', company: '传统能源公司', capacity: 300, minOutput: 50, rampUp: 12, rampDown: 10, startStop: 4, status: '正常' }
+            { name: '桂阳月和风电场', company: '新能源公司', stationType: '风电场', capacity: 50, turbineCount: 16, turbineModel: 'SE16433/SE15530', hubHeight: 100, cutInSpeed: 3, cutOutSpeed: 20, minOutput: 0, rampUp: 2, rampDown: 2, startStop: 0, commissionDate: '2022-07-30', status: '正常', longitude: 112.7765, latitude: 25.6030 },
+            { name: '光伏电站A', company: '新能源公司', stationType: '光伏电站', capacity: 150, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', minOutput: 0, rampUp: 5, rampDown: 5, startStop: 0, commissionDate: '2020-06-15', status: '正常', longitude: 112.9399, latitude: 28.2280 },
+            { name: '风电场B', company: '新能源公司', stationType: '风电场', capacity: 200, turbineCount: 60, turbineModel: 'V110/2000', hubHeight: 80, cutInSpeed: 3, cutOutSpeed: 25, minOutput: 10, rampUp: 8, rampDown: 6, startStop: 2, commissionDate: '2019-12-20', status: '正常', longitude: 113.0523, latitude: 28.1856 },
+            { name: '光伏电站C', company: '传统能源公司', stationType: '光伏电站', capacity: 100, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', minOutput: 0, rampUp: 4, rampDown: 4, startStop: 0, commissionDate: '2021-03-10', status: '停运', longitude: 112.8876, latitude: 28.3124 },
+            { name: '水电站D', company: '传统能源公司', stationType: '水电站', capacity: 300, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', minOutput: 50, rampUp: 12, rampDown: 10, startStop: 4, commissionDate: '2015-08-01', status: '正常', longitude: 113.1245, latitude: 28.0987 },
+            { name: '煤电厂E', company: '传统能源公司', stationType: '火电厂', capacity: 600, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', minOutput: 120, rampUp: 15, rampDown: 10, startStop: 1, commissionDate: '2018-05-20', status: '正常', longitude: 112.9876, latitude: 28.2567 },
+            { name: '储能电站F', company: '独立售电公司', stationType: '储能电站', capacity: 50, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', minOutput: 0, rampUp: 50, rampDown: 50, startStop: 10, commissionDate: '2023-01-15', status: '正常', longitude: 113.0234, latitude: 28.1987 }
         ];
         var editIndex = -1;
 
-        function renderTable() {
+        function renderTable(data) {
             var tbody = document.getElementById('station-table-body');
             tbody.innerHTML = '';
-            stationData.forEach(function(s, i) {
+            var list = data || stationData;
+            list.forEach(function(s, i) {
                 var statusClass = s.status === '正常' ? 'badge-success' : 'badge-muted';
                 tbody.innerHTML += '<tr>' +
-                    '<td>' + s.name + '</td>' +
+                    '<td><strong>' + s.name + '</strong></td>' +
                     '<td>' + s.company + '</td>' +
+                    '<td>' + s.stationType + '</td>' +
                     '<td>' + s.capacity + '</td>' +
-                    '<td>' + s.minOutput + '</td>' +
-                    '<td>' + s.rampUp + '</td>' +
-                    '<td>' + s.rampDown + '</td>' +
-                    '<td>' + s.startStop + '</td>' +
+                    '<td>' + s.turbineCount + '</td>' +
+                    '<td>' + s.turbineModel + '</td>' +
+                    '<td>' + s.hubHeight + '</td>' +
+                    '<td>' + s.cutInSpeed + '</td>' +
+                    '<td>' + s.cutOutSpeed + '</td>' +
+                    '<td>' + s.commissionDate + '</td>' +
                     '<td><span class="badge ' + statusClass + '">' + s.status + '</span></td>' +
-                    '<td><button class="btn-config" onclick="openModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> <button class="btn-delete" onclick="deleteStation(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button></td>' +
-                    '</tr>';
+                    '<td>' +
+                    '<button class="btn-config" onclick="openModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteStation(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>' +
+                    '</td></tr>';
             });
+            document.getElementById('station-count').textContent = list.length;
         }
 
         function openModal(index) {
@@ -217,24 +245,42 @@
                 document.getElementById('modal-title').textContent = '新增场站';
                 document.getElementById('edit-name').value = '';
                 document.getElementById('edit-company').value = '新能源公司';
+                document.getElementById('edit-station-type').value = '光伏电站';
                 document.getElementById('edit-capacity').value = '';
                 document.getElementById('edit-min-output').value = '';
                 document.getElementById('edit-ramp-up').value = '';
                 document.getElementById('edit-ramp-down').value = '';
                 document.getElementById('edit-start-stop').value = '';
+                document.getElementById('edit-commission-date').value = '';
+                document.getElementById('edit-turbine-count').value = '';
+                document.getElementById('edit-turbine-model').value = '';
+                document.getElementById('edit-hub-height').value = '';
+                document.getElementById('edit-cut-in-speed').value = '';
+                document.getElementById('edit-cut-out-speed').value = '';
                 document.getElementById('edit-status').value = '正常';
+                document.getElementById('edit-longitude').value = '';
+                document.getElementById('edit-latitude').value = '';
             } else {
                 editIndex = index;
                 document.getElementById('modal-title').textContent = '编辑场站';
                 var s = stationData[index];
                 document.getElementById('edit-name').value = s.name;
                 document.getElementById('edit-company').value = s.company;
+                document.getElementById('edit-station-type').value = s.stationType;
                 document.getElementById('edit-capacity').value = s.capacity;
                 document.getElementById('edit-min-output').value = s.minOutput;
                 document.getElementById('edit-ramp-up').value = s.rampUp;
                 document.getElementById('edit-ramp-down').value = s.rampDown;
                 document.getElementById('edit-start-stop').value = s.startStop;
+                document.getElementById('edit-commission-date').value = s.commissionDate || '';
+                document.getElementById('edit-turbine-count').value = s.turbineCount || '';
+                document.getElementById('edit-turbine-model').value = s.turbineModel || '';
+                document.getElementById('edit-hub-height').value = s.hubHeight || '';
+                document.getElementById('edit-cut-in-speed').value = s.cutInSpeed || '';
+                document.getElementById('edit-cut-out-speed').value = s.cutOutSpeed || '';
                 document.getElementById('edit-status').value = s.status;
+                document.getElementById('edit-longitude').value = s.longitude || '';
+                document.getElementById('edit-latitude').value = s.latitude || '';
             }
             modal.style.display = 'flex';
         }
@@ -247,14 +293,24 @@
             var data = {
                 name: document.getElementById('edit-name').value,
                 company: document.getElementById('edit-company').value,
+                stationType: document.getElementById('edit-station-type').value,
                 capacity: parseFloat(document.getElementById('edit-capacity').value) || 0,
+                turbineCount: parseInt(document.getElementById('edit-turbine-count').value) || '-',
+                turbineModel: document.getElementById('edit-turbine-model').value || '-',
+                hubHeight: parseFloat(document.getElementById('edit-hub-height').value) || '-',
+                cutInSpeed: parseFloat(document.getElementById('edit-cut-in-speed').value) || '-',
+                cutOutSpeed: parseFloat(document.getElementById('edit-cut-out-speed').value) || '-',
                 minOutput: parseFloat(document.getElementById('edit-min-output').value) || 0,
                 rampUp: parseFloat(document.getElementById('edit-ramp-up').value) || 0,
                 rampDown: parseFloat(document.getElementById('edit-ramp-down').value) || 0,
                 startStop: parseInt(document.getElementById('edit-start-stop').value) || 0,
-                status: document.getElementById('edit-status').value
+                commissionDate: document.getElementById('edit-commission-date').value || '',
+                status: document.getElementById('edit-status').value,
+                longitude: parseFloat(document.getElementById('edit-longitude').value) || null,
+                latitude: parseFloat(document.getElementById('edit-latitude').value) || null
             };
             if (!data.name) { alert('请输入场站名称'); return; }
+            if (!data.capacity || data.capacity <= 0) { alert('请输入有效的装机容量'); return; }
             if (editIndex === -1) {
                 stationData.push(data);
             } else {
@@ -272,13 +328,23 @@
         }
 
         function filterTable() {
-            renderTable();
+            var name = document.getElementById('filter-name').value;
+            var company = document.getElementById('filter-company').value;
+            var type = document.getElementById('filter-type').value;
+            var filtered = stationData.filter(function(s) {
+                if (name !== '全部场站' && s.name !== name) return false;
+                if (company !== '全部公司' && s.company !== company) return false;
+                if (type !== '全部类型' && s.stationType !== type) return false;
+                return true;
+            });
+            renderTable(filtered);
         }
 
-        // 点击遮罩层关闭
         document.getElementById('station-modal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
+
+        renderTable();
     </script>
 </body>
 </html>

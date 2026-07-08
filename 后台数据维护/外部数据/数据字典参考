@@ -1,0 +1,157 @@
+序号	一级模块	二级页面	三级功能	数据名称	字段名(英文)	数据类型	单位	是否可空	默认值	取值范围	字段说明
+▶ 总览分析											
+1	总览分析	市场行情	宏观数	本项目装机容量	installed_capacity_mw	DECIMAL(10,2)	MW	否		0-9999	场站总装机容量
+2	总览分析	市场行情	宏观数	本月利用小时数	monthly_util_hours	DECIMAL(8,2)	h	否	0	0-744	本月发电利用小时数
+3	总览分析	市场行情	宏观数	本月发电量	monthly_generation_mwh	DECIMAL(12,2)	万kWh	否	0	>=0	本月累计发电量
+4	总览分析	市场行情	宏观数	场站综合电价	comprehensive_price	DECIMAL(10,2)	元/MWh	否	0	>=0	加权平均结算电价
+5	总览分析	市场行情	宏观数	年度累计发电小时数	ytd_util_hours	DECIMAL(10,2)	h	否	0	>=0	年度累计利用小时数
+6	总览分析	市场行情	宏观数	年度累计发电电量	ytd_generation_mwh	DECIMAL(12,2)	万kWh	否	0	>=0	年度累计发电量
+7	总览分析	市场行情	湖南省电源装机结构	饼状图	capacity_structure_json	JSON	-	是	[]		各电源类型装机占比 [{type,capacity,ratio}]
+8	总览分析	市场行情	各类交易价格汇总	柱状图	price_summary_json	JSON	-	是	[]		各类交易价格汇总 [{trade_type,price}]
+9	总览分析	市场行情	供需情况	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+10	总览分析	市场行情	市场价格曲线	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+11	总览分析	市场行情	出力预测偏差	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+12	总览分析	市场行情	交易出清电量统计	柱状图	price_summary_json	JSON	-	是	[]		各类交易价格汇总 [{trade_type,price}]
+13	总览分析	复盘看板	交易结果分析与结算对比	中长期合约	midlong_contract_json	JSON	-	是	[]		中长期合约明细
+14	总览分析	复盘看板	交易结果分析与结算对比	日前偏差	day_ahead_deviation_mwh	DECIMAL(10,2)	万kWh	是			日前出清量-实际执行电量
+15	总览分析	复盘看板	交易结果分析与结算对比	实时偏差	realtime_deviation_mwh	DECIMAL(10,2)	万kWh	是			实时出清量-实际执行电量
+16	总览分析	复盘看板	交易结果分析与结算对比	发电机组超额回收	excess_recovery_amount	DECIMAL(12,2)	万元	是			超额回收金额
+17	总览分析	复盘看板	结算单对比	表格	table_data_json	JSON	-	是	[]		表格展示数据
+18	总览分析	复盘看板	当日交易电量曲线	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+19	总览分析	复盘看板	当日交易电价曲线	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+											
+▶ 预测信息											
+20	预测信息	气象信息看板	出力预测	日累计电量	daily_generation_mwh	DECIMAL(12,2)	万kWh	否	0	>=0	当日累计发电量
+21	预测信息	气象信息看板	出力预测	月累积电量	monthly_cumulative_mwh	DECIMAL(12,2)	万kWh	否	0	>=0	月度累计发电量
+22	预测信息	气象信息看板	出力预测	季度累计电量	quarterly_cumulative_mwh	DECIMAL(12,2)	万kWh	否	0	>=0	季度累计发电量
+23	预测信息	气象信息看板	出力预测	年度累计电量	annual_cumulative_mwh	DECIMAL(12,2)	万kWh	否	0	>=0	年度累计发电量
+24	预测信息	气象信息看板	湖南省气象要素热力地图（风速/辐照）	（风速/辐照）	meteo_heatmap_json	JSON	-	是	[]		全省气象要素热力图数据
+25	预测信息	气象信息看板	场站气象要素一览— 湖南省	表格	table_data_json	JSON	-	是	[]		表格展示数据
+26	预测信息	气象信息看板	未来三个月场站气象预测	表格	table_data_json	JSON	-	是	[]		表格展示数据
+27	预测信息	气象信息看板	全省气象要素趋势	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+28	预测信息	气象信息看板	新能源出力预测曲线	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+29	预测信息	功率预测精准分析	1小时间隔预测对比	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+30	预测信息	功率预测精准分析	15分钟间隔预测对比	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+31	预测信息	功率预测精准分析	功率预测误差分析	平均绝对误差 (MAE)	mae_value	DECIMAL(8,4)	MW	是		>=0	功率预测MAE
+32	预测信息	功率预测精准分析	功率预测误差分析	均方根误差 (RMSE)	rmse_value	DECIMAL(8,4)	MW	是		>=0	功率预测RMSE
+33	预测信息	功率预测精准分析	功率预测误差分析	均方根百分比误差	mape_value	DECIMAL(6,4)	%	是		0-100	功率预测MAPE
+34	预测信息	功率预测精准分析	功率预测误差分析	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+35	预测信息	功率预测精准分析	近7天功率预测准确率	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+36	预测信息	功率预测精准分析	近30天功率预测准确率趋势	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+37	预测信息	功率预测精准分析	功率预测数据	表格	table_data_json	JSON	-	是	[]		表格展示数据
+38	预测信息	负荷预测	负荷预测折线图	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+39	预测信息	负荷预测	负荷预测表格	表格	table_data_json	JSON	-	是	[]		表格展示数据
+40	预测信息	电价预测	日前现货价格预测对比	折线图+表格	折线图+表格	VARCHAR(255)	-	是			折线图+表格
+41	预测信息	电价预测	未来 7 天现货价格预测	折线图+表格	折线图+表格	VARCHAR(255)	-	是			折线图+表格
+42	预测信息	电价预测	中长期电价预测	折线图+表格	折线图+表格	VARCHAR(255)	-	是			折线图+表格
+											
+▶ 中长期交易											
+43	中长期交易	中长期持仓	合约持仓情况概览	签约合同总数	contract_count	INT	个	否	0	>=0	已签约中长期合约数量
+44	中长期交易	中长期持仓	合约持仓情况概览	签约合同总电量	contract_total_mwh	DECIMAL(12,2)	万kWh	否	0	>=0	已签约合约总电量
+45	中长期交易	中长期持仓	合约持仓情况概览	签约合同总价	contract_total_price	DECIMAL(14,2)	万元	否	0	>=0	已签约合约总价
+46	中长期交易	中长期持仓	合约持仓情况概览	累计交易电量限额	trade_limit_mwh	DECIMAL(12,2)	万kWh	否	0	>=0	年度可交易电量上限
+47	中长期交易	中长期持仓	合约持仓情况概览	净合约电量	net_contract_mwh	DECIMAL(12,2)	万kWh	否	0		多头合约-空头合约
+48	中长期交易	中长期持仓	合约电量情况	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+49	中长期交易	中长期持仓	已签订合同完成情况占比	饼状图	capacity_structure_json	JSON	-	是	[]		各电源类型装机占比 [{type,capacity,ratio}]
+50	中长期交易	中长期持仓	合同增长分析	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+51	中长期交易	中长期持仓	合同占比情况	饼状图	capacity_structure_json	JSON	-	是	[]		各电源类型装机占比 [{type,capacity,ratio}]
+52	中长期交易	中长期持仓	合同排名top5	柱状图	price_summary_json	JSON	-	是	[]		各类交易价格汇总 [{trade_type,price}]
+53	中长期交易	中长期辅助决策	策略生成	生成策略并回填	strategy_result_json	JSON	-	是	[]		三档策略结果
+54	中长期交易	中长期辅助决策	中长期余量分析	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+55	中长期交易	中长期辅助决策	中长期申报策略	表格	table_data_json	JSON	-	是	[]		表格展示数据
+56	中长期交易	中长期辅助决策	价格策略分析	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+57	中长期交易	中长期辅助决策	中长期收益	表格	table_data_json	JSON	-	是	[]		表格展示数据
+											
+▶ 现货交易											
+58	现货交易	现货市场	出力及价格曲线	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+59	现货交易	现货市场	收益曲线	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+60	现货交易	价格日历	现货价格日历	表格	table_data_json	JSON	-	是	[]		表格展示数据
+61	现货交易	现货辅助决策	出力及价格曲线	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+62	现货交易	现货辅助决策	预期收益曲线	折线图	trend_line_json	JSON	-	是	[]		时间序列折线数据 [{time,value}]
+63	现货交易	现货辅助决策	申报方案编辑	表格	table_data_json	JSON	-	是	[]		表格展示数据
+64	现货交易	现货辅助决策	申报汇总	总申报出力	total_bid_output_mw	DECIMAL(10,2)	MW	否	0	>=0	96点申报出力汇总
+65	现货交易	现货辅助决策	申报汇总	平均申报电价	avg_bid_price	DECIMAL(10,2)	元/MWh	否	0	>=0	电量加权平均申报电价
+66	现货交易	现货辅助决策	申报汇总	预期总收益	expected_total_revenue	DECIMAL(14,2)	万元	否	0	>=0	96点预期收益汇总
+67	现货交易	现货辅助决策	申报汇总	均价差	price_diff	DECIMAL(10,2)	元/MWh	否	0		平均申报电价-预测电价
+▶ 后台数据维护											
+68	后台数据维护	场站信息管理	-	场站名称	station_name	VARCHAR(100)	-	否			场站唯一标识名称
+69	后台数据维护	场站信息管理	-	所属公司	company_name	VARCHAR(100)	-	否			场站归属公司名称
+70	后台数据维护	场站信息管理	-	装机容量	installed_capacity_mw	DECIMAL(10,2)	MW	否	0	>=0	场站总装机容量
+71	后台数据维护	场站信息管理	-	最小技术出力	min_tech_output_mw	DECIMAL(10,2)	MW	否	0	>=0	机组最小稳定出力
+72	后台数据维护	场站信息管理	-	爬坡率上限	ramp_up_rate	DECIMAL(8,2)	MW/min	否	0	>=0	单位时间最大升功率
+73	后台数据维护	场站信息管理	-	爬坡率下限	ramp_down_rate	DECIMAL(8,2)	MW/min	否	0	>=0	单位时间最大降功率
+74	后台数据维护	场站信息管理	-	启停约束	start_stop_limit	INT	次/日	否	0	>=0	每日允许启停次数上限
+75	后台数据维护	场站信息管理	-	状态	status	TINYINT	-	否	1	0,1	0=停用,1=启用
+76	后台数据维护	算法方案管理	-	方案名称	scheme_name	VARCHAR(100)	-	否			算法方案唯一名称
+77	后台数据维护	算法方案管理	-	所属模块	belong_module	VARCHAR(50)	-	否			方案所属业务模块
+78	后台数据维护	算法方案管理	-	版本号	version	VARCHAR(20)	-	否	1.0.0		方案版本号
+79	后台数据维护	算法方案管理	-	训练日期范围	train_date_range	VARCHAR(50)	-	否			训练数据起止日期
+80	后台数据维护	算法方案管理	-	创建时间	create_time	DATETIME	-	否			方案创建时间
+81	后台数据维护	模型对接管理	-	模型名称	model_name	VARCHAR(100)	-	否			AI模型唯一名称
+82	后台数据维护	模型对接管理	-	模型类型	model_type	VARCHAR(50)	-	否			模型分类(功率预测/电价预测/负荷预测)
+83	后台数据维护	模型对接管理	-	版本号	model_version	VARCHAR(20)	-	否	1.0.0		模型版本
+84	后台数据维护	模型对接管理	-	服务地址	service_url	VARCHAR(255)	-	否			模型API服务地址
+85	后台数据维护	模型对接管理	-	运行状态	run_status	TINYINT	-	否	0	0,1,2	0=离线,1=在线,2=故障
+86	后台数据维护	模型对接管理	-	最后心跳	last_heartbeat	DATETIME	-	是			最近一次健康检查时间
+87	后台数据维护	模型对接管理	-	认证密钥	auth_key	VARCHAR(255)	-	是			API认证密钥
+88	后台数据维护	模型对接管理	-	超时时间	timeout_sec	INT	秒	否	30	>0	请求超时时间
+89	后台数据维护	模型对接管理	-	重试次数	retry_count	INT	次	否	3	>=0	失败重试次数
+90	后台数据维护	模型对接管理	-	模型描述	model_desc	TEXT	-	是			模型功能说明
+91	后台数据维护	模型对接管理	-	输入数据源	input_data_source	VARCHAR(255)	-	是			模型输入数据来源
+92	后台数据维护	模型对接管理	-	预测时间粒度	pred_interval_min	INT	分钟	否	15	>0	预测时间间隔
+93	后台数据维护	模型对接管理	-	预测时长	pred_duration_hr	INT	小时	否	24	>0	单次预测覆盖时长
+94	后台数据维护	模型对接管理	-	模型精度阈值	accuracy_threshold	DECIMAL(5,4)	-	否	0.85	0-1	模型最低精度要求
+95	后台数据维护	模型对接管理	-	自动重训练	auto_retrain	TINYINT	-	否	0	0,1	0=关闭,1=开启自动重训练
+96	后台数据维护	气象数据对接	-	数据源名称	source_name	VARCHAR(100)	-	否			气象数据源标识
+97	后台数据维护	气象数据对接	-	数据源类型	source_type	VARCHAR(50)	-	否			数据源类型(ECMWF/气象局等)
+98	后台数据维护	气象数据对接	-	连接状态	conn_status	TINYINT	-	否	0	0,1	0=断开,1=连接
+99	后台数据维护	气象数据对接	-	服务地址	service_endpoint	VARCHAR(255)	-	否			气象数据服务URL
+100	后台数据维护	气象数据对接	-	数据字段	data_fields	JSON	-	是	[]		提供的数据字段列表
+101	后台数据维护	气象数据对接	-	更新频率	update_freq	VARCHAR(20)	-	否	15min		数据更新周期
+102	后台数据维护	气象数据对接	-	最近同步	last_sync	DATETIME	-	是			最近一次同步时间
+103	后台数据维护	气象数据对接	-	认证方式	auth_method	VARCHAR(50)	-	是			认证方式(APIKey/OAuth)
+104	后台数据维护	气象数据对接	-	数据格式	data_format	VARCHAR(20)	-	否	JSON		数据交换格式
+105	后台数据维护	训练节点管理	-	节点名称	node_name	VARCHAR(100)	-	否			训练节点标识
+106	后台数据维护	训练节点管理	-	所属公司	node_company	VARCHAR(100)	-	否			节点归属公司
+107	后台数据维护	训练节点管理	-	关联场站	related_stations	JSON	-	是	[]		关联场站ID列表
+108	后台数据维护	训练节点管理	-	训练数据范围	train_data_range	VARCHAR(50)	-	否			训练数据起止日期
+109	后台数据维护	训练节点管理	-	训练时间	train_time	DATETIME	-	是			最近训练执行时间
+110	后台数据维护	训练节点管理	-	模型文件路径	model_file_path	VARCHAR(255)	-	是			训练产出模型存储路径
+111	后台数据维护	训练节点管理	-	备注	node_remark	TEXT	-	是			节点备注说明
+112	后台数据维护	报价策略管理	-	策略名称	strategy_name	VARCHAR(100)	-	否			报价策略唯一名称
+113	后台数据维护	报价策略管理	-	适用模块	apply_module	VARCHAR(50)	-	否			策略适用的交易模块
+114	后台数据维护	报价策略管理	-	策略类型	strategy_type	VARCHAR(50)	-	否			策略分类(保守/激进/均衡)
+115	后台数据维护	报价策略管理	-	电价分位数	price_quantile	DECIMAL(5,4)	-	否	0.5	0-1	参考电价分位点
+116	后台数据维护	报价策略管理	-	中标概率基准	bid_prob_base	DECIMAL(5,4)	%	否	0.8	0-1	目标中标概率
+117	后台数据维护	报价策略管理	-	价格上浮比例	price_up_pct	DECIMAL(5,2)	%	否	5		相对于基准价上浮比例
+118	后台数据维护	报价策略管理	-	价格下浮比例	price_down_pct	DECIMAL(5,2)	%	否	5		相对于基准价下浮比例
+119	后台数据维护	报价策略管理	-	适用场景说明	scenario_desc	TEXT	-	是			策略适用场景描述
+120	后台数据维护	外部数据接口	-	接口名称	interface_name	VARCHAR(100)	-	否			外部接口标识名称
+121	后台数据维护	外部数据接口	-	接口类型	interface_type	VARCHAR(50)	-	否			接口分类(交易中心/SCADA/气象局)
+122	后台数据维护	外部数据接口	-	接口地址	interface_url	VARCHAR(255)	-	否			接口服务URL
+123	后台数据维护	外部数据接口	-	认证方式	interface_auth	VARCHAR(50)	-	是			接口认证方式
+124	后台数据维护	外部数据接口	-	同步频率	sync_frequency	VARCHAR(20)	-	否			数据同步周期
+125	后台数据维护	外部数据接口	-	数据格式	interface_format	VARCHAR(20)	-	否	JSON		数据交换格式
+126	后台数据维护	外部数据接口	-	超时时间	interface_timeout	INT	秒	否	30	>0	接口请求超时
+127	后台数据维护	外部数据接口	-	数据说明	data_desc	TEXT	-	是			接口返回数据说明
+128	后台数据维护	用户管理	-	用户名	username	VARCHAR(50)	-	否			登录用户名
+129	后台数据维护	用户管理	-	姓名	real_name	VARCHAR(50)	-	否			用户真实姓名
+130	后台数据维护	用户管理	-	角色	user_role	VARCHAR(50)	-	否			用户角色(管理员/交易员/分析师)
+131	后台数据维护	用户管理	-	关联场站	user_stations	JSON	-	是	[]		用户可查看场站列表
+132	后台数据维护	用户管理	-	手机号	mobile	VARCHAR(20)	-	是			用户手机号
+133	后台数据维护	用户管理	-	最后登录	last_login	DATETIME	-	是			最近一次登录时间
+134	后台数据维护	系统参数配置	-	年度	config_year	INT	-	否		2024-2030	参数所属年度
+135	后台数据维护	系统参数配置	-	年利用小时数	annual_util_hours	DECIMAL(10,2)	h	否	0	>=0	年度发电利用小时数
+136	后台数据维护	系统参数配置	-	年度交易限额	annual_trade_limit	DECIMAL(12,2)	万kWh	否	0	>=0	年度可交易电量上限
+137	后台数据维护	系统参数配置	-	计算方式	calc_method	VARCHAR(50)	-	否			限额计算方式
+138	后台数据维护	数据字典	-	编码	dict_code	VARCHAR(50)	-	否			字典项编码
+139	后台数据维护	数据字典	-	名称	dict_name	VARCHAR(100)	-	否			字典项显示名称
+140	后台数据维护	数据字典	-	字典类型	dict_type	VARCHAR(50)	-	否			字典分类(场站类型/交易品种/电源类型/计量单位)
+141	后台数据维护	数据字典	-	排序号	sort_order	INT	-	否	0	>=0	显示排序顺序
+142	后台数据维护	操作日志	-	操作时间	op_time	DATETIME	-	否			操作发生时间
+143	后台数据维护	操作日志	-	操作人	op_user	VARCHAR(50)	-	否			操作用户名
+144	后台数据维护	操作日志	-	IP地址	op_ip	VARCHAR(50)	-	否			操作来源IP
+145	后台数据维护	操作日志	-	操作类型	op_type	VARCHAR(50)	-	否			操作分类(新增/修改/删除/查询/导出)
+146	后台数据维护	操作日志	-	操作对象	op_target	VARCHAR(100)	-	否			被操作的数据对象
+147	后台数据维护	操作日志	-	操作内容	op_content	TEXT	-	否			操作详细内容
+148	后台数据维护	操作日志	-	结果	op_result	TINYINT	-	否	1	0,1	0=失败,1=成功

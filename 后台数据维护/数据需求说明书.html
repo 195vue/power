@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电力市场交易辅助决策系统 - 数据需求说明书</title>
+    <style>
+        :root {
+            --bg: #0a0e17;
+            --surface: #121722;
+            --surface-hover: #1a202c;
+            --border: #2a3344;
+            --fg: #e8ecf0;
+            --muted: #6b7a8c;
+            --primary: #4a9eff;
+            --success: #52c41a;
+            --warning: #faad14;
+            --danger: #ff4d4f;
+            --text-xs: 11px;
+            --text-sm: 12px;
+            --text-base: 13px;
+            --text-lg: 14px;
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 20px;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; padding: var(--space-5); }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: var(--space-5); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border); }
+        .header h1 { font-size: 22px; font-weight: 600; margin-bottom: var(--space-2); }
+        .header p { color: var(--muted); font-size: var(--text-sm); }
+        
+        .section { margin-bottom: var(--space-5); }
+        .section-title { font-size: var(--text-lg); font-weight: 600; margin-bottom: var(--space-3); padding-left: var(--space-3); border-left: 3px solid var(--primary); }
+        .section-subtitle { font-size: var(--text-base); font-weight: 500; margin: var(--space-4) 0 var(--space-2); color: var(--primary); }
+        .section-desc { font-size: var(--text-sm); color: var(--muted); margin-bottom: var(--space-3); }
+        
+        table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius-md); overflow: hidden; margin-bottom: var(--space-3); }
+        th, td { padding: var(--space-2) var(--space-3); text-align: left; border-bottom: 1px solid var(--border); font-size: var(--text-xs); }
+        th { background: var(--surface-hover); font-weight: 500; color: var(--muted); white-space: nowrap; }
+        td.code { font-family: var(--font-mono); color: var(--primary); }
+        td.required { color: var(--danger); }
+        td.type { font-family: var(--font-mono); color: var(--warning); }
+        
+        .rule-box { background: var(--surface); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-3); }
+        .rule-title { font-size: var(--text-sm); font-weight: 500; margin-bottom: var(--space-2); color: var(--primary); }
+        .rule-content { font-size: var(--text-xs); color: var(--fg); line-height: 1.8; }
+        
+        .mapping-box { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-3); }
+        .mapping-item { background: var(--surface); border-radius: var(--radius-md); padding: var(--space-3); }
+        .mapping-item .label { font-size: var(--text-xs); color: var(--muted); }
+        .mapping-item .value { font-size: var(--text-sm); color: var(--primary); font-family: var(--font-mono); }
+        
+        .api-box { background: var(--surface); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-3); }
+        .api-path { font-family: var(--font-mono); color: var(--primary); font-size: var(--text-base); margin-bottom: var(--space-2); }
+        .api-method { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: var(--text-xs); margin-right: var(--space-2); }
+        .api-method.get { background: rgba(82, 196, 26, 0.15); color: var(--success); }
+        .api-method.post { background: rgba(74, 158, 255, 0.15); color: var(--primary); }
+        
+        .sample-data { background: #0d1117; border-radius: var(--radius-md); padding: var(--space-4); overflow-x: auto; }
+        .sample-data pre { font-family: var(--font-mono); font-size: var(--text-xs); color: #c9d1d9; line-height: 1.6; }
+        
+        .footer { text-align: center; margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border); color: var(--muted); font-size: var(--text-xs); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>电力市场交易辅助决策系统</h1>
+            <p>数据需求说明书 v1.0 | 生成日期：2026-07-08</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">一、数据需求清单（按页面/模块）</div>
+            
+            <div class="section-subtitle">1.1 市场行情看板</div>
+            <table>
+                <thead>
+                    <tr><th>字段名</th><th>数据类型</th><th>必填</th><th>单位</th><th>说明</th><th>数据来源</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>装机容量</td><td>Number</td><td class="required">是</td><td>MW</td><td>项目总装机容量</td><td>资产台账</td></tr>
+                    <tr><td>本月利用小时数</td><td>Number</td><td>否</td><td>h</td><td>本月风机运行小时数</td><td>风机SCADA</td></tr>
+                    <tr><td>本月发电量</td><td>Number</td><td>是</td><td>MWh</td><td>本月总发电量</td><td>关口电能表</td></tr>
+                    <tr><td>场站综合电价</td><td>Number</td><td>否</td><td>元/MWh</td><td>系统计算得出</td><td>系统计算</td></tr>
+                    <tr><td>年度累计发电小时数</td><td>Number</td><td>否</td><td>h</td><td>年度累计运行小时</td><td>风机SCADA</td></tr>
+                    <tr><td>年度累计发电量</td><td>Number</td><td>是</td><td>MWh</td><td>年度累计发电总量</td><td>关口电能表</td></tr>
+                    <tr><td>电源类型</td><td>String</td><td>是</td><td>-</td><td>光伏/风电/水电/火电/储能</td><td>数据字典</td></tr>
+                    <tr><td>装机占比</td><td>Number</td><td>否</td><td>%</td><td>各类电源装机占比</td><td>系统计算</td></tr>
+                    <tr><td>交易价格</td><td>Number</td><td>否</td><td>元/MWh</td><td>各类交易价格</td><td>交易中心</td></tr>
+                    <tr><td>供需负荷</td><td>Number</td><td>否</td><td>MW</td><td>实际最大负荷</td><td>省电力公司</td></tr>
+                    <tr><td>供需裕度</td><td>Number</td><td>否</td><td>MW</td><td>供电裕度</td><td>省电力公司</td></tr>
+                </tbody>
+            </table>
+
+            <div class="section-subtitle">1.2 复盘看板</div>
+            <table>
+                <thead>
+                    <tr><th>字段名</th><th>数据类型</th><th>必填</th><th>单位</th><th>说明</th><th>数据来源</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>交易日期</td><td>Date</td><td>是</td><td>-</td><td>交易日期</td><td>系统参数</td></tr>
+                    <tr><td>合约电量</td><td>Number</td><td>是</td><td>MWh</td><td>中长期合约电量</td><td>合约管理系统</td></tr>
+                    <tr><td>日前出清量</td><td>Number</td><td>否</td><td>MWh</td><td>日前市场出清电量</td><td>交易中心</td></tr>
+                    <tr><td>实时出清量</td><td>Number</td><td>否</td><td>MWh</td><td>实时市场出清电量</td><td>交易中心</td></tr>
+                    <tr><td>实际执行电量</td><td>Number</td><td>是</td><td>MWh</td><td>关口电能表计量</td><td>电能表</td></tr>
+                    <tr><td>日前偏差</td><td>Number</td><td>否</td><td>MWh</td><td>日前出清量与实际执行偏差</td><td>系统计算</td></tr>
+                    <tr><td>实时偏差</td><td>Number</td><td>否</td><td>MWh</td><td>实时出清量与实际执行偏差</td><td>系统计算</td></tr>
+                    <tr><td>日前电价</td><td>Number</td><td>否</td><td>元/MWh</td><td>日前出清价格</td><td>交易中心</td></tr>
+                    <tr><td>实时电价</td><td>Number</td><td>否</td><td>元/MWh</td><td>实时出清价格</td><td>交易中心</td></tr>
+                    <tr><td>超额回收</td><td>Number</td><td>否</td><td>元</td><td>发电机组超额回收金额</td><td>系统计算</td></tr>
+                </tbody>
+            </table>
+
+            <div class="section-subtitle">1.3 气象信息看板</div>
+            <table>
+                <thead>
+                    <tr><th>字段名</th><th>数据类型</th><th>必填</th><th>单位</th><th>说明</th><th>数据来源</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>场站名称</td><td>String</td><td>是</td><td>-</td><td>场站名称</td><td>场站管理</td></tr>
+                    <tr><td>日累计电量</td><td>Number</td><td>是</td><td>MWh</td><td>当日累计发电量</td><td>电能表</td></tr>
+                    <tr><td>月累计电量</td><td>Number</td><td>是</td><td>MWh</td><td>当月累计发电量</td><td>电能表</td></tr>
+                    <tr><td>季度累计电量</td><td>Number</td><td>是</td><td>MWh</td><td>当季度累计发电量</td><td>电能表</td></tr>
+                    <tr><td>年度累计电量</td><td>Number</td><td>是</td><td>MWh</td><td>当年累计发电量</td><td>电能表</td></tr>
+                    <tr><td>风速</td><td>Number</td><td>否</td><td>m/s</td><td>风速数据</td><td>气象数据源</td></tr>
+                    <tr><td>辐照度</td><td>Number</td><td>否</td><td>W/m²</td><td>太阳辐照度</td><td>气象数据源</td></tr>
+                    <tr><td>温度</td><td>Number</td><td>否</td><td>°C</td><td>温度数据</td><td>气象数据源</td></tr>
+                    <tr><td>湿度</td><td>Number</td><td>否</td><td>%</td><td>湿度数据</td><td>气象数据源</td></tr>
+                    <tr><td>预测出力</td><td>Number</td><td>否</td><td>MW</td><td>新能源出力预测值</td><td>功率预测模型</td></tr>
+                </tbody>
+            </table>
+
+            <div class="section-subtitle">1.4 功率预测精度分析</div>
+            <table>
+                <thead>
+                    <tr><th>字段名</th><th>数据类型</th><th>必填</th><th>单位</th><th>说明</th><th>数据来源</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>场站名称</td><td>String</td><td>是</td><td>-</td><td>场站名称</td><td>场站管理</td></tr>
+                    <tr><td>预测时间</td><td>DateTime</td><td>是</td><td>-</td><td>预测时间点</td><td>系统参数</td></tr>
+                    <tr><td>预测功率</td><td>Number</td><td>是</td><td>MW</td><td>模型预测功率</td><td>功率预测模型</td></tr>
+                    <tr><td>实际功率</td><td>Number</td><td>是</td><td>MW</td><td>SCADA实际功率</td><td>风机SCADA</td></tr>
+                    <tr><td>预测间隔</td><td>String</td><td>是</td><td>-</td><td>15分钟/1小时</td><td>数据字典</td></tr>
+                    <tr><td>MAE</td><td>Number</td><td>否</td><td>MW</td><td>平均绝对误差</td><td>系统计算</td></tr>
+                    <tr><td>RMSE</td><td>Number</td><td>否</td><td>MW</td><td>均方根误差</td><td>系统计算</td></tr>
+                    <tr><td>RMSPE</td><td>Number</td><td>否</td><td>%</td><td>均方根百分比误差</td><td>系统计算</td></tr>
+                    <tr><td>准确率</td><td>Number</td><td>否</td><td>%</td><td>预测准确率</td><td>系统计算</td></tr>
+                </tbody>
+            </table>
+
+            <div class="section-subtitle">1.5 负荷预测</div>
+            <table>
+                <thead>
+                    <tr><th>字段名</th><th>数据类型</th><th>必填</th><th>单位</th><th>说明</th><th>数据来源</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>预测时间</td><td>DateTime</td><td>是</td><td>-</td><td>预测时间点</td><td>系统参数</td></tr>
+                    <tr><td>预测负荷</td><td>Number</td><td>是</td><td>MW</td><td>负荷预测值</td><td>负荷预测模型</td></tr>
+                    <tr><td>实际负荷</td><td>Number</td><td>否</td><td>MW</td><td>实际负荷值</td><td>省电力公司</td></tr>
+                    <tr><td>预测时长</td><td>String</td><td>是</td><td>-</td><td>预测时间范围</td><td>数据字典</td></tr>
+                </tbody>
+            </table>
+
+            <div class="section-subtitle">1.6 电价预测</div>
+            <table>
+                <thead>
+                    <tr><th>字段名</th><th>数据类型</th><th>必填</th><th>单位</th><th>说明</th><th>数据来源</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>预测日期</td><td>Date</td><td>是</td><td>-</td><td>预测日期</td><td>系统参数</td></tr>
+                    <tr><td>预测时段</td><td>String</td><td>是</td><td>-</td><td>96点时段标识</td><td>系统参数</td></tr>
+                    <tr><td>预测电价</td><td>Number</td><td>是</td><td>元/MWh</td><td>电价预测值</td><td>电价预测模型</td></tr>
+                    <tr><td>实际出清价</td><td>Number</td><td>否</td><td>元/MWh</td><td>交易中心出清价格</td><td>交易中心</td></tr>
+                    <tr><td>交易节点</td><td>String</td><td>是</td><td>-</td><td>湖南省均价/坡窑山等</td><td>数据字典</td></tr>
+                    <tr><td>预测时长</td><td>String</td><td>是</td><td>-</td><td>日前/7天/中长期</td><td>数据字典</td></tr>
+                </tbody>
+            </table>
+
+            <div class="section-subtitle">1.7 中长期持仓</div>
+            <table>
+                <thead>
+                    <tr><th>字段名</th><th>数据类型</th><th>必填</th><th>单位</th><th>说明</th><th>数据来源</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>场站名称</td><td>String</td><td>是</td><td>-</td><td>场站名称</td><td>场站管理</td></tr>
+                    <tr><td>合约编号</td><td>String</td><td>是</td><td>-</td><td>合约唯一标识</td><td>合约管理系统</td></tr>
+                    <tr><td>合约类型</td><td>String</td><td>是</td><td>-</td><td>年度双边/月度竞价/现货</td><td>数据字典</td></tr>
+                    <tr><td>合约周期</td><td>String</td><td>是</td><td>-</td><td>年度/月度/季度</td><td>数据字典</td></tr>
+                    <tr><td>签约电量</td><td>Number</td><td>是</td><td>MWh</td><td>合约签约电量</td><td>合约管理系统</td></tr>
+                    <tr><td>签约电价</td><td>Number</td><td>是</td><td>元/MWh</td><td>合约签约电价</td><td>合约管理系统</td></tr>
+                    <tr><td>签约总价</td><td>Number</td><td>否</td><td>元</td><td>合约总金额</td><td>系统计算</td></tr>
+                    <tr><td>交易品种</td><td>String</td><td>是</td><td>-</td><td>双边协商/集中竞价等</td><td>数据字典</td></tr>
+                    <tr><td>累计交易限额</td><td>Number</td><td>否</td><td>MWh</td><td>预计发电量-已签约电量</td><td>系统计算</td></tr>
+                    <tr><td>净合约电量</td><td>Number</td><td>否</td><td>MWh</td><td>多头合约-空头合约</td><td>系统计算</td></tr>
+                </tbody>
+            </table>
+
+            <div class="section-subtitle">1.8 中长期辅助决策</div>
+            <table>
+                <thead>
+                    <tr><th>字段名</th><th>数据类型</th><th>必填</th><th>单位</th><th>说明</th><th>数据来源</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>交易方式</td><td>String</td><td>是</td><td>-</td><td>日滚动/月内/月度/年度</td><td>数据字典</td></tr>
+                    <tr><td>风险偏好</td><td>String</td><td>是</td><td>-</td><td>保守/稳健/激进</td><td>数据字典</td></tr>
+                    <tr><td>申报比例α</td><td>Number</td><td>是</td><td>%</td><td>策略参数-申报比例</td><td>用户输入</td></tr>
+                    <tr><td>报价偏移β</td><td>Number</td><td>是</td><td>%</td><td>策略参数-报价偏移</td><td>用户输入</td></tr>
+                    <tr><td>报价宽度δ</td><td>Number</td><td>是</td><td>%</td><td>策略参数-报价宽度</td><td>用户输入</td></tr>
+                    <tr><td>余量电量</td><td>Number</td><td>否</td><td>MWh</td><td>中长期余量</td><td>系统计算</td></tr>
+                    <tr><td>申报电量</td><td>Number</td><td>否</td><td>MWh</td><td>推荐申报电量</td><td>系统计算</td></tr>
+                    <tr><td>申报电价</td><td>Number</td><td>否</td><td>元/MWh</td><td>推荐申报电价</td><td>系统计算</td></tr>
+                    <tr><td>预期收益</td><td>Number</td><td>否</td><td>元</td><td>预期收益金额</td><td>系统计算</td></tr>
+                </tbody>
+            </table>
+
+            <div class="section-subtitle">1.9 现货交易</div>
+            <table>
+                <thead>
+                    <tr><th>字段名</th><th>数据类型</th><th>必填</th><th>单位</th><th>说明</th><th>数据来源</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>交易日期</td><td>Date</td><td>是</td><td>-</td><td>交易日期</td><td>系统参数</td></tr>
+                    <tr><td>交易时段</td><td>String</td><td>是</td><td>-</td><td>96点时段标识</td><td>系统参数</td></tr>
+                    <tr><td>市场类型</td><td>String</td><td>是</td><td>-</td><td>日前/实时</td><td>数据字典</td></tr>
+                    <tr><td>出清电量</td><td>Number</td><td>是</td><td>MWh</td><td>现货出清电量</td><td>交易中心</td></tr>
+                    <tr><td>出清电价</td><td>Number</td><td>是</td><td>元/MWh</td><td>现货出清电价</td><td>交易中心</td></tr>
+                    <tr><td>预测出力</td><td>Number</td><td>否</td><td>MW</td><td>功率预测值</td><td>功率预测模型</td></tr>
+                    <tr><td>预期收益</td><td>Number</td><td>否</td><td>元</td><td>预期收益金额</td><td>系统计算</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">二、原始文件-系统字段映射表</div>
+            
+            <div class="section-subtitle">2.1 桂阳月和场站基本参数</div>
+            <div class="mapping-box">
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">总装机容量</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">capacity (MW)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">风机台数</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">turbineCount</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">风电机组额定功率</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">turbineModel (型号)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">切入风速</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">cutInSpeed (m/s)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">切出风速</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">cutOutSpeed (m/s)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">轮毂高度</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">hubHeight (m)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">投运时间</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">commissionDate</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">经纬度</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">longitude / latitude</div></div>
+            </div>
+
+            <div class="section-subtitle">2.2 桂阳月和合约模拟</div>
+            <div class="mapping-box">
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">交易品类</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">contractType</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">电量占比</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">volumeRatio (%)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">电价</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">contractPrice (元/MWh)</div></div>
+            </div>
+
+            <div class="section-subtitle">2.3 各类交易价格汇总</div>
+            <div class="mapping-box">
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">发电类型</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">generationType</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">电量</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">volume (亿kWh)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">电价</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">price (元/MWh)</div></div>
+            </div>
+
+            <div class="section-subtitle">2.4 现货出清电量电价</div>
+            <div class="mapping-box">
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">日期</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">tradeDate</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">时段</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">period (96点)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">出清电量</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">clearingVolume (MWh)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">出清电价</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">clearingPrice (元/MWh)</div></div>
+            </div>
+
+            <div class="section-subtitle">2.5 市场信息披露报告</div>
+            <div class="mapping-box">
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">实际最大负荷</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">maxLoad (MW)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">裕度</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">margin (MW)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">交易电量</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">tradeVolume (亿kWh)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">结算价格</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">settlementPrice (元/MWh)</div></div>
+            </div>
+
+            <div class="section-subtitle">2.6 风机SCADA 15min数据</div>
+            <div class="mapping-box">
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">时间戳</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">timestamp (DateTime)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">机组编号</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">turbineId</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">上网电量</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">gridPower (MW)</div></div>
+                <div class="mapping-item"><div class="label">原始字段</div><div class="value">上网功率</div></div>
+                <div class="mapping-item"><div class="label">系统字段</div><div class="value">gridEnergy (kWh/15min)</div></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">三、接口规范</div>
+            
+            <div class="section-subtitle">3.1 API接口（实时数据）</div>
+            
+            <div class="api-box">
+                <div class="api-path"><span class="api-method get">GET</span>/api/weather/forecast</div>
+                <div class="section-desc">获取气象预测数据</div>
+                <table>
+                    <thead><tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr></thead>
+                    <tbody>
+                        <tr><td>stationId</td><td>String</td><td>是</td><td>场站ID</td></tr>
+                        <tr><td>weatherType</td><td>String</td><td>否</td><td>气象类型：WIND_SPEED/IRRADIANCE等</td></tr>
+                        <tr><td>duration</td><td>String</td><td>否</td><td>预测时长：MEDIUM_7D/LONG_QUARTER等</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="api-box">
+                <div class="api-path"><span class="api-method get">GET</span>/api/price/spot</div>
+                <div class="section-desc">获取现货出清数据</div>
+                <table>
+                    <thead><tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr></thead>
+                    <tbody>
+                        <tr><td>tradeDate</td><td>Date</td><td>是</td><td>交易日期</td></tr>
+                        <tr><td>marketType</td><td>String</td><td>否</td><td>市场类型：DAY_AHEAD/REAL_TIME</td></tr>
+                        <tr><td>nodeType</td><td>String</td><td>否</td><td>交易节点：HN_AVERAGE等</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="api-box">
+                <div class="api-path"><span class="api-method get">GET</span>/api/power/forecast</div>
+                <div class="section-desc">获取功率预测数据</div>
+                <table>
+                    <thead><tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr></thead>
+                    <tbody>
+                        <tr><td>stationId</td><td>String</td><td>是</td><td>场站ID</td></tr>
+                        <tr><td>forecastDate</td><td>Date</td><td>是</td><td>预测日期</td></tr>
+                        <tr><td>interval</td><td>String</td><td>否</td><td>预测间隔：MIN_15/HOUR_1</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="api-box">
+                <div class="api-path"><span class="api-method get">GET</span>/api/price/forecast</div>
+                <div class="section-desc">获取电价预测数据</div>
+                <table>
+                    <thead><tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr></thead>
+                    <tbody>
+                        <tr><td>forecastDate</td><td>Date</td><td>是</td><td>预测日期</td></tr>
+                        <tr><td>duration</td><td>String</td><td>否</td><td>预测时长：MEDIUM_7D/LONG_QUARTER</td></tr>
+                        <tr><td>nodeType</td><td>String</td><td>否</td><td>交易节点</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="api-box">
+                <div class="api-path"><span class="api-method get">GET</span>/api/market/disclosure</div>
+                <div class="section-desc">获取市场信息披露报告数据</div>
+                <table>
+                    <thead><tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr></thead>
+                    <tbody>
+                        <tr><td>reportMonth</td><td>Date</td><td>是</td><td>报告月份</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-subtitle">3.2 文件导入（批量数据）</div>
+            <table>
+                <thead>
+                    <tr><th>文件名称</th><th>导入频率</th><th>导入方式</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>风机SCADA 15min数据</td><td>每日</td><td>自动定时导入</td><td>16机组15分钟上网电量数据</td></tr>
+                    <tr><td>关口电能表数据</td><td>每日</td><td>自动定时导入</td><td>日/月/季度/年度累计电量</td></tr>
+                    <tr><td>场站基本参数</td><td>按需</td><td>手动导入</td><td>场站配置信息更新</td></tr>
+                    <tr><td>现货出清数据</td><td>每日</td><td>自动定时导入</td><td>日前/实时出清结果</td></tr>
+                    <tr><td>合约数据</td><td>按需</td><td>手动导入</td><td>中长期合约签约数据</td></tr>
+                </tbody>
+            </table>
+
+            <div class="section-subtitle">3.3 系统计算（派生数据）</div>
+            <table>
+                <thead>
+                    <tr><th>计算字段</th><th>计算公式</th><th>触发时机</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>场站综合电价</td><td>Σ(合约电量×合约电价) / Σ合约电量</td><td>合约更新时</td></tr>
+                    <tr><td>累计交易限额</td><td>预计发电量 - 已签订合约电量</td><td>合约更新时</td></tr>
+                    <tr><td>净合约电量</td><td>所有中长期合约电量之和</td><td>合约更新时</td></tr>
+                    <tr><td>日前偏差</td><td>日前出清量 - 实际执行电量</td><td>每日结算时</td></tr>
+                    <tr><td>实时偏差</td><td>实时出清量 - 实际执行电量</td><td>每日结算时</td></tr>
+                    <tr><td>MAE</td><td>Σ|预测功率-实际功率| / N</td><td>预测数据更新时</td></tr>
+                    <tr><td>RMSE</td><td>√(Σ(预测功率-实际功率)² / N)</td><td>预测数据更新时</td></tr>
+                    <tr><td>RMSPE</td><td>√(Σ((预测-实际)/实际)² / N) × 100%</td><td>预测数据更新时</td></tr>
+                    <tr><td>预测准确率</td><td>(1 - |预测-实际|/实际) × 100%</td><td>预测数据更新时</td></tr>
+                    <tr><td>预期收益</td><td>申报电量 × 申报电价 × 中标概率</td><td>策略生成时</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">四、业务规则说明</div>
+            
+            <div class="rule-box">
+                <div class="rule-title">4.1 合约占比规则（桂阳月和合约模拟）</div>
+                <div class="rule-content">
+                    <strong>2025年1-9月：</strong><br>
+                    • 年度双边协商合约：40%，电价0.45元/kWh<br>
+                    • 月度集中竞价合约：60%，电价按月度交易均价<br>
+                    <br>
+                    <strong>2025年10-12月（现货市场启动后）：</strong><br>
+                    • 年度双边协商合约：40%，电价0.45元/kWh<br>
+                    • 月度集中竞价合约：50%，电价按月度交易均价<br>
+                    • 现货交易：10%，电价按实时出清价格<br>
+                    <br>
+                    <strong>简化模拟规则：</strong><br>
+                    • 1-9月：2个中长期合约（40%年度 + 60%月度）<br>
+                    • 10月后：3个合约（40%年度 + 50%月度 + 10%现货）
+                </div>
+            </div>
+
+            <div class="rule-box">
+                <div class="rule-title">4.2 功率预测精度计算规则</div>
+                <div class="rule-content">
+                    <strong>数据来源：</strong><br>
+                    • 预测值：功率预测模型输出<br>
+                    • 实际值：风机SCADA系统15分钟间隔数据<br>
+                    <br>
+                    <strong>计算周期：</strong><br>
+                    • 近7天预测准确率：从今天往前推7天<br>
+                    • 近30天预测准确率趋势：从今天往前推30天<br>
+                    <br>
+                    <strong>预测间隔：</strong><br>
+                    • 15分钟间隔：16机组汇总后按15分钟粒度对比<br>
+                    • 1小时间隔：按小时汇总后对比
+                </div>
+            </div>
+
+            <div class="rule-box">
+                <div class="rule-title">4.3 策略生成三档参数模型</div>
+                <div class="rule-content">
+                    <strong>参数定义：</strong><br>
+                    • α（申报比例）：预测电量的申报比例<br>
+                    • β（报价偏移）：相对于预测电价的偏移比例<br>
+                    • δ（报价宽度）：报价曲线的宽度<br>
+                    <br>
+                    <strong>保守策略：</strong><br>
+                    • α：较低申报比例，降低中标风险<br>
+                    • β：报价偏低，确保中标<br>
+                    • δ：报价曲线较窄，稳定报价<br>
+                    <br>
+                    <strong>稳健策略：</strong><br>
+                    • α：中等申报比例<br>
+                    • β：接近预测电价<br>
+                    • δ：中等宽度<br>
+                    <br>
+                    <strong>激进策略：</strong><br>
+                    • α：较高申报比例，追求更多电量中标<br>
+                    • β：报价偏高，追求更高收益<br>
+                    • δ：报价曲线较宽，覆盖更多价格区间
+                </div>
+            </div>
+
+            <div class="rule-box">
+                <div class="rule-title">4.4 电量统计规则</div>
+                <div class="rule-content">
+                    <strong>利用小时数计算：</strong><br>
+                    • 基于风机SCADA系统15分钟上网电量数据<br>
+                    • 电量为从运行以来到现在的累计值，需做差值计算<br>
+                    • 或直接用上网功率/4（15分钟间隔）<br>
+                    <br>
+                    <strong>累计电量计算：</strong><br>
+                    • 日累计：当日0:00至当前时刻<br>
+                    • 月累计：当月1日0:00至当前时刻<br>
+                    • 季度累计：当季度第一天0:00至当前时刻<br>
+                    • 年度累计：当年1月1日0:00至当前时刻
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">五、样例数据</div>
+            
+            <div class="section-subtitle">5.1 场站信息样例</div>
+            <div class="sample-data">
+                <pre>{
+  "name": "桂阳月和风电场",
+  "company": "新能源公司",
+  "stationType": "WIND_FARM",
+  "capacity": 50,
+  "turbineCount": 16,
+  "turbineModel": "SE16433/SE15530",
+  "hubHeight": 100,
+  "cutInSpeed": 3,
+  "cutOutSpeed": 20,
+  "commissionDate": "2022-07-30",
+  "longitude": 112.7765,
+  "latitude": 25.6030,
+  "status": "正常"
+}</pre>
+            </div>
+
+            <div class="section-subtitle">5.2 合约数据样例</div>
+            <div class="sample-data">
+                <pre>{
+  "contractId": "C202501001",
+  "contractType": "ANNUAL_BILATERAL",
+  "contractPeriod": "YEAR",
+  "tradeType": "BILATERAL",
+  "volume": 200000,
+  "price": 450,
+  "startDate": "2025-01-01",
+  "endDate": "2025-12-31",
+  "counterparty": "省电力公司",
+  "status": "生效"
+}</pre>
+            </div>
+
+            <div class="section-subtitle">5.3 现货出清数据样例</div>
+            <div class="sample-data">
+                <pre>{
+  "tradeDate": "2025-11-01",
+  "period": 1,
+  "marketType": "DAY_AHEAD",
+  "nodeType": "HN_AVERAGE",
+  "clearingVolume": 8500,
+  "clearingPrice": 468.65,
+  "timestamp": "2025-11-01 00:00:00"
+}</pre>
+            </div>
+
+            <div class="section-subtitle">5.4 功率预测数据样例</div>
+            <div class="sample-data">
+                <pre>{
+  "stationId": "ST001",
+  "forecastDate": "2025-11-01",
+  "interval": "MIN_15",
+  "data": [
+    {"timestamp": "2025-11-01 00:00:00", "forecast": 12.5, "actual": 11.8},
+    {"timestamp": "2025-11-01 00:15:00", "forecast": 13.2, "actual": 12.9},
+    {"timestamp": "2025-11-01 00:30:00", "forecast": 14.1, "actual": 13.8},
+    {"timestamp": "2025-11-01 00:45:00", "forecast": 14.8, "actual": 14.2}
+  ]
+}</pre>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>文档说明：本数据需求说明书基于系统页面内容及外部数据文件整理生成，包含完整的数据需求清单、字段映射关系、接口规范、业务规则说明及样例数据。</p>
+            <p>生成日期：2026-07-08 | 版本：v1.0</p>
+        </div>
+    </div>
+</body>
+</html>

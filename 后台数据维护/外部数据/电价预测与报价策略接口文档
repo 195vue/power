@@ -1,0 +1,676 @@
+# 电价预测与报价策略 API 接口文档
+
+## 1. 文档说明
+
+本文档描述电价预测服务对前端开放的接口，包括节点查询、日前/7 天电价预测、机组五段线报价策略、健康检查和模型信息查询。
+
+基础路径：`/api/v1`
+
+默认时间格式：ISO 8601，例如 `2026-07-03`、`2026-06-19T00:00:00`。
+
+默认时区：`Asia/Shanghai`。当请求时间不带时区时，服务按北京时间处理。
+
+价格单位：`CNY/MWh`。
+
+功率单位：`MW`。
+
+## 2. 通用响应格式
+
+正常响应：
+
+```json
+{
+  "code": "OK",
+  "message": "success",
+  "data": {},
+  "requestId": "req_20260703_n0_153012"
+}
+```
+
+字段说明：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `code` | string | 响应编码，成功时为 `OK` |
+| `message` | string | 响应消息 |
+| `data` | object / array / null | 业务数据 |
+| `requestId` | string / null | 请求追踪 ID，部分辅助接口可为空 |
+
+错误响应：
+
+```json
+{
+  "detail": {
+    "code": "DATA_NOT_READY",
+    "message": "2026-07-03 无可用数据",
+    "requestId": "req_20260703_n0_153012"
+  }
+}
+```
+
+常见错误编码：
+
+| HTTP 状态码 | `code` | 说明 |
+|---:|---|---|
+| 400 | `INVALID_ARGUMENT` | 请求参数不合法 |
+| 404 | `DATA_NOT_READY` | 指定日期没有可用数据或预测参考数据 |
+| 422 | `Unprocessable Entity` | 请求体字段类型、必填项或枚举值不符合接口定义 |
+
+## 3. 节点编码
+
+| `node` | 节点名称 |
+|---:|---|
+| `0` | 湖南省均价 |
+| `1` | 节点一（坡窑山） |
+| `2` | 节点二（邱家湖） |
+| `3` | 节点三（青山界） |
+
+## 4. 演示模式日期映射
+
+所有带 `isDemo` 字段的接口均支持演示模式。
+
+当 `isDemo=true` 时，请求日期会自动映射到 `2026-01` 中的同一天。
+
+示例：
+
+```text
+请求日期：2026-07-03
+实际参考数据日期：2026-01-03
+```
+
+若请求日期为当月不存在的日期，则映射到 `2026-01` 的最后一天。
+
+响应中会通过 `mappedDataDate` 或 `mappedDate` 返回实际参考数据日期，方便前端调试和展示。
+
+## 5. 健康检查
+
+### `GET /api/v1/health`
+
+检查服务、模型文件和数据文件是否可用。
+
+### 请求参数
+
+无。
+
+### 响应示例
+
+```json
+{
+  "code": "OK",
+  "message": "success",
+  "data": {
+    "service": "spot-price-predictor-api",
+    "status": "healthy",
+    "modelLoaded": true,
+    "dataLoaded": true,
+    "modelVersion": "residual-hgb-v1",
+    "supportedNodes": [0, 1, 2, 3],
+    "granularity": "15min"
+  }
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `service` | string | 服务名称 |
+| `status` | string | 服务状态 |
+| `modelLoaded` | boolean | 模型文件是否可用 |
+| `dataLoaded` | boolean | 数据文件是否可用 |
+| `modelVersion` | string | 当前模型版本 |
+| `supportedNodes` | array[number] | 当前支持的节点编码 |
+| `granularity` | string | 预测粒度，当前为 `15min` |
+
+## 6. 查询支持节点
+
+### `GET /api/v1/nodes`
+
+查询当前服务支持的预测节点。
+
+### 请求参数
+
+无。
+
+### 响应示例
+
+```json
+{
+  "code": "OK",
+  "message": "success",
+  "data": [
+    {
+      "node": 0,
+      "name": "湖南省均价",
+      "dayAheadColumn": "湖南省均价",
+      "realTimeColumn": "湖南省均价.1"
+    },
+    {
+      "node": 1,
+      "name": "节点一（坡窑山）",
+      "dayAheadColumn": "节点一（坡窑山）",
+      "realTimeColumn": "节点一（坡窑山）.1"
+    }
+  ]
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `data[].node` | integer | 节点编码 |
+| `data[].name` | string | 节点名称 |
+| `data[].dayAheadColumn` | string | 日前价格指标名称 |
+| `data[].realTimeColumn` | string | 实时价格指标名称 |
+
+## 7. 统一电价预测
+
+### `POST /api/v1/price-forecast`
+
+统一电价预测接口。通过 `forecastType` 区分日前预测和 7 天预测。
+
+日前预测返回 96 个 15 分钟点，适合绘制单日价格曲线和下方明细表格。
+
+7 天预测返回每日最高价、最低价、均价和波动率，适合绘制 7 天趋势图和统计表格。
+
+### 请求参数
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---:|---|---|
+| `node` | integer | 是 | - | 节点编码，取值 `0`、`1`、`2`、`3` |
+| `forecastType` | string | 是 | - | 预测类型：`dayAhead` 或 `sevenDays` |
+| `forecastDate` | string | 是 | - | 预测日期，格式 `yyyy-MM-dd` |
+| `days` | integer | 否 | `7` | 预测天数，仅 `sevenDays` 使用，取值范围 `1-14` |
+| `isDemo` | boolean | 否 | `false` | 是否启用演示模式 |
+| `confidenceLevel` | number | 否 | `0.95` | 置信水平，当前支持 `0.95` |
+| `includeActual` | boolean | 否 | `false` | 是否返回真实价格；演示或预测展示通常传 `false` |
+| `includeEventRisk` | boolean | 否 | `true` | 是否返回电价事件风险识别结果 |
+
+### 日前预测请求示例
+
+```json
+{
+  "node": 0,
+  "forecastType": "dayAhead",
+  "forecastDate": "2026-07-03",
+  "isDemo": true,
+  "confidenceLevel": 0.95,
+  "includeActual": false,
+  "includeEventRisk": true
+}
+```
+
+### 日前预测响应示例
+
+```json
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "req_20260703_n0_153012",
+  "data": {
+    "forecastType": "dayAhead",
+    "node": 0,
+    "nodeName": "湖南省均价",
+    "forecastDate": "2026-07-03",
+    "mappedDataDate": "2026-01-03",
+    "isDemo": true,
+    "granularity": "15min",
+    "pointCount": 96,
+    "unit": "CNY/MWh",
+    "confidenceLevel": 0.95,
+    "chart": {
+      "title": "日前现货价格预测（2026-07-03）",
+      "xAxis": "timestamp",
+      "series": [
+        {
+          "name": "日前预测价格",
+          "field": "predictedPrice"
+        }
+      ]
+    },
+    "summary": {
+      "avgPrice": 467.95,
+      "maxPrice": 512.67,
+      "minPrice": 418.09,
+      "volatilityRate": 20.21
+    },
+    "points": [
+      {
+        "timestamp": "2026-07-03T00:00:00+08:00",
+        "mappedTimestamp": "2026-01-03T00:00:00+08:00",
+        "period": 0,
+        "predictedPrice": 442.98,
+        "baselinePrice": 423.65,
+        "actualPrice": null,
+        "confidenceInterval": {
+          "level": 0.95,
+          "lower": 369.07,
+          "upper": 647.43
+        },
+        "deviationRate": 4.56,
+        "eventRisk": {
+          "level": "low",
+          "labels": [],
+          "description": "常规波动区间"
+        }
+      }
+    ]
+  }
+}
+```
+
+### 日前预测响应字段
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `forecastType` | string | 固定为 `dayAhead` |
+| `node` | integer | 节点编码 |
+| `nodeName` | string | 节点名称 |
+| `forecastDate` | string | 前端请求的预测日期 |
+| `mappedDataDate` | string / null | 演示模式下实际参考的数据日期 |
+| `isDemo` | boolean | 是否为演示模式 |
+| `granularity` | string | 数据粒度，固定为 `15min` |
+| `pointCount` | integer | 返回点数，完整单日为 `96` |
+| `unit` | string | 价格单位 |
+| `confidenceLevel` | number | 置信水平 |
+| `summary.avgPrice` | number | 当日预测均价 |
+| `summary.maxPrice` | number | 当日预测最高价 |
+| `summary.minPrice` | number | 当日预测最低价 |
+| `summary.volatilityRate` | number | 当日波动率，单位 `%` |
+| `points[].timestamp` | string | 前端展示时间 |
+| `points[].mappedTimestamp` | string / null | 演示模式下实际参考数据时间 |
+| `points[].period` | integer | 15 分钟点序号，取值 `0-95` |
+| `points[].predictedPrice` | number | 预测价格 |
+| `points[].baselinePrice` | number / null | 日前基准价格 |
+| `points[].actualPrice` | number / null | 真实价格，仅 `includeActual=true` 时可能返回 |
+| `points[].confidenceInterval.lower` | number | 置信区间下界 |
+| `points[].confidenceInterval.upper` | number | 置信区间上界 |
+| `points[].deviationRate` | number / null | 相对日前基准价格的偏差率，单位 `%` |
+| `points[].eventRisk.level` | string | 电价事件风险等级：`low`、`medium`、`high` |
+| `points[].eventRisk.labels` | array[string] | 电价事件标签 |
+| `points[].eventRisk.description` | string | 风险说明 |
+
+### 7 天预测请求示例
+
+```json
+{
+  "node": 2,
+  "forecastType": "sevenDays",
+  "forecastDate": "2026-07-03",
+  "days": 7,
+  "isDemo": true,
+  "confidenceLevel": 0.95,
+  "includeEventRisk": true
+}
+```
+
+### 7 天预测响应示例
+
+```json
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "req_20260703_n2_153012",
+  "data": {
+    "forecastType": "sevenDays",
+    "node": 2,
+    "nodeName": "节点二（邱家湖）",
+    "forecastDate": "2026-07-03",
+    "mappedStartDate": "2026-01-03",
+    "isDemo": true,
+    "days": 7,
+    "granularity": "day",
+    "unit": "CNY/MWh",
+    "confidenceLevel": 0.95,
+    "chart": {
+      "title": "未来 7 天现货价格预测（2026-07-03 起）",
+      "xAxis": "date",
+      "series": [
+        {
+          "name": "最高价",
+          "field": "maxPrice"
+        },
+        {
+          "name": "最低价",
+          "field": "minPrice"
+        },
+        {
+          "name": "均价",
+          "field": "avgPrice"
+        }
+      ]
+    },
+    "daysData": [
+      {
+        "date": "2026-07-03",
+        "mappedDate": "2026-01-03",
+        "maxPrice": 500.96,
+        "minPrice": 424.7,
+        "avgPrice": 464.14,
+        "volatilityRate": 16.43,
+        "confidenceInterval": {
+          "level": 0.95,
+          "lower": 350.79,
+          "upper": 705.41
+        },
+        "eventSummary": {
+          "riskLevel": "low",
+          "labels": [],
+          "description": "常规波动区间"
+        }
+      }
+    ]
+  }
+}
+```
+
+### 7 天预测响应字段
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `forecastType` | string | 固定为 `sevenDays` |
+| `days` | integer | 返回天数 |
+| `granularity` | string | 数据粒度，固定为 `day` |
+| `mappedStartDate` | string / null | 演示模式下实际参考数据起始日期 |
+| `daysData[].date` | string | 前端展示日期 |
+| `daysData[].mappedDate` | string / null | 演示模式下实际参考数据日期 |
+| `daysData[].maxPrice` | number | 当日预测最高价 |
+| `daysData[].minPrice` | number | 当日预测最低价 |
+| `daysData[].avgPrice` | number | 当日预测均价 |
+| `daysData[].volatilityRate` | number | 当日波动率，单位 `%` |
+| `daysData[].confidenceInterval.lower` | number | 当日置信区间下界 |
+| `daysData[].confidenceInterval.upper` | number | 当日置信区间上界 |
+| `daysData[].eventSummary.riskLevel` | string | 当日电价事件风险等级 |
+| `daysData[].eventSummary.labels` | array[string] | 当日电价事件标签 |
+| `daysData[].eventSummary.description` | string | 风险说明 |
+
+## 8. 查询式电价预测
+
+### `GET /api/v1/price-forecast`
+
+该接口与 `POST /api/v1/price-forecast` 返回结构一致，适合浏览器地址栏或简单联调使用。
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---:|---|---|
+| `node` | integer | 是 | - | 节点编码 |
+| `forecastType` | string | 是 | - | `dayAhead` 或 `sevenDays` |
+| `forecastDate` | string | 是 | - | 预测日期，格式 `yyyy-MM-dd` |
+| `days` | integer | 否 | `7` | 预测天数 |
+| `isDemo` | boolean | 否 | `false` | 是否启用演示模式 |
+| `includeActual` | boolean | 否 | `false` | 是否返回真实价格 |
+| `includeEventRisk` | boolean | 否 | `true` | 是否返回电价事件风险 |
+
+### 请求示例
+
+```text
+GET /api/v1/price-forecast?node=0&forecastType=dayAhead&forecastDate=2026-07-03&isDemo=true
+```
+
+## 9. 机组五段线报价策略
+
+### `POST /api/v1/bid-strategy`
+
+根据机组信息、装机容量、报价时间和参考节点，返回当天五段线报价策略。
+
+该接口会参考同日的电价预测摘要，包括预测均价、最高价、最低价、波动率和电价事件统计。
+
+### 请求参数
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---:|---|---|
+| `plantName` | string | 是 | - | 电厂或机组名称 |
+| `plantType` | string | 是 | - | 机组类型：`wind`、`solar`、`coal`、`gas`、`storage` |
+| `capacityMw` | number | 是 | - | 装机容量，单位 MW，必须大于 0 |
+| `quoteTime` | string | 是 | - | 报价时间，格式如 `2026-06-19T00:00:00` |
+| `node` | integer | 否 | `0` | 参考预测节点 |
+| `isDemo` | boolean | 否 | `false` | 是否启用演示模式 |
+
+### 请求示例
+
+```json
+{
+  "plantName": "湘能一号机组",
+  "plantType": "coal",
+  "capacityMw": 600,
+  "quoteTime": "2026-06-19T00:00:00",
+  "node": 0,
+  "isDemo": true
+}
+```
+
+### 响应示例
+
+```json
+{
+  "code": "OK",
+  "message": "success",
+  "requestId": "bid_20260619_n0_153012",
+  "data": {
+    "plantName": "湘能一号机组",
+    "plantType": "coal",
+    "plantTypeName": "煤电",
+    "capacityMw": 600,
+    "quoteTime": "2026-06-19T00:00:00+08:00",
+    "quoteDate": "2026-06-19",
+    "mappedDataDate": "2026-01-19",
+    "isDemo": true,
+    "node": 0,
+    "nodeName": "湖南省均价",
+    "unit": {
+      "price": "CNY/MWh",
+      "power": "MW"
+    },
+    "strategy": {
+      "strategyName": "balanced",
+      "segmentCount": 5,
+      "priceLowerLimit": 0,
+      "priceUpperLimit": 1200,
+      "totalBidQuantityMw": 600,
+      "costCurveSource": "internal_default_five_segment_costs",
+      "pricingBasis": "day_ahead_forecast_reference"
+    },
+    "forecastReference": {
+      "avgPrice": 466.74,
+      "maxPrice": 623.77,
+      "minPrice": 241.14,
+      "volatilityRate": 81.98,
+      "confidenceLevel": 0.95,
+      "highRiskPointCount": 0,
+      "mediumRiskPointCount": 2,
+      "lowPricePointCount": 1,
+      "highPricePointCount": 0,
+      "eventRiskRatio": 2.08,
+      "labels": ["low_price_pressure", "price_jump"]
+    },
+    "segments": [
+      {
+        "segmentNo": 1,
+        "startPowerMw": 0,
+        "endPowerMw": 120,
+        "quantityMw": 120,
+        "capacityRatioStart": 0,
+        "capacityRatioEnd": 20,
+        "costPrice": 285,
+        "bidPrice": 313.85
+      },
+      {
+        "segmentNo": 2,
+        "startPowerMw": 120,
+        "endPowerMw": 240,
+        "quantityMw": 120,
+        "capacityRatioStart": 20,
+        "capacityRatioEnd": 40,
+        "costPrice": 318,
+        "bidPrice": 356.27
+      },
+      {
+        "segmentNo": 3,
+        "startPowerMw": 240,
+        "endPowerMw": 360,
+        "quantityMw": 120,
+        "capacityRatioStart": 40,
+        "capacityRatioEnd": 60,
+        "costPrice": 352,
+        "bidPrice": 403
+      },
+      {
+        "segmentNo": 4,
+        "startPowerMw": 360,
+        "endPowerMw": 480,
+        "quantityMw": 120,
+        "capacityRatioStart": 60,
+        "capacityRatioEnd": 80,
+        "costPrice": 395,
+        "bidPrice": 463.41
+      },
+      {
+        "segmentNo": 5,
+        "startPowerMw": 480,
+        "endPowerMw": 600,
+        "quantityMw": 120,
+        "capacityRatioStart": 80,
+        "capacityRatioEnd": 100,
+        "costPrice": 456,
+        "bidPrice": 550.51
+      }
+    ],
+    "chart": {
+      "xAxis": "endPowerMw",
+      "yAxis": "bidPrice",
+      "series": [
+        {
+          "name": "五段线报价",
+          "field": "bidPrice"
+        },
+        {
+          "name": "五段线成本",
+          "field": "costPrice"
+        }
+      ]
+    }
+  }
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `plantName` | string | 电厂或机组名称 |
+| `plantType` | string | 机组类型编码 |
+| `plantTypeName` | string | 机组类型中文名称 |
+| `capacityMw` | number | 装机容量 |
+| `quoteTime` | string | 报价时间 |
+| `quoteDate` | string | 报价日期 |
+| `mappedDataDate` | string / null | 演示模式下实际参考数据日期 |
+| `node` | integer | 参考节点编码 |
+| `nodeName` | string | 参考节点名称 |
+| `strategy.segmentCount` | integer | 报价段数，当前固定为 `5` |
+| `strategy.priceLowerLimit` | number | 报价下限 |
+| `strategy.priceUpperLimit` | number | 报价上限 |
+| `strategy.totalBidQuantityMw` | number | 总申报容量 |
+| `forecastReference.avgPrice` | number | 报价参考的预测均价 |
+| `forecastReference.maxPrice` | number | 报价参考的预测最高价 |
+| `forecastReference.minPrice` | number | 报价参考的预测最低价 |
+| `forecastReference.volatilityRate` | number | 报价参考的预测波动率，单位 `%` |
+| `forecastReference.highRiskPointCount` | integer | 高风险电价事件点数 |
+| `forecastReference.mediumRiskPointCount` | integer | 中风险电价事件点数 |
+| `forecastReference.lowPricePointCount` | integer | 低价相关事件点数 |
+| `forecastReference.highPricePointCount` | integer | 高价尖峰事件点数 |
+| `forecastReference.eventRiskRatio` | number | 电价事件点数占比，单位 `%` |
+| `segments[].segmentNo` | integer | 报价段序号，取值 `1-5` |
+| `segments[].startPowerMw` | number | 本段起始出力 |
+| `segments[].endPowerMw` | number | 本段结束出力 |
+| `segments[].quantityMw` | number | 本段容量 |
+| `segments[].capacityRatioStart` | number | 本段起始容量占比，单位 `%` |
+| `segments[].capacityRatioEnd` | number | 本段结束容量占比，单位 `%` |
+| `segments[].costPrice` | number | 本段成本价格 |
+| `segments[].bidPrice` | number | 本段报价价格 |
+
+## 10. 查询模型信息
+
+### `GET /api/v1/model/info`
+
+查询当前模型版本、支持节点、置信区间能力和训练评估指标。
+
+该接口主要用于联调、验收和运行状态确认，普通业务页面可以不调用。
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|---|---|---:|---|
+| `node` | integer | 否 | 指定节点编码；不传时返回全部节点 |
+
+### 请求示例
+
+```text
+GET /api/v1/model/info?node=0
+```
+
+### 响应示例
+
+```json
+{
+  "code": "OK",
+  "message": "success",
+  "data": {
+    "modelVersion": "residual-hgb-v1",
+    "granularity": "15min",
+    "supportsProbabilistic": true,
+    "confidenceLevels": [0.95],
+    "supportedNodes": [
+      {
+        "node": 0,
+        "name": "湖南省均价",
+        "target": "湖南省均价.1",
+        "metrics": {
+          "MAE": 42.81,
+          "RMSE": 74.65,
+          "WMAPE": 9.53
+        },
+        "trainStartTime": "2025-11-01T00:00:00+08:00",
+        "trainEndTime": "2026-01-31T23:45:00+08:00"
+      }
+    ],
+    "trainingData": {
+      "source": "data/raw.xlsx",
+      "startTime": "2025-11-01T00:00:00+08:00",
+      "endTime": "2026-01-31T23:45:00+08:00"
+    }
+  }
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `modelVersion` | string | 当前模型版本 |
+| `granularity` | string | 模型输出粒度 |
+| `supportsProbabilistic` | boolean | 是否支持概率预测和置信区间 |
+| `confidenceLevels` | array[number] | 支持的置信水平 |
+| `supportedNodes[].node` | integer | 节点编码 |
+| `supportedNodes[].name` | string | 节点名称 |
+| `supportedNodes[].target` | string | 预测目标 |
+| `supportedNodes[].metrics.MAE` | number | 平均绝对误差 |
+| `supportedNodes[].metrics.RMSE` | number | 均方根误差 |
+| `supportedNodes[].metrics.WMAPE` | number | 加权绝对百分比误差 |
+| `supportedNodes[].trainStartTime` | string | 训练数据起始时间 |
+| `supportedNodes[].trainEndTime` | string | 训练数据结束时间 |
+
+## 11. 电价事件标签
+
+预测接口和报价策略接口中可能出现以下电价事件标签：
+
+| 标签 | 说明 |
+|---|---|
+| `zero_price` | 0 价或接近 0 价 |
+| `low_price_floor` | 低价地板区间 |
+| `low_price_pressure` | 低价压力区间 |
+| `price_jump` | 相邻时段电价跃升 |
+| `high_price_spike` | 高价尖峰 |
+| `dayahead_realtime_reversal` | 日前价格与预测实时价格出现明显偏离 |
+

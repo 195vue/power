@@ -99,7 +99,7 @@
                         <span class="param-unit">%</span>
                     </div>
                 </div>
-                <div class="param-row" style="border-bottom: none">
+                <div class="param-row">
                     <div class="param-info">
                         <span class="param-label">预测超时时间</span>
                         <span class="param-desc">算法服务调用超时阈值，超时后提示重试</span>
@@ -107,6 +107,129 @@
                     <div class="param-input-wrap">
                         <input class="form-input" style="width:100px" value="5" id="param-timeout">
                         <span class="param-unit">分钟</span>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">预测精度告警阈值</span>
+                        <span class="param-desc">预测精度低于此值时触发告警通知</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:100px" value="85" id="param-alert-threshold">
+                        <span class="param-unit">%</span>
+                    </div>
+                </div>
+                <div class="param-row" style="border-bottom: none">
+                    <div class="param-info">
+                        <span class="param-label">自动重训练周期</span>
+                        <span class="param-desc">模型自动重训练的周期设置</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <select class="form-input" style="width:150px" id="param-retrain-cycle">
+                            <option>每日</option>
+                            <option>每周</option>
+                            <option>每月</option>
+                            <option>手动</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-group">
+            <h3 class="section-title" style="margin-bottom: var(--space-3)">数据同步参数</h3>
+            <div class="param-card" style="margin-bottom: var(--space-3)">
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">交易中心数据同步频率</span>
+                        <span class="param-desc">从交易中心拉取数据的时间间隔</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <select class="form-input" style="width:150px" id="param-trade-sync">
+                            <option>每15分钟</option>
+                            <option>每30分钟</option>
+                            <option>每小时</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">气象数据同步频率</span>
+                        <span class="param-desc">从气象数据源拉取数据的时间间隔</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <select class="form-input" style="width:150px" id="param-weather-sync">
+                            <option>每10分钟</option>
+                            <option>每15分钟</option>
+                            <option>每30分钟</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">场站数据同步频率</span>
+                        <span class="param-desc">从场站SCADA系统拉取实时数据的时间间隔</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <select class="form-input" style="width:150px" id="param-station-sync">
+                            <option>实时</option>
+                            <option>每5分钟</option>
+                            <option>每15分钟</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row" style="border-bottom: none">
+                    <div class="param-info">
+                        <span class="param-label">数据保留期限</span>
+                        <span class="param-desc">历史数据自动清理的保留天数</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:100px" value="365" id="param-data-retention">
+                        <span class="param-unit">天</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-group">
+            <h3 class="section-title" style="margin-bottom: var(--space-3)">告警通知参数</h3>
+            <div class="param-card" style="margin-bottom: var(--space-3)">
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">告警通知方式</span>
+                        <span class="param-desc">系统告警信息的推送方式</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <select class="form-input" style="width:150px" id="param-alert-method">
+                            <option>站内消息</option>
+                            <option>短信通知</option>
+                            <option>站内消息+短信</option>
+                            <option>邮件通知</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-info">
+                        <span class="param-label">告警静默时间</span>
+                        <span class="param-desc">同一告警的重复通知间隔</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <input class="form-input" style="width:100px" value="30" id="param-alert-silence">
+                        <span class="param-unit">分钟</span>
+                    </div>
+                </div>
+                <div class="param-row" style="border-bottom: none">
+                    <div class="param-info">
+                        <span class="param-label">告警接收人</span>
+                        <span class="param-desc">接收系统告警的用户角色</span>
+                    </div>
+                    <div class="param-input-wrap">
+                        <select class="form-input" style="width:150px" id="param-alert-receiver">
+                            <option>管理员</option>
+                            <option>运维人员</option>
+                            <option>管理员+运维人员</option>
+                            <option>全部用户</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -167,7 +290,16 @@
                 annualLimit: document.getElementById('param-annual-limit').value,
                 utilHours: document.getElementById('param-util-hours').value,
                 confidence: document.getElementById('param-confidence').value,
-                timeout: document.getElementById('param-timeout').value
+                timeout: document.getElementById('param-timeout').value,
+                alertThreshold: document.getElementById('param-alert-threshold').value,
+                retrainCycle: document.getElementById('param-retrain-cycle').value,
+                tradeSync: document.getElementById('param-trade-sync').value,
+                weatherSync: document.getElementById('param-weather-sync').value,
+                stationSync: document.getElementById('param-station-sync').value,
+                dataRetention: document.getElementById('param-data-retention').value,
+                alertMethod: document.getElementById('param-alert-method').value,
+                alertSilence: document.getElementById('param-alert-silence').value,
+                alertReceiver: document.getElementById('param-alert-receiver').value
             };
             console.log('Saved params:', params);
             alert('所有参数已保存成功');

@@ -64,6 +64,7 @@
                         <th>中标概率基准</th>
                         <th>价格上下浮动(%)</th>
                         <th>适用场景</th>
+                        <th>策略描述</th>
                         <th>状态</th>
                         <th style="width:120px">操作</th>
                     </tr>
@@ -149,12 +150,12 @@
 
     <script>
         var strategyList = [
-            { name: '现货保守报价策略', module: '现货辅助决策', type: '保守', percentile: 30, probability: 85, upper: 0, lower: -5, scenario: '市场供过于求时段、合约完成度偏低急需锁量时', status: '启用' },
-            { name: '现货中性报价策略', module: '现货辅助决策', type: '中性', percentile: 50, probability: 70, upper: 3, lower: -3, scenario: '常规交易日的默认选择，均衡中标概率与单位收益', status: '启用' },
-            { name: '现货激进报价策略', module: '现货辅助决策', type: '激进', percentile: 70, probability: 50, upper: 8, lower: 0, scenario: '市场供不应求时段、合约完成度充足可追求收益时', status: '启用' },
-            { name: '中长期保守报价策略', module: '中长期辅助决策', type: '保守', percentile: 35, probability: 80, upper: 0, lower: -8, scenario: '中长期合约签约窗口末期，优先锁量', status: '启用' },
-            { name: '中长期中性报价策略', module: '中长期辅助决策', type: '中性', percentile: 50, probability: 65, upper: 5, lower: -5, scenario: '常规中长期合约申报', status: '启用' },
-            { name: '中长期激进报价策略', module: '中长期辅助决策', type: '激进', percentile: 65, probability: 45, upper: 10, lower: 0, scenario: '市场看涨时，追求高收益', status: '停用' }
+            { name: '现货保守报价策略', module: '现货辅助决策', type: '保守', percentile: 30, probability: 85, upper: 0, lower: -5, scenario: '市场供过于求时段、合约完成度偏低急需锁量时', desc: '采用P30分位电价，报价偏保守，保证高中标率', status: '启用' },
+            { name: '现货中性报价策略', module: '现货辅助决策', type: '中性', percentile: 50, probability: 70, upper: 3, lower: -3, scenario: '常规交易日的默认选择，均衡中标概率与单位收益', desc: '采用P50分位电价，平衡收益与中标率', status: '启用' },
+            { name: '现货激进报价策略', module: '现货辅助决策', type: '激进', percentile: 70, probability: 50, upper: 8, lower: 0, scenario: '市场供不应求时段、合约完成度充足可追求收益时', desc: '采用P70分位电价，报价偏激进，追求高收益', status: '启用' },
+            { name: '中长期保守报价策略', module: '中长期辅助决策', type: '保守', percentile: 35, probability: 80, upper: 0, lower: -8, scenario: '中长期合约签约窗口末期，优先锁量', desc: '采用P35分位电价，适用于中长期合约末期抢量', status: '启用' },
+            { name: '中长期中性报价策略', module: '中长期辅助决策', type: '中性', percentile: 50, probability: 65, upper: 5, lower: -5, scenario: '常规中长期合约申报', desc: '采用P50分位电价，中长期合约标准策略', status: '启用' },
+            { name: '中长期激进报价策略', module: '中长期辅助决策', type: '激进', percentile: 65, probability: 45, upper: 10, lower: 0, scenario: '市场看涨时，追求高收益', desc: '采用P65分位电价，适用于市场看涨行情', status: '停用' }
         ];
         var editIndex = -1;
 
@@ -194,6 +195,7 @@
                     '<td>' + s.probability + '%</td>' +
                     '<td>' + s.lower + '% ~ +' + s.upper + '%</td>' +
                     '<td style="font-size:var(--text-xs);color:var(--muted);max-width:200px">' + s.scenario + '</td>' +
+                    '<td style="font-size:var(--text-xs);color:var(--muted);max-width:180px">' + (s.desc || '-') + '</td>' +
                     '<td><span class="badge ' + cls + '">' + s.status + '</span></td>' +
                     '<td class="action-cell"><button class="btn-config" onclick="openStrategyModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> <button class="btn-delete" onclick="deleteStrategy(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button></td></tr>';
             });

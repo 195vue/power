@@ -1,0 +1,148 @@
+# 清算电价/电量 API 接口文档
+
+基础路径：`/api/electricity`
+
+---
+
+## 1. 查询可用日期
+
+**`GET /api/electricity/clear-electricity/dates`**
+
+查询 `ClearElectricityPriceQuantity` 表中哪些天有数据，按 MarketType 分组返回可用日期列表。
+
+### 请求参数
+
+无。
+
+### 响应示例
+
+```json
+{
+  "data": [
+    {
+      "marketType": "DayAhead",
+      "dates": ["2025-01-01", "2025-01-02", "2025-01-03"],
+      "count": 3
+    },
+    {
+      "marketType": "RealTime",
+      "dates": ["2025-01-01", "2025-01-03"],
+      "count": 2
+    }
+  ]
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data` | array | 按 MarketType 分组的可用日期列表 |
+| `data[].marketType` | string | 市场类型，取值 `"DayAhead"` 或 `"RealTime"` |
+| `data[].dates` | array[string] | 该 MarketType 下所有有数据的日期，格式 `yyyy-MM-dd`，按日期升序 |
+| `data[].count` | int | 该 MarketType 下可用日期的总数 |
+
+---
+
+## 2. 查询时间段内清算电价/电量数据
+
+**`GET /api/electricity/clear-electricity/range`**
+
+查询指定时间段内所有 MetricType 的值，按 MetricType 分组返回时间序列数据。
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `startTime` | DateTime | 是 | 起始时间，格式 `yyyy-MM-ddTHH:mm:ss`（如 `2025-01-01T00:00:00`） |
+| `endTime` | DateTime | 是 | 结束时间，格式同上，须 >= startTime |
+| `marketType` | int | 是 | 市场类型：`0` = DayAhead（日前），`1` = RealTime（实时） |
+
+### 响应示例
+
+```json
+{
+  "startTime": "2025-01-01T00:00:00",
+  "endTime": "2025-01-01T23:59:59",
+  "marketType": "DayAhead",
+  "data": [
+    {
+      "metricType": "AvgPrice",
+      "values": [
+        { "timestamp": "2025-01-01T00:00:00", "value": 0.3456 },
+        { "timestamp": "2025-01-01T00:15:00", "value": 0.3521 }
+      ]
+    },
+    {
+      "metricType": "TotalEnergy",
+      "values": [
+        { "timestamp": "2025-01-01T00:00:00", "value": 12500.5000 },
+        { "timestamp": "2025-01-01T00:15:00", "value": 12480.3000 }
+      ]
+    }
+  ]
+}
+```
+
+### 响应字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `startTime` | string | 查询起始时间 |
+| `endTime` | string | 查询结束时间 |
+| `marketType` | string | 市场类型，取值 `"DayAhead"` 或 `"RealTime"` |
+| `data` | array | 按 MetricType 分组的数据列表 |
+| `data[].metricType` | string | 指标类型，如 `"AvgPrice"`、`"TotalEnergy"` 等，详见附录 B |
+| `data[].values` | array | 该指标的时间序列值 |
+| `data[].values[].timestamp` | string | 数据时间戳，格式 `yyyy-MM-ddTHH:mm:ss` |
+| `data[].values[].value` | decimal | 数值（价格或电量） |
+
+### 错误处理
+
+若指定时间段内无数据，返回 HTTP 400：
+
+```json
+{ "error": "No data found for the specified time range and market type" }
+```
+
+---
+
+## 附录 A：MarketType 枚举值
+
+| 值 | 标识 | 说明 |
+|----|------|------|
+| 0 | DayAhead | 日前 |
+| 1 | RealTime | 实时 |
+
+## 附录 B：MetricType 枚举值
+
+### 电价类
+
+| 值 | 标识 | 说明 |
+|----|------|------|
+| 0 | AvgPrice | 均价 |
+| 1 | PriceBayushan | 节点-鲅鱼山电价 |
+| 2 | PriceYinjiashan | 节点-邱家湖电价 |
+| 3 | PriceQingshanjie | 节点-青山界电价 |
+
+### 电量类
+
+| 值 | 标识 | 说明 |
+|----|------|------|
+| 10 | TotalEnergy | 总电量 |
+| 11 | ThermalEnergy | 火电量 |
+| 12 | WindEnergy | 风电量 |
+| 13 | PvEnergy | 光伏电量 |
+| 14 | StorageEnergy | 储能电量 |
+
+---
+
+## 通用错误响应
+
+所有接口在校验失败时返回 HTTP 400：
+
+```json
+{ "error": "startTime must be less than or equal to endTime" }
+{ "error": "marketType must be 0 (DayAhead) or 1 (RealTime)" }
+{ "error": "No data found for the specified time range and market type" }
+```
