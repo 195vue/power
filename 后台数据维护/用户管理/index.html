@@ -278,6 +278,12 @@
             _userModal.addEventListener('click', function(e) { if (e.target === this) closeUserModal(); });
         }
         renderUsers();
+
+        window.openUserModal = openUserModal;
+        window.closeUserModal = closeUserModal;
+        window.saveUser = saveUser;
+        window.deleteUser = deleteUser;
+        window.filterUsers = filterUsers;
     </script>
 </body>
 </html>

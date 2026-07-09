@@ -255,6 +255,13 @@
         var _modal = document.getElementById('if-modal');
         if (_modal) { _modal.addEventListener('click', function(e) { if (e.target === this) closeIfModal(); }); }
         renderIfGrid();
+
+        window.openIfModal = openIfModal;
+        window.closeIfModal = closeIfModal;
+        window.saveInterface = saveInterface;
+        window.deleteIf = deleteIf;
+        window.filterInterfaces = filterInterfaces;
+        window.testConn = testConn;
     </script>
 </body>
 </html>

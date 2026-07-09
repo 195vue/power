@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>算法模型管理 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">算法模型管理</h2>
+            <p class="page-subtitle">维护负荷预测、电价预测、功率预测等算法方案与训练节点</p>
+        </div>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('algorithms')">算法方案</button>
+            <button class="tab-btn" onclick="switchTab('nodes')">训练节点</button>
+        </div>
+
+        <!-- 算法方案标签页 -->
+        <div id="tab-algorithms" class="tab-content" style="display:block">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>所属模块</label>
+                    <select class="filter-select" style="width:160px" id="scheme-filter-module">
+                        <option value="all">全部模块</option>
+                        <option>负荷预测</option>
+                        <option>日前电价预测</option>
+                        <option>实时电价预测</option>
+                        <option>功率预测</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>算法类型</label>
+                    <select class="filter-select" style="width:140px" id="scheme-filter-algo">
+                        <option value="all">全部类型</option>
+                        <option>LSTM</option>
+                        <option>GRU</option>
+                        <option>XGBoost</option>
+                        <option>Transformer</option>
+                        <option>Prophet</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>状态</label>
+                    <select class="filter-select" style="width:120px" id="scheme-filter-status">
+                        <option value="all">全部</option>
+                        <option>已发布</option>
+                        <option>草稿</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="filterSchemes()">查询</button>
+                <div style="flex:1"></div>
+                <button class="btn-primary" onclick="openSchemeModal()">+ 新增方案</button>
+            </div>
+
+            <div class="table-section" style="margin-top: var(--space-4)">
+                <table class="data-table" id="scheme-table">
+                    <thead>
+                        <tr>
+                            <th>方案名称</th>
+                            <th>所属模块</th>
+                            <th>算法类型</th>
+                            <th>版本号</th>
+                            <th>训练日期范围</th>
+                            <th>创建时间</th>
+                            <th>状态</th>
+                            <th style="width:160px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheme-table-body"></tbody>
+                </table>
+                <div class="pagination">
+                    <span class="info-text" id="scheme-count">共 0 条记录</span>
+                    <div>
+                        <button class="page-btn active">1</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 训练节点标签页 -->
+        <div id="tab-nodes" class="tab-content" style="display:none">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>所属公司</label>
+                    <select class="filter-select" style="width:160px" id="node-filter-company">
+                        <option value="all">全部公司</option>
+                        <option>新能源公司</option>
+                        <option>传统能源公司</option>
+                        <option>独立售电公司</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>状态</label>
+                    <select class="filter-select" style="width:120px" id="node-filter-status">
+                        <option value="all">全部状态</option>
+                        <option>训练完成</option>
+                        <option>训练中</option>
+                        <option>训练失败</option>
+                        <option>已过期</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="filterNodes()">查询</button>
+                <div style="flex:1"></div>
+                <button class="btn-primary" onclick="openNodeModal()">+ 新增训练节点</button>
+            </div>
+
+            <div class="table-section" style="margin-top: var(--space-4)">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>节点名称</th>
+                            <th>所属公司</th>
+                            <th>关联场站</th>
+                            <th>训练数据范围</th>
+                            <th>训练耗时</th>
+                            <th>训练时间</th>
+                            <th>版本号</th>
+                            <th>状态</th>
+                            <th style="width:140px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="node-table-body"></tbody>
+                </table>
+                <div class="pagination">
+                    <span class="info-text" id="node-count">共 0 条记录</span>
+                    <div>
+                        <button class="page-btn active">1</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 算法方案弹窗 -->
+    <div class="modal-overlay" id="scheme-modal" style="display:none">
+        <div class="modal-panel" style="width:560px">
+            <div class="modal-header">
+                <h3 id="scheme-modal-title">新增方案</h3>
+                <button class="modal-close" onclick="closeSchemeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">方案名称 <span style="color:var(--danger)">*</span></label>
+                        <input class="form-input" id="scheme-name" placeholder="请输入方案名称">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">版本号</label>
+                        <input class="form-input" id="scheme-version" placeholder="如 v2.1.0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">所属模块 <span style="color:var(--danger)">*</span></label>
+                        <select class="form-input" id="scheme-module">
+                            <option>负荷预测</option>
+                            <option>日前电价预测</option>
+                            <option>实时电价预测</option>
+                            <option>功率预测</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">算法类型</label>
+                        <select class="form-input" id="scheme-algo">
+                            <option>LSTM</option>
+                            <option>GRU</option>
+                            <option>XGBoost</option>
+                            <option>LightGBM</option>
+                            <option>Transformer</option>
+                            <option>Prophet</option>
+                            <option>基线模型</option>
+                            <option>混合架构</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">训练开始日期</label>
+                        <input class="form-input" id="scheme-train-start" type="date">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">训练结束日期</label>
+                        <input class="form-input" id="scheme-train-end" type="date">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">状态</label>
+                        <select class="form-input" id="scheme-status">
+                            <option>已发布</option>
+                            <option>草稿</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">评估指标</label>
+                        <input class="form-input" id="scheme-metric" placeholder="如 RMSE=12.3">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">方案描述</label>
+                    <textarea class="form-input" id="scheme-desc" rows="2" placeholder="描述算法原理、特征工程、模型架构等" style="resize:vertical;min-height:48px"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeSchemeModal()">取消</button>
+                <button class="btn-primary" onclick="saveScheme()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 训练节点弹窗 -->
+    <div class="modal-overlay" id="node-modal" style="display:none">
+        <div class="modal-panel" style="width:600px">
+            <div class="modal-header">
+                <h3 id="node-modal-title">新增训练节点</h3>
+                <button class="modal-close" onclick="closeNodeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">节点名称</label>
+                        <input class="form-input" id="edit-name" placeholder="如：淮南矿业集团售电训练节点">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">版本号</label>
+                        <input class="form-input" id="edit-version" placeholder="如 v1.0.0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">所属公司</label>
+                        <select class="form-input" id="edit-company">
+                            <option>新能源公司</option>
+                            <option>传统能源公司</option>
+                            <option>独立售电公司</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">关联场站</label>
+                        <input class="form-input" id="edit-station" placeholder="关联场站名称，多个用逗号分隔">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">训练开始日期</label>
+                        <input class="form-input" id="edit-train-start" type="date">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">训练结束日期</label>
+                        <input class="form-input" id="edit-train-end" type="date">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">模型文件路径</label>
+                        <input class="form-input" id="edit-model-path" placeholder="/models/forecast/v2/">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">状态</label>
+                        <select class="form-input" id="edit-status">
+                            <option>训练完成</option>
+                            <option>训练中</option>
+                            <option>训练失败</option>
+                            <option>已过期</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">备注</label>
+                    <textarea class="form-input" id="edit-notes" rows="2" placeholder="训练参数、数据来源说明等" style="resize:vertical;min-height:48px"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeNodeModal()">取消</button>
+                <button class="btn-primary" onclick="saveNode()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            margin-bottom: var(--space-4);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: var(--space-3) var(--space-4);
+            font: 500 var(--text-sm)/1.4 var(--font-body);
+            color: var(--muted);
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--motion-fast);
+        }
+        .tab-btn:hover {
+            background: var(--bg);
+        }
+        .tab-btn.active {
+            background: var(--accent);
+            color: var(--accent-on);
+        }
+        .tab-content {
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        // ─── 算法方案数据 ────────────────────────────────────────
+        var schemeData = [
+            { name: '负荷预测基线模型 v3', module: '负荷预测', algo: '基线模型', version: 'v3.1.0', trainStart: '2025-10-01', trainEnd: '2026-02-28', created: '2026-03-01 09:00', status: '已发布', metric: 'RMSE=2.3%', desc: '基于历史同期均值的基线预测方法，作为评估基准' },
+            { name: '负荷预测 LSTM 模型', module: '负荷预测', algo: 'LSTM', version: 'v2.0.0', trainStart: '2025-12-01', trainEnd: '2026-03-31', created: '2026-04-05 14:30', status: '已发布', metric: 'RMSE=1.8%', desc: '多层LSTM网络，融合气象特征和节假日因子' },
+            { name: '日前电价 GRU 模型', module: '日前电价预测', algo: 'GRU', version: 'v2.1.0', trainStart: '2025-12-01', trainEnd: '2026-03-31', created: '2026-04-05 14:30', status: '已发布', metric: 'RMSE=8.5', desc: '门控循环单元网络，96点日前电价预测' },
+            { name: '实时电价 LSTM 模型', module: '实时电价预测', algo: 'LSTM', version: 'v1.5.0', trainStart: '2025-11-01', trainEnd: '2026-02-28', created: '2026-03-10 10:15', status: '已发布', metric: 'RMSE=5.2', desc: '实时滚动预测，15分钟粒度更新' },
+            { name: '功率预测 XGBoost 模型', module: '功率预测', algo: 'XGBoost', version: 'v2.0.0', trainStart: '2025-08-01', trainEnd: '2026-01-31', created: '2026-02-15 11:20', status: '已发布', metric: 'MAE=3.2%', desc: '集成学习模型，融合NWP气象数据' },
+            { name: '负荷预测 Transformer 实验', module: '负荷预测', algo: 'Transformer', version: 'v0.9.0', trainStart: '2026-03-01', trainEnd: '2026-04-30', created: '2026-05-10 16:20', status: '草稿', metric: 'RMSE=1.5%', desc: '基于注意力机制的时序模型，实验性版本' },
+            { name: '实时电价优化模型 v2', module: '实时电价预测', algo: '混合架构', version: 'v2.0-beta', trainStart: '2026-02-01', trainEnd: '2026-05-15', created: '2026-05-20 11:00', status: '草稿', metric: '-', desc: 'LSTM+XGBoost混合架构，待验证' }
+        ];
+        var schemeEditIndex = -1;
+
+        function renderSchemes(data) {
+            var tbody = document.getElementById('scheme-table-body');
+            tbody.innerHTML = '';
+            var list = data || schemeData;
+            list.forEach(function(s, i) {
+                var cls = s.status === '已发布' ? 'badge-success' : 'badge-muted';
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + s.name + '</strong></td>' +
+                    '<td>' + s.module + '</td>' +
+                    '<td>' + s.algo + '</td>' +
+                    '<td>' + s.version + '</td>' +
+                    '<td>' + s.trainStart + ' ~ ' + s.trainEnd + '</td>' +
+                    '<td>' + s.created + '</td>' +
+                    '<td><span class="badge ' + cls + '">' + s.status + '</span></td>' +
+                    '<td>' +
+                    '<button class="btn-config" onclick="openSchemeModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteScheme(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>' +
+                    '</td></tr>';
+            });
+            document.getElementById('scheme-count').textContent = '共 ' + list.length + ' 条记录';
+        }
+
+        function openSchemeModal(index) {
+            var modal = document.getElementById('scheme-modal');
+            if (index === undefined || index === null) {
+                schemeEditIndex = -1;
+                document.getElementById('scheme-modal-title').textContent = '新增方案';
+                document.getElementById('scheme-name').value = '';
+                document.getElementById('scheme-version').value = '';
+                document.getElementById('scheme-module').value = '负荷预测';
+                document.getElementById('scheme-algo').value = 'LSTM';
+                document.getElementById('scheme-status').value = '草稿';
+                document.getElementById('scheme-train-start').value = '';
+                document.getElementById('scheme-train-end').value = '';
+                document.getElementById('scheme-metric').value = '';
+                document.getElementById('scheme-desc').value = '';
+            } else {
+                schemeEditIndex = index;
+                document.getElementById('scheme-modal-title').textContent = '编辑方案';
+                var s = schemeData[index];
+                document.getElementById('scheme-name').value = s.name;
+                document.getElementById('scheme-version').value = s.version;
+                document.getElementById('scheme-module').value = s.module;
+                document.getElementById('scheme-algo').value = s.algo;
+                document.getElementById('scheme-status').value = s.status;
+                document.getElementById('scheme-train-start').value = s.trainStart;
+                document.getElementById('scheme-train-end').value = s.trainEnd;
+                document.getElementById('scheme-metric').value = s.metric || '';
+                document.getElementById('scheme-desc').value = s.desc || '';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeSchemeModal() {
+            document.getElementById('scheme-modal').style.display = 'none';
+        }
+
+        function saveScheme() {
+            var data = {
+                name: document.getElementById('scheme-name').value,
+                module: document.getElementById('scheme-module').value,
+                algo: document.getElementById('scheme-algo').value,
+                version: document.getElementById('scheme-version').value,
+                trainStart: document.getElementById('scheme-train-start').value,
+                trainEnd: document.getElementById('scheme-train-end').value,
+                created: new Date().toISOString().slice(0, 16).replace('T', ' '),
+                status: document.getElementById('scheme-status').value,
+                metric: document.getElementById('scheme-metric').value,
+                desc: document.getElementById('scheme-desc').value
+            };
+            if (!data.name) { alert('请输入方案名称'); return; }
+            if (schemeEditIndex === -1) {
+                schemeData.push(data);
+            } else {
+                schemeData[schemeEditIndex] = data;
+            }
+            renderSchemes();
+            closeSchemeModal();
+        }
+
+        function deleteScheme(index) {
+            if (confirm('确认删除方案「' + schemeData[index].name + '」？')) {
+                schemeData.splice(index, 1);
+                renderSchemes();
+            }
+        }
+
+        function filterSchemes() {
+            var module = document.getElementById('scheme-filter-module').value;
+            var algo = document.getElementById('scheme-filter-algo').value;
+            var status = document.getElementById('scheme-filter-status').value;
+            var filtered = schemeData.filter(function(s) {
+                if (module !== 'all' && s.module !== module) return false;
+                if (algo !== 'all' && s.algo !== algo) return false;
+                if (status !== 'all' && s.status !== status) return false;
+                return true;
+            });
+            renderSchemes(filtered);
+        }
+
+        // ─── 训练节点数据 ────────────────────────────────────────
+        var nodeList = [
+            { name: '淮南矿业集团售电训练节点', company: '独立售电公司', station: '淮南光伏电站', trainStart: '2025-10-01', trainEnd: '2026-03-31', duration: '2h 35m', trainedAt: '2026-04-01 14:23', version: 'v1.0.0', modelPath: '/models/price/huainan_v1/', status: '训练完成', notes: '基于2025Q4-2026Q1数据训练，RMSE=12.3' },
+            { name: '湘南区域电价训练节点', company: '新能源公司', station: '光伏电站A,风电场B', trainStart: '2025-08-01', trainEnd: '2026-01-31', duration: '3h 12m', trainedAt: '2026-02-05 09:15', version: 'v2.1.0', modelPath: '/models/price/xiangnan_v2/', status: '训练完成', notes: '覆盖湘南区域所有场站，融合气象特征' },
+            { name: '湘北区域电价训练节点', company: '传统能源公司', station: '水电站D', trainStart: '2025-09-01', trainEnd: '2026-02-28', duration: '2h 08m', trainedAt: '2026-03-10 16:40', version: 'v1.3.0', modelPath: '/models/price/xiangbei_v1/', status: '训练完成', notes: '水电为主，含水情数据特征' },
+            { name: '全网通用电价预测节点', company: '新能源公司', station: '全部场站', trainStart: '2026-01-01', trainEnd: '2026-04-30', duration: '5h 45m', trainedAt: '2026-05-06 11:30', version: 'v3.0.0', modelPath: '/models/price/global_v3/', status: '训练中', notes: '全网统一训练，GRU+Transformer混合架构' },
+            { name: '2025年度电价基线节点', company: '传统能源公司', station: '全部场站', trainStart: '2024-06-01', trainEnd: '2025-05-31', duration: '1h 20m', trainedAt: '2025-06-15 08:00', version: 'v1.0.0', modelPath: '/models/price/2025_baseline/', status: '已过期', notes: '2025年度基线模型，已不再使用' },
+            { name: '光伏专项电价预测节点', company: '新能源公司', station: '光伏电站A,光伏电站C', trainStart: '2026-02-01', trainEnd: '2026-04-30', duration: '-', trainedAt: '', version: 'v1.0-beta', modelPath: '/models/price/pv_special/', status: '训练失败', notes: '训练数据不足，需补充2026年Q1数据' }
+        ];
+        var nodeEditIndex = -1;
+
+        function renderNodes(list) {
+            var data = list || nodeList;
+            var tbody = document.getElementById('node-table-body');
+            tbody.innerHTML = '';
+            data.forEach(function(n, i) {
+                var cls = n.status === '训练完成' ? 'badge-success' : (n.status === '训练中' ? 'badge' : (n.status === '训练失败' ? 'badge-danger' : 'badge-muted'));
+                tbody.innerHTML += '<tr>' +
+                    '<td><span style="font-weight:600">' + n.name + '</span></td>' +
+                    '<td><span style="display:inline-block;padding:2px 8px;border-radius:var(--radius-pill);font-size:11px;background:color-mix(in oklab, var(--accent), transparent 90%);color:var(--accent)">' + n.company + '</span></td>' +
+                    '<td>' + n.station + '</td>' +
+                    '<td>' + n.trainStart + ' ~ ' + n.trainEnd + '</td>' +
+                    '<td><code style="font-size:var(--text-xs);background:var(--bg);padding:2px 6px;border-radius:4px;color:var(--accent)">' + (n.duration || '-') + '</code></td>' +
+                    '<td style="font-size:var(--text-xs)">' + (n.trainedAt || '--') + '</td>' +
+                    '<td><code style="font-size:var(--text-xs);background:var(--bg);padding:2px 6px;border-radius:4px">' + n.version + '</code></td>' +
+                    '<td><span class="badge ' + cls + '">' + n.status + '</span></td>' +
+                    '<td style="white-space:nowrap">' +
+                    '<button class="btn-config" onclick="openNodeModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteNode(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '</td></tr>';
+            });
+            document.getElementById('node-count').textContent = '共 ' + data.length + ' 条记录';
+        }
+
+        function openNodeModal(index) {
+            var modal = document.getElementById('node-modal');
+            if (index === undefined || index === null || index === -1) {
+                nodeEditIndex = -1;
+                document.getElementById('node-modal-title').textContent = '新增训练节点';
+                ['edit-name','edit-version','edit-station','edit-model-path','edit-notes'].forEach(function(id) {
+                    document.getElementById(id).value = '';
+                });
+                document.getElementById('edit-company').value = '新能源公司';
+                document.getElementById('edit-status').value = '训练中';
+                document.getElementById('edit-train-start').value = '';
+                document.getElementById('edit-train-end').value = '';
+            } else {
+                nodeEditIndex = index;
+                document.getElementById('node-modal-title').textContent = '编辑训练节点';
+                var n = nodeList[index];
+                document.getElementById('edit-name').value = n.name;
+                document.getElementById('edit-company').value = n.company;
+                document.getElementById('edit-station').value = n.station;
+                document.getElementById('edit-train-start').value = n.trainStart;
+                document.getElementById('edit-train-end').value = n.trainEnd;
+                document.getElementById('edit-version').value = n.version;
+                document.getElementById('edit-model-path').value = n.modelPath;
+                document.getElementById('edit-status').value = n.status;
+                document.getElementById('edit-notes').value = n.notes || '';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeNodeModal() {
+            document.getElementById('node-modal').style.display = 'none';
+        }
+
+        function saveNode() {
+            var d = new Date();
+            var now = d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0')+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+            var data = {
+                name: document.getElementById('edit-name').value,
+                company: document.getElementById('edit-company').value,
+                station: document.getElementById('edit-station').value,
+                trainStart: document.getElementById('edit-train-start').value,
+                trainEnd: document.getElementById('edit-train-end').value,
+                version: document.getElementById('edit-version').value,
+                modelPath: document.getElementById('edit-model-path').value,
+                status: document.getElementById('edit-status').value,
+                notes: document.getElementById('edit-notes').value,
+                trainedAt: document.getElementById('edit-status').value === '训练完成' ? now : ''
+            };
+            if (!data.name) { alert('请输入节点名称'); return; }
+            if (nodeEditIndex === -1) {
+                nodeList.push(data);
+            } else {
+                nodeList[nodeEditIndex] = data;
+            }
+            renderNodes();
+            closeNodeModal();
+        }
+
+        function deleteNode(index) {
+            if (confirm('确认删除训练节点「' + nodeList[index].name + '」？')) {
+                nodeList.splice(index, 1);
+                renderNodes();
+            }
+        }
+
+        function filterNodes() {
+            var company = document.getElementById('node-filter-company').value;
+            var status = document.getElementById('node-filter-status').value;
+            var filtered = nodeList.filter(function(n) {
+                if (company !== 'all' && n.company !== company) return false;
+                if (status !== 'all' && n.status !== status) return false;
+                return true;
+            });
+            renderNodes(filtered);
+        }
+
+        // ─── 标签页切换 ──────────────────────────────────────────
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.style.display = 'none';
+            });
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).style.display = 'block';
+        }
+
+        // ─── 弹窗点击外部关闭 ────────────────────────────────────
+        var _schemeModal = document.getElementById('scheme-modal');
+        if (_schemeModal) {
+            _schemeModal.addEventListener('click', function(e) {
+                if (e.target === this) closeSchemeModal();
+            });
+        }
+
+        var _nodeModal = document.getElementById('node-modal');
+        if (_nodeModal) {
+            _nodeModal.addEventListener('click', function(e) {
+                if (e.target === this) closeNodeModal();
+            });
+        }
+
+        // ─── 初始化 ─────────────────────────────────────────────
+        renderSchemes();
+        renderNodes();
+
+        // ─── 全局函数暴露 ───────────────────────────────────────
+        window.switchTab = switchTab;
+        window.openSchemeModal = openSchemeModal;
+        window.closeSchemeModal = closeSchemeModal;
+        window.saveScheme = saveScheme;
+        window.deleteScheme = deleteScheme;
+        window.filterSchemes = filterSchemes;
+        window.openNodeModal = openNodeModal;
+        window.closeNodeModal = closeNodeModal;
+        window.saveNode = saveNode;
+        window.deleteNode = deleteNode;
+        window.filterNodes = filterNodes;
+    </script>
+</body>
+</html>

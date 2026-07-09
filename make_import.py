@@ -1,0 +1,1 @@
+﻿open(r"d:\yunwork\power\后台数据维护\数据导入\index.html","w",encoding="utf-8").write("<html><head><meta charset=\"UTF-8\"><title>数据导入</title><link rel=\"stylesheet\" href=\"../../styles.css\"></head><body><main class=\"main-content\"><div class=\"page-header\"><h2 class=\"page-title\">数据导入</h2></div></main></body></html>")

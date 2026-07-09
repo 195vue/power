@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据导入 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        .import-section {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            margin-bottom: var(--space-5);
+            border: 1px solid var(--border);
+        }
+
+        .import-section-title {
+            font-size: var(--text-lg);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .import-section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .import-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .import-card {
+            background: var(--surface);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-5);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .import-card:hover {
+            border-color: var(--primary);
+            background: rgba(var(--primary-rgb), 0.05);
+            transform: translateY(-2px);
+        }
+
+        .import-card.uploading {
+            border-color: var(--primary);
+            background: rgba(var(--primary-rgb), 0.1);
+        }
+
+        .import-card .icon-box {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto var(--space-3);
+            background: var(--surface);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .import-card .icon-box svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .import-card h3 {
+            font-size: var(--text-md);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .import-card p {
+            font-size: var(--text-sm);
+            color: var(--muted);
+            margin-bottom: var(--space-3);
+            line-height: 1.5;
+        }
+
+        .import-card .import-type-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: 2px 8px;
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary);
+            border-radius: 4px;
+            font-size: var(--text-xs);
+            margin-top: var(--space-2);
+        }
+
+        .import-card input[type="file"] {
+            display: none;
+        }
+
+        .import-card .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: var(--primary);
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .import-preview {
+            margin-top: var(--space-4);
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            display: none;
+        }
+
+        .import-preview.show {
+            display: block;
+        }
+
+        .import-preview-header {
+            background: var(--card-bg);
+            padding: var(--space-3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .import-preview-header h4 {
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .import-preview-close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: var(--text-lg);
+        }
+
+        .import-preview table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .import-preview th,
+        .import-preview td {
+            padding: var(--space-2) var(--space-3);
+            text-align: left;
+            font-size: var(--text-xs);
+            border-bottom: 1px solid var(--border);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .import-preview th {
+            background: var(--card-bg);
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .import-preview td {
+            color: var(--text-secondary);
+        }
+
+        .import-actions {
+            padding: var(--space-3);
+            display: flex;
+            gap: var(--space-2);
+            justify-content: flex-end;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+        }
+
+        .import-result {
+            margin-top: var(--space-3);
+            padding: var(--space-3);
+            border-radius: var(--radius-sm);
+            font-size: var(--text-sm);
+            display: none;
+        }
+
+        .import-result.success {
+            display: block;
+            background: rgba(var(--success-rgb), 0.1);
+            color: var(--success);
+            border: 1px solid rgba(var(--success-rgb), 0.2);
+        }
+
+        .import-result.error {
+            display: block;
+            background: rgba(var(--danger-rgb), 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(var(--danger-rgb), 0.2);
+        }
+
+        .import-result.warning {
+            display: block;
+            background: rgba(var(--warning-rgb), 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(var(--warning-rgb), 0.2);
+        }
+
+        .import-hint {
+            background: rgba(var(--primary-rgb), 0.05);
+            border-left: 3px solid var(--primary);
+            padding: var(--space-3);
+            margin-bottom: var(--space-4);
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">数据导入</h2>
+            <p class="page-subtitle">批量导入表格数据文件，支持 Excel (.xlsx/.xls) 和 CSV 格式</p>
+        </div>
+
+        <div class="import-hint">
+            <strong>使用说明：</strong>
+            <ul style="margin-top:8px;margin-left:16px;list-style-type:disc;">
+                <li>数据导入用于系统初始化或批量数据迁移，日常数据维护请使用各业务模块的增删改查功能</li>
+                <li>上传前请确认文件格式正确，建议先下载对应的数据模板</li>
+                <li>导入前会预览数据并进行格式验证，错误数据将被跳过并提示</li>
+                <li>导入成功后数据将自动同步到对应业务模块</li>
+            </ul>
+        </div>
+
+        <div class="import-section">
+            <div class="import-section-title">基础数据导入</div>
+            <div class="import-grid">
+                <div class="import-card" onclick="document.getElementById('file-station').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                    </div>
+                    <h3>场站信息数据</h3>
+                    <p>场站名称、所属公司、装机容量、最小技术出力、爬坡率、启停约束等</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-station" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'station')">
+                    <div class="progress-bar" id="progress-station"></div>
+                </div>
+
+                <div class="import-card" onclick="document.getElementById('file-user').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <h3>用户数据</h3>
+                    <p>用户名、姓名、角色、关联场站、手机号等</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-user" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'user')">
+                    <div class="progress-bar" id="progress-user"></div>
+                </div>
+
+                <div class="import-card" onclick="document.getElementById('file-dict').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                    </div>
+                    <h3>数据字典</h3>
+                    <p>编码、名称、字典类型、排序号等基础编码数据</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-dict" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'dict')">
+                    <div class="progress-bar" id="progress-dict"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="import-section">
+            <div class="import-section-title">算法与模型数据导入</div>
+            <div class="import-grid">
+                <div class="import-card" onclick="document.getElementById('file-scheme').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <h3>算法方案数据</h3>
+                    <p>方案名称、所属模块、版本号、训练日期范围等</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-scheme" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'scheme')">
+                    <div class="progress-bar" id="progress-scheme"></div>
+                </div>
+
+                <div class="import-card" onclick="document.getElementById('file-model').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                    </div>
+                    <h3>模型对接数据</h3>
+                    <p>模型名称、模型类型、版本号、服务地址、认证密钥等</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-model" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'model')">
+                    <div class="progress-bar" id="progress-model"></div>
+                </div>
+
+                <div class="import-card" onclick="document.getElementById('file-train').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                        </svg>
+                    </div>
+                    <h3>训练节点数据</h3>
+                    <p>节点名称、所属公司、关联场站、训练数据范围、模型文件路径等</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-train" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'train')">
+                    <div class="progress-bar" id="progress-train"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="import-section">
+            <div class="import-section-title">交易与市场数据导入</div>
+            <div class="import-grid">
+                <div class="import-card" onclick="document.getElementById('file-contract').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    <h3>合约数据</h3>
+                    <p>交易品类、电量占比、电价等中长期合约数据</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-contract" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'contract')">
+                    <div class="progress-bar" id="progress-contract"></div>
+                </div>
+
+                <div class="import-card" onclick="document.getElementById('file-spot').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    </div>
+                    <h3>现货出清数据</h3>
+                    <p>现货出清电量、电价等交易数据</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-spot" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'spot')">
+                    <div class="progress-bar" id="progress-spot"></div>
+                </div>
+
+                <div class="import-card" onclick="document.getElementById('file-price').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                    </div>
+                    <h3>电价预测数据</h3>
+                    <p>中长期电价预测、日前现货价格预测等</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-price" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'price')">
+                    <div class="progress-bar" id="progress-price"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="import-section">
+            <div class="import-section-title">外部数据导入</div>
+            <div class="import-grid">
+                <div class="import-card" onclick="document.getElementById('file-meteo').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h1"/><polyline points="16 16 12 12 8 16"/>
+                        </svg>
+                    </div>
+                    <h3>气象数据源配置</h3>
+                    <p>数据源名称、类型、服务地址、数据字段、更新频率等</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-meteo" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'meteo')">
+                    <div class="progress-bar" id="progress-meteo"></div>
+                </div>
+
+                <div class="import-card" onclick="document.getElementById('file-quote').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 16a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/>
+                        </svg>
+                    </div>
+                    <h3>报价策略数据</h3>
+                    <p>策略名称、适用模块、策略类型、电价分位数、中标概率基准等</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-quote" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'quote')">
+                    <div class="progress-bar" id="progress-quote"></div>
+                </div>
+
+                <div class="import-card" onclick="document.getElementById('file-interface').click()">
+                    <div class="icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+                            <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-6"/>
+                        </svg>
+                    </div>
+                    <h3>外部数据接口配置</h3>
+                    <p>接口名称、类型、地址、认证方式、同步频率等</p>
+                    <div class="import-type-tag">.xlsx / .csv</div>
+                    <input type="file" id="file-interface" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'interface')">
+                    <div class="progress-bar" id="progress-interface"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="import-preview" id="import-preview">
+            <div class="import-preview-header">
+                <h4 id="preview-title">数据预览</h4>
+                <button class="import-preview-close" onclick="closePreview()">&times;</button>
+            </div>
+            <table id="preview-table">
+                <thead id="preview-thead"></thead>
+                <tbody id="preview-tbody"></tbody>
+            </table>
+            <div class="import-actions">
+                <button class="btn-default" onclick="closePreview()">取消</button>
+                <button class="btn-primary" onclick="confirmImport()">确认导入</button>
+            </div>
+        </div>
+
+        <div class="import-result" id="import-result"></div>
+    </main>
+
+    <script>
+        var currentImportType = '';
+        var currentPreviewData = [];
+
+        var importTemplates = {
+            station: ['场站名称', '所属公司', '装机容量(MW)', '最小技术出力(MW)', '爬坡率上限(MW/min)', '爬坡率下限(MW/min)', '启停约束(次/日)', '风机台数', '风机型号', '轮毂高度(m)', '切入风速(m/s)', '切出风速(m/s)', '投产日期', '状态'],
+            user: ['用户名', '姓名', '角色', '关联场站', '手机号', '邮箱', '状态'],
+            dict: ['编码', '名称', '字典类型', '排序号', '状态'],
+            scheme: ['方案名称', '所属模块', '版本号', '训练日期范围', '创建时间', '状态'],
+            model: ['模型名称', '模型类型', '版本号', '服务地址', '运行状态', '认证密钥', '超时时间(秒)', '重试次数', '模型描述', '输入数据源', '预测时间粒度(分钟)', '预测时长(小时)', '模型精度阈值'],
+            train: ['节点名称', '所属公司', '关联场站', '训练数据范围', '训练时间', '模型文件路径', '备注'],
+            contract: ['交易品类', '电量占比(%)', '电价(元/MWh)'],
+            spot: ['交易日期', '交易时段', '出清电量(MWh)', '出清电价(元/MWh)'],
+            price: ['预测日期', '预测类型', '交易时段', '预测电价(元/MWh)', '预测精度(%)'],
+            meteo: ['数据源名称', '数据源类型', '服务地址', '数据字段', '更新频率', '认证方式', '数据格式'],
+            quote: ['策略名称', '适用模块', '策略类型', '电价分位数', '中标概率基准(%)', '价格上浮比例(%)', '价格下浮比例(%)', '适用场景说明'],
+            interface: ['接口名称', '接口类型', '接口地址', '认证方式', '同步频率', '数据格式', '超时时间(秒)', '数据说明']
+        };
+
+        var importTypeNames = {
+            station: '场站信息数据',
+            user: '用户数据',
+            dict: '数据字典',
+            scheme: '算法方案数据',
+            model: '模型对接数据',
+            train: '训练节点数据',
+            contract: '合约数据',
+            spot: '现货出清数据',
+            price: '电价预测数据',
+            meteo: '气象数据源配置',
+            quote: '报价策略数据',
+            interface: '外部数据接口配置'
+        };
+
+        function handleFileSelect(input, type) {
+            var file = input.files[0];
+            if (!file) return;
+
+            var ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                showResult('error', '仅支持 Excel (.xlsx/.xls) 和 CSV 格式文件');
+                return;
+            }
+
+            currentImportType = type;
+
+            var card = input.parentElement;
+            card.classList.add('uploading');
+            var progress = card.querySelector('.progress-bar');
+            progress.style.width = '30%';
+
+            setTimeout(function() {
+                progress.style.width = '70%';
+                simulateParseFile(type);
+            }, 500);
+        }
+
+        function simulateParseFile(type) {
+            setTimeout(function() {
+                var card = document.querySelector('#file-' + type).parentElement;
+                var progress = card.querySelector('.progress-bar');
+                progress.style.width = '100%';
+
+                generatePreviewData(type);
+                
+                setTimeout(function() {
+                    card.classList.remove('uploading');
+                    progress.style.width = '0%';
+                }, 300);
+            }, 800);
+        }
+
+        function generatePreviewData(type) {
+            var headers = importTemplates[type];
+            var rows = [];
+            
+            for (var i = 0; i < 5; i++) {
+                var row = {};
+                headers.forEach(function(h) {
+                    if (h.includes('日期')) {
+                        row[h] = '2026-07-' + (10 + i);
+                    } else if (h.includes('时间')) {
+                        row[h] = (8 + i) + ':00';
+                    } else if (h.includes('容量') || h.includes('功率') || h.includes('电量')) {
+                        row[h] = Math.floor(Math.random() * 100) + 50;
+                    } else if (h.includes('电价')) {
+                        row[h] = (Math.random() * 50 + 200).toFixed(2);
+                    } else if (h.includes('占比')) {
+                        row[h] = Math.floor(Math.random() * 50) + 10;
+                    } else if (h.includes('精度')) {
+                        row[h] = (Math.random() * 10 + 85).toFixed(1);
+                    } else if (h === '状态') {
+                        row[h] = i % 2 === 0 ? '启用' : '停用';
+                    } else if (h === '场站名称') {
+                        row[h] = '桂阳月和风电场';
+                    } else if (h === '所属公司') {
+                        row[h] = '新能源公司';
+                    } else if (h === '交易品类') {
+                        row[h] = ['年度双边协商合约', '月度集中竞价合约', '现货'][i % 3];
+                    } else if (h === '模型类型') {
+                        row[h] = ['功率预测', '电价预测', '负荷预测'][i % 3];
+                    } else if (h === '策略类型') {
+                        row[h] = ['保守', '激进', '均衡'][i % 3];
+                    } else {
+                        row[h] = '示例数据';
+                    }
+                });
+                rows.push(row);
+            }
+
+            currentPreviewData = rows;
+            showPreview(headers, rows);
+        }
+
+        function showPreview(headers, rows) {
+            document.getElementById('preview-title').textContent = importTypeNames[currentImportType] + ' - 数据预览';
+            
+            var thead = document.getElementById('preview-thead');
+            var tbody = document.getElementById('preview-tbody');
+            
+            thead.innerHTML = '<tr>' + headers.map(function(h) {
+                return '<th>' + h + '</th>';
+            }).join('') + '</tr>';
+            
+            tbody.innerHTML = rows.map(function(row) {
+                return '<tr>' + headers.map(function(h) {
+                    return '<td>' + row[h] + '</td>';
+                }).join('') + '</tr>';
+            }).join('');
+            
+            document.getElementById('import-preview').classList.add('show');
+            document.getElementById('import-result').classList.remove('success', 'error', 'warning');
+            document.getElementById('import-result').style.display = 'none';
+        }
+
+        function closePreview() {
+            document.getElementById('import-preview').classList.remove('show');
+            currentPreviewData = [];
+        }
+
+        function confirmImport() {
+            closePreview();
+            showResult('warning', '正在导入...');
+            
+            setTimeout(function() {
+                var successCount = currentPreviewData.length;
+                var failCount = Math.floor(Math.random() * 2);
+                
+                if (failCount === 0) {
+                    showResult('success', '导入成功！共导入 ' + successCount + ' 条数据');
+                } else {
+                    showResult('warning', '导入完成！成功导入 ' + successCount + ' 条数据，跳过 ' + failCount + ' 条错误数据');
+                }
+                
+                document.querySelectorAll('input[type="file"]').forEach(function(input) {
+                    input.value = '';
+                });
+            }, 1500);
+        }
+
+        function showResult(type, message) {
+            var result = document.getElementById('import-result');
+            result.textContent = message;
+            result.className = 'import-result ' + type;
+        }
+
+        window.handleFileSelect = handleFileSelect;
+        window.closePreview = closePreview;
+        window.confirmImport = confirmImport;
+    </script>
+</body>
+</html>

@@ -47,7 +47,7 @@
             const isPredictActive = ['weather-dashboard','power-accuracy','load-forecast','price-forecast'].includes(currentPage);
             const isMediumActive = ['medium-position','medium-decision'].includes(currentPage);
             const isSpotActive = ['spot-market','price-calendar','spot-decision'].includes(currentPage);
-            const isAdminActive = ['station-mgmt','scheme-mgmt','model-mgmt','meteo-mgmt','train-node','quote-strategy','data-interface','user-mgmt','sys-config','data-dict','audit-log'].includes(currentPage);
+            const isAdminActive = ['station-mgmt','model-algo','model-mgmt','meteo-mgmt','data-interface','user-mgmt','sys-config','data-dict','audit-log'].includes(currentPage);
 
             const sidebarHTML = `
                 <nav class="menu">
@@ -57,7 +57,7 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
                             </span>
                             <span>总览分析</span>
-                            <span class="arrow">${isOverviewActive ? '▲' : '▼'}</span>
+                            <span class="arrow">${isOverviewActive ? '▼' : '▶'}</span>
                         </div>
                         <ul class="submenu">
                             <li class="${currentPage === 'market-overview' ? 'active' : ''}" data-page="market-overview"><a href="javascript:void(0)" data-src="总览分析/市场行情/index.html">市场行情</a></li>
@@ -71,7 +71,7 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg>
                             </span>
                             <span>预测信息</span>
-                            <span class="arrow">${isPredictActive ? '▲' : '▼'}</span>
+                            <span class="arrow">${isPredictActive ? '▼' : '▶'}</span>
                         </div>
                         <ul class="submenu">
                             <li data-page="weather-dashboard"><a href="javascript:void(0)" data-src="预测信息/气象信息看板/index.html">气象信息看板</a></li>
@@ -87,7 +87,7 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                             </span>
                             <span>中长期交易</span>
-                            <span class="arrow">${isMediumActive ? '▲' : '▼'}</span>
+                            <span class="arrow">${isMediumActive ? '▼' : '▶'}</span>
                         </div>
                         <ul class="submenu">
                             <li data-page="medium-position"><a href="javascript:void(0)" data-src="中长期交易/中长期持仓/index.html">中长期持仓</a></li>
@@ -101,7 +101,7 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                             </span>
                             <span>现货交易</span>
-                            <span class="arrow">${isSpotActive ? '▲' : '▼'}</span>
+                            <span class="arrow">${isSpotActive ? '▼' : '▶'}</span>
                         </div>
                         <ul class="submenu">
                             <li data-page="spot-market"><a href="javascript:void(0)" data-src="现货交易/现货市场/index.html">现货市场</a></li>
@@ -116,18 +116,17 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                             </span>
                             <span>后台数据维护</span>
-                            <span class="arrow">${isAdminActive ? '▲' : '▼'}</span>
+                            <span class="arrow">${isAdminActive ? '▼' : '▶'}</span>
                         </div>
                         <ul class="submenu">
                             <li data-page="station-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/场站信息管理/index.html">场站信息管理</a></li>
-                            <li data-page="scheme-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/算法方案管理/index.html">算法方案管理</a></li>
+                            <li data-page="model-algo"><a href="javascript:void(0)" data-src="后台数据维护/算法模型管理/index.html">算法模型管理</a></li>
                             <li data-page="model-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/模型对接管理/index.html">模型对接管理</a></li>
                             <li data-page="meteo-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/气象数据对接/index.html">气象数据对接</a></li>
-                            <li data-page="train-node"><a href="javascript:void(0)" data-src="后台数据维护/训练节点管理/index.html">训练节点管理</a></li>
-                            <li data-page="quote-strategy"><a href="javascript:void(0)" data-src="后台数据维护/报价策略管理/index.html">报价策略管理</a></li>
                             <li data-page="data-interface"><a href="javascript:void(0)" data-src="后台数据维护/外部数据接口/index.html">外部数据接口</a></li>
                             <li data-page="user-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/用户管理/index.html">用户管理</a></li>
                             <li data-page="sys-config"><a href="javascript:void(0)" data-src="后台数据维护/系统参数配置/index.html">系统参数配置</a></li>
+                            <li data-page="data-import"><a href="javascript:void(0)" data-src="后台数据维护/数据导入/index.html">数据导入</a></li>
                             <li data-page="data-dict"><a href="javascript:void(0)" data-src="后台数据维护/数据字典/index.html">数据字典</a></li>
                             <li data-page="audit-log"><a href="javascript:void(0)" data-src="后台数据维护/操作日志/index.html">操作日志</a></li>
                         </ul>
@@ -198,7 +197,6 @@
                 })
                 .then(function(cssText) {
                     if (!cssText) return;
-                    // 移除iframe适配规则的 .main-content { margin-left: 0; }
                     cssText = cssText.replace(/\.main-content\s*\{[^}]*margin-left\s*:\s*0[^}]*\}/g, '');
                     cssText = cssText.replace(/\/\* Iframe: override sidebar margin \*\//g, '');
 
@@ -211,30 +209,34 @@
         },
 
         /**
-         * 执行单段页面脚本（处理 DOMContentLoaded + resize 兼容）
+         * 执行单段页面脚本（处理DOMContentLoaded + resize 兼容性）
          */
         executePageScript: function(code, scriptId) {
             try {
                 // DOM已加载完成，移除 DOMContentLoaded 包裹
                 if (document.readyState !== 'loading' && code.indexOf('DOMContentLoaded') !== -1) {
-                    // 移除 document.addEventListener('DOMContentLoaded', function() { 开头
                     code = code.replace(
                         /document\.addEventListener\s*\(\s*['"]DOMContentLoaded['"]\s*,\s*function\s*\(\)\s*\{/,
                         '(function() {'
                     );
-                    // 移除末尾 }); （关闭 DOMContentLoaded 的 addEventListener 调用）
                     code = code.replace(/\}\);?\s*$/, '})();');
                 }
 
-                // 移除内联 resize 处理（由全局统一处理）
+                // 移除内联 resize 处理
                 code = code.replace(/\/\/ 响应式调整[\s\S]*?\}\);/g, '');
                 code = code.replace(/\/\/ 窗口大小改变时重新调整图表[\s\S]*?\}\);/g, '');
 
-                // Only wrap in IIFE when code uses const/let (which throw on re-declaration
-                // when navigating back). For var/function-only code, skip IIFE so that
-                // onclick="fn()" handlers in innerHTML can reach the function scope.
+                // 如果代码使用 const/let，用 IIFE 包裹，但保留 window.fn = fn; 在 IIFE 内部
+                // 将 window.fn = fn; 转换为 this.fn = fn; 在 IIFE 中 this 指向 window
                 if (/\b(const|let)\s/.test(code)) {
-                    code = '(function(){\n' + code + '\n})();';
+                    // 将 window.fn = fn; 转换为 this.fn = fn;
+                    code = code.replace(/window\.\s*(\w+)\s*=\s*(\w+)\s*;/g, function(match, fnName, fnRef) {
+                        if (fnName === fnRef) {
+                            return 'this.' + fnName + ' = ' + fnName + ';';
+                        }
+                        return match;
+                    });
+                    code = '(function(){\n' + code + '\n}).call(window);';
                 }
 
                 var scriptEl = document.createElement('script');
@@ -247,7 +249,7 @@
         },
 
         /**
-         * 强制刷新所有 ECharts 图表
+         * 强制刷新所有ECharts 图表
          */
         resizeAllCharts: function() {
             var content = document.getElementById('page-content');
@@ -272,7 +274,7 @@
 
             content.className = 'loading';
 
-            fetch(src)
+            fetch(encodeURI(src))
                 .then(function(response) {
                     if (!response.ok) throw new Error('Failed to load: ' + src);
                     return response.text();
@@ -289,9 +291,18 @@
                         return;
                     }
 
-                    // 注入内容HTML（同步 — DOM立即可用）
+                    // 注入内容HTML（同步，DOM立即可用）
                     content.innerHTML = mainContent.innerHTML;
                     content.className = '';
+
+                    // 提取模态框（在 .main-content 外部的 modal-overlay）
+                    var modals = doc.querySelectorAll('.modal-overlay');
+                    modals.forEach(function(modal) {
+                        // 检查是否已存在同名模态框
+                        var existing = document.getElementById(modal.id);
+                        if (existing) existing.remove();
+                        document.body.appendChild(modal);
+                    });
 
                     // 加载页面CSS
                     var pageDir = src.substring(0, src.lastIndexOf('/'));
@@ -302,7 +313,7 @@
                         self.loadPageCSS(pageDir + '/' + href);
                     });
 
-                    // 捕获页面内联 <style> 块（在<head>或<body>中均可）
+                    // 捕获页面内联 <style> 块（<head>或<body>中均可）
                     var styleBlocks = doc.querySelectorAll('style');
                     styleBlocks.forEach(function(styleEl) {
                         var cssText = styleEl.textContent.trim();
@@ -315,11 +326,9 @@
                         document.head.appendChild(style);
                     });
 
-                    // ─── 顺序执行脚本 ──────────────────────────────
-                    // 收集所有脚本执行任务（inline → external，按HTML中出现的顺序）
+                    // 收集所有脚本执行任务（inline 和 external，按HTML中出现的顺序）
                     var scriptTasks = [];
 
-                    // 1) Inline scripts（复盘看板等页面的 <script>...</script>）
                     var allScripts = doc.querySelectorAll('script');
                     var seenExternalSrcs = {};
 
@@ -330,7 +339,7 @@
                         if (srcAttr && srcAttr.indexOf('echarts') !== -1) return;
 
                         if (srcAttr) {
-                            // 外部脚本 — 去重
+                            // 外部脚本，去重
                             var absolutePath = pageDir + '/' + srcAttr;
                             if (seenExternalSrcs[absolutePath]) return;
                             seenExternalSrcs[absolutePath] = true;
@@ -353,7 +362,7 @@
                     // 顺序执行脚本任务，完成后resize图表
                     function runScripts(tasks, index) {
                         if (index >= tasks.length) {
-                            // 所有脚本执行完毕 → 触发resize让ECharts自适应
+                            // 所有脚本执行完毕，触发resize让ECharts自适应
                             setTimeout(function() {
                                 self.resizeAllCharts();
                                 try { window.dispatchEvent(new Event('resize')); } catch(e) {}
@@ -368,7 +377,7 @@
                             // inline脚本在appendChild时同步执行
                             runScripts(tasks, index + 1);
                         } else {
-                            // 外部脚本 — fetch文本后执行
+                            // 外部脚本，fetch文本后执行
                             fetch(task.path)
                                 .then(function(res) {
                                     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -429,13 +438,13 @@
                         if (item !== parentMenuItem) {
                             item.classList.remove('active');
                             var arrow = item.querySelector('.arrow');
-                            if (arrow) arrow.textContent = '▼';
+                            if (arrow) arrow.textContent = '▶';
                         }
                     });
                     if (parentMenuItem) {
                         parentMenuItem.classList.add('active');
                         var arrow = parentMenuItem.querySelector('.arrow');
-                        if (arrow) arrow.textContent = '▲';
+                        if (arrow) arrow.textContent = '▼';
                     }
                 });
             });
@@ -461,17 +470,17 @@
                         if (otherItem !== menuItem && otherItem.classList.contains('active')) {
                             otherItem.classList.remove('active');
                             var otherArrow = otherItem.querySelector('.arrow');
-                            if (otherArrow) otherArrow.textContent = '▼';
+                            if (otherArrow) otherArrow.textContent = '▶';
                         }
                     });
 
-                    // 切换当前菜单项
+                    // 切换当前菜单
                     if (isCurrentlyActive) {
                         menuItem.classList.remove('active');
-                        if (arrow) arrow.textContent = '▼';
+                        if (arrow) arrow.textContent = '▶';
                     } else {
                         menuItem.classList.add('active');
-                        if (arrow) arrow.textContent = '▲';
+                        if (arrow) arrow.textContent = '▼';
                     }
                 });
             });
@@ -504,7 +513,7 @@
                 // 清理 flyout
                 self.removeFlyout();
 
-                // 折叠时重新初始化 flyout，展开时解绑
+                // 折叠时重新初始化 flyout，展开时销毁
                 if (isCollapsed) {
                     self.initCollapsedFlyout();
                 } else {
@@ -589,7 +598,7 @@
                     return;
                 }
 
-                // 新菜单项 — 创建 flyout
+                // 新菜单项，创建 flyout
                 currentItem = item;
                 clearTimeout(showTimer);
                 clearTimeout(hideTimer);
@@ -605,7 +614,7 @@
                     flyout.id = 'sidebar-flyout';
                     flyout.className = 'sidebar-flyout';
 
-                    // 标题行
+                    // 标题区
                     var header = document.createElement('div');
                     header.className = 'flyout-title';
                     header.textContent = title;
@@ -661,7 +670,7 @@
             sidebar.addEventListener('mouseover', sidebar._flyoutOver);
 
             sidebar._flyoutOut = function(e) {
-                // 只在真正离开 menu-item 或 flyout 时隐藏
+                // 只在真正离开 menu-item 和 flyout 时隐藏
                 var item = e.target.closest('.menu-item.has-submenu');
                 var flyout = document.getElementById('sidebar-flyout');
 
