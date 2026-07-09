@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据回收站 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">数据回收站</h2>
+            <p class="page-subtitle">管理所有业务软删除数据，支持恢复或永久删除</p>
+        </div>
+
+        <div class="filter-bar" style="margin-bottom: var(--space-4)">
+            <div class="filter-item">
+                <label>业务类型</label>
+                <select class="filter-select" style="width:180px" id="recycle-filter-type">
+                    <option value="all">全部业务类型</option>
+                    <option value="station">场站信息</option>
+                    <option value="model">算法模型</option>
+                    <option value="model-dock">模型对接</option>
+                    <option value="meteo">气象数据对接</option>
+                    <option value="interface">外部数据接口</option>
+                    <option value="contract">合约管理</option>
+                    <option value="spot">现货数据</option>
+                    <option value="predict">预测数据</option>
+                    <option value="user">用户管理</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>删除时间</label>
+                <input type="date" class="filter-input" style="width:140px" id="recycle-delete-date">
+            </div>
+            <div class="filter-item">
+                <label>关键词</label>
+                <input class="filter-input" placeholder="搜索名称/编码" style="width:160px" id="recycle-keyword">
+            </div>
+            <button class="btn-primary" onclick="filterRecycle()">查询</button>
+            <button class="btn-default" onclick="clearFilter()">重置</button>
+        </div>
+
+        <div class="table-section">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px">序号</th>
+                        <th style="width:120px">业务类型</th>
+                        <th>数据名称</th>
+                        <th>数据编码</th>
+                        <th>删除人</th>
+                        <th>删除时间</th>
+                        <th style="width:200px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="recycle-table-body"></tbody>
+            </table>
+            <div class="pagination">
+                <span class="info-text" id="recycle-count">共 0 条记录</span>
+                <div>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <span>...</span>
+                    <button class="page-btn">10</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="batch-actions" style="margin-top: var(--space-4)">
+            <span class="info-text">已选中 <span id="selected-count">0</span> 条记录</span>
+            <button class="btn-primary" onclick="batchRestore()" id="btn-batch-restore">批量恢复</button>
+            <button class="btn-danger" onclick="batchPermanentDelete()" id="btn-batch-delete">批量永久删除</button>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="restore-modal" style="display:none">
+        <div class="modal-panel" style="width:480px">
+            <div class="modal-header">
+                <h3>确认恢复</h3>
+                <button class="modal-close" onclick="closeRestoreModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: var(--space-3)">确定要恢复以下数据吗？</p>
+                <div id="restore-list" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-3);background:var(--bg-secondary)"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeRestoreModal()">取消</button>
+                <button class="btn-primary" onclick="confirmRestore()">确认恢复</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="delete-modal" style="display:none">
+        <div class="modal-panel" style="width:480px">
+            <div class="modal-header">
+                <h3>永久删除确认</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-3);background:var(--danger);background-opacity:0.1;border-radius:var(--radius);margin-bottom:var(--space-3)">
+                    <strong style="color:var(--danger)">⚠️ 危险操作</strong>
+                    <p style="margin-top:8px;color:var(--danger)">此操作将永久删除数据，无法恢复！</p>
+                </div>
+                <p>确定要永久删除以下数据吗？</p>
+                <div id="delete-list" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-3);background:var(--bg-secondary)"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeDeleteModal()">取消</button>
+                <button class="btn-danger" onclick="confirmPermanentDelete()">确认永久删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var recycleData = [
+            { id: 1, type: 'station', typeName: '场站信息', name: '桂阳月和风电场', code: 'GYYH', deletedBy: 'admin', deletedAt: '2026-07-05 14:30:22' },
+            { id: 2, type: 'model', typeName: '算法模型', name: '负荷预测LSTM模型', code: 'LF_LSTM_V1', deletedBy: 'admin', deletedAt: '2026-07-04 09:15:08' },
+            { id: 3, type: 'model-dock', typeName: '模型对接', name: '功率预测服务', code: 'PP_SERVICE', deletedBy: 'user01', deletedAt: '2026-07-03 16:45:33' },
+            { id: 4, type: 'contract', typeName: '合约管理', name: '2026年度双边协商合约', code: 'C2026_BILATERAL', deletedBy: 'admin', deletedAt: '2026-07-02 11:20:15' },
+            { id: 5, type: 'user', typeName: '用户管理', name: '张三', code: 'user_zhangsan', deletedBy: 'admin', deletedAt: '2026-06-28 10:00:00' },
+            { id: 6, type: 'station', typeName: '场站信息', name: '永州紫金山风电场', code: 'YZZJS', deletedBy: 'user02', deletedAt: '2026-06-25 15:30:45' },
+            { id: 7, type: 'meteo', typeName: '气象数据对接', name: '湖南气象数据源', code: 'HN_METEO', deletedBy: 'admin', deletedAt: '2026-06-20 08:10:22' },
+            { id: 8, type: 'interface', typeName: '外部数据接口', name: '交易平台接口', code: 'TRADE_API', deletedBy: 'admin', deletedAt: '2026-06-18 14:00:00' }
+        ];
+
+        var selectedIds = [];
+
+        function initRecycle() {
+            renderRecycleTable(recycleData);
+        }
+
+        function renderRecycleTable(data) {
+            var tbody = document.getElementById('recycle-table-body');
+            tbody.innerHTML = '';
+            
+            data.forEach(function(item, index) {
+                var isSelected = selectedIds.includes(item.id);
+                tbody.innerHTML += `
+                    <tr>
+                        <td><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelect(${item.id}, this.checked)"></td>
+                        <td><span class="tag">${item.typeName}</span></td>
+                        <td>${item.name}</td>
+                        <td>${item.code}</td>
+                        <td>${item.deletedBy}</td>
+                        <td>${item.deletedAt}</td>
+                        <td>
+                            <button class="btn-default" onclick="openRestoreModal(${item.id})">恢复</button>
+                            <button class="btn-danger" onclick="openDeleteModal(${item.id})">永久删除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('recycle-count').textContent = '共 ' + data.length + ' 条记录';
+            updateSelectedCount();
+        }
+
+        function toggleSelect(id, checked) {
+            var index = selectedIds.indexOf(id);
+            if (checked && index === -1) {
+                selectedIds.push(id);
+            } else if (!checked && index !== -1) {
+                selectedIds.splice(index, 1);
+            }
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            document.getElementById('selected-count').textContent = selectedIds.length;
+            var btnRestore = document.getElementById('btn-batch-restore');
+            var btnDelete = document.getElementById('btn-batch-delete');
+            btnRestore.disabled = selectedIds.length === 0;
+            btnDelete.disabled = selectedIds.length === 0;
+        }
+
+        function filterRecycle() {
+            var type = document.getElementById('recycle-filter-type').value;
+            var date = document.getElementById('recycle-delete-date').value;
+            var keyword = document.getElementById('recycle-keyword').value.toLowerCase();
+
+            var filtered = recycleData.filter(function(item) {
+                var matchType = type === 'all' || item.type === type;
+                var matchDate = !date || item.deletedAt.startsWith(date);
+                var matchKeyword = !keyword || item.name.toLowerCase().includes(keyword) || item.code.toLowerCase().includes(keyword);
+                return matchType && matchDate && matchKeyword;
+            });
+
+            renderRecycleTable(filtered);
+        }
+
+        function clearFilter() {
+            document.getElementById('recycle-filter-type').value = 'all';
+            document.getElementById('recycle-delete-date').value = '';
+            document.getElementById('recycle-keyword').value = '';
+            filterRecycle();
+        }
+
+        var restoreTargetId = null;
+        function openRestoreModal(id) {
+            restoreTargetId = id;
+            var item = recycleData.find(function(d) { return d.id === id; });
+            document.getElementById('restore-list').innerHTML = '<div style="padding:8px;border-bottom:1px solid var(--border)">' + item.typeName + ' - ' + item.name + '</div>';
+            document.getElementById('restore-modal').style.display = 'flex';
+        }
+
+        function closeRestoreModal() {
+            document.getElementById('restore-modal').style.display = 'none';
+            restoreTargetId = null;
+        }
+
+        function confirmRestore() {
+            if (restoreTargetId) {
+                recycleData = recycleData.filter(function(d) { return d.id !== restoreTargetId; });
+                renderRecycleTable(recycleData);
+                closeRestoreModal();
+                showResult('success', '数据恢复成功');
+            }
+        }
+
+        var deleteTargetId = null;
+        function openDeleteModal(id) {
+            deleteTargetId = id;
+            var item = recycleData.find(function(d) { return d.id === id; });
+            document.getElementById('delete-list').innerHTML = '<div style="padding:8px;border-bottom:1px solid var(--border)">' + item.typeName + ' - ' + item.name + '</div>';
+            document.getElementById('delete-modal').style.display = 'flex';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'none';
+            deleteTargetId = null;
+        }
+
+        function confirmPermanentDelete() {
+            if (deleteTargetId) {
+                recycleData = recycleData.filter(function(d) { return d.id !== deleteTargetId; });
+                renderRecycleTable(recycleData);
+                closeDeleteModal();
+                showResult('success', '数据已永久删除');
+            }
+        }
+
+        function batchRestore() {
+            if (selectedIds.length === 0) return;
+            var listHtml = '';
+            selectedIds.forEach(function(id) {
+                var item = recycleData.find(function(d) { return d.id === id; });
+                if (item) listHtml += '<div style="padding:8px;border-bottom:1px solid var(--border)">' + item.typeName + ' - ' + item.name + '</div>';
+            });
+            document.getElementById('restore-list').innerHTML = listHtml;
+            restoreTargetId = 'batch';
+            document.getElementById('restore-modal').style.display = 'flex';
+        }
+
+        function batchPermanentDelete() {
+            if (selectedIds.length === 0) return;
+            var listHtml = '';
+            selectedIds.forEach(function(id) {
+                var item = recycleData.find(function(d) { return d.id === id; });
+                if (item) listHtml += '<div style="padding:8px;border-bottom:1px solid var(--border)">' + item.typeName + ' - ' + item.name + '</div>';
+            });
+            document.getElementById('delete-list').innerHTML = listHtml;
+            deleteTargetId = 'batch';
+            document.getElementById('delete-modal').style.display = 'flex';
+        }
+
+        function showResult(type, message) {
+            var result = document.createElement('div');
+            result.className = 'import-result ' + type;
+            result.textContent = message;
+            result.style.position = 'fixed';
+            result.style.top = '80px';
+            result.style.right = '20px';
+            result.style.zIndex = '9999';
+            result.style.padding = '12px 20px';
+            result.style.borderRadius = '4px';
+            result.style.color = '#fff';
+            result.style.backgroundColor = type === 'success' ? '#52c41a' : '#ff4d4f';
+            document.body.appendChild(result);
+            setTimeout(function() { result.remove(); }, 3000);
+        }
+
+        window.filterRecycle = filterRecycle;
+        window.clearFilter = clearFilter;
+        window.toggleSelect = toggleSelect;
+        window.openRestoreModal = openRestoreModal;
+        window.closeRestoreModal = closeRestoreModal;
+        window.confirmRestore = confirmRestore;
+        window.openDeleteModal = openDeleteModal;
+        window.closeDeleteModal = closeDeleteModal;
+        window.confirmPermanentDelete = confirmPermanentDelete;
+        window.batchRestore = batchRestore;
+        window.batchPermanentDelete = batchPermanentDelete;
+
+        initRecycle();
+    </script>
+</body>
+</html>

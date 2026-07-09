@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>市场交易数据管理 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">市场交易数据管理</h2>
+            <p class="page-subtitle">管理电力市场信息披露报告归档与结构化交易数据，支撑市场行情分析</p>
+        </div>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchMarketTab('archive')">信息披露报告归档</button>
+            <button class="tab-btn" onclick="switchMarketTab('data')">市场交易结构化数据</button>
+        </div>
+
+        <div id="tab-archive" class="tab-content" style="display:block">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>报告月份</label>
+                    <input class="filter-select" type="month" id="archive-filter-month" style="width:140px">
+                </div>
+                <div class="filter-item">
+                    <label>文件类型</label>
+                    <select class="filter-select" style="width:120px" id="archive-filter-type">
+                        <option value="all">全部类型</option>
+                        <option value="pdf">PDF文档</option>
+                        <option value="excel">Excel表格</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="filterArchive()">查询</button>
+                <div style="flex:1"></div>
+                <button class="btn-primary" onclick="openArchiveUploadModal()">+ 上传报告文件</button>
+            </div>
+
+            <div class="table-section" style="margin-top: var(--space-4)">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:200px">文件名</th>
+                            <th style="width:100px">文件类型</th>
+                            <th style="width:100px">报告月份</th>
+                            <th style="width:80px">文件大小</th>
+                            <th style="width:120px">上传时间</th>
+                            <th style="width:80px">上传人</th>
+                            <th style="width:140px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="archive-table-body"></tbody>
+                </table>
+                <div class="pagination">
+                    <span class="info-text" id="archive-count">共 0 条记录</span>
+                    <div>
+                        <button class="page-btn active">1</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-data" class="tab-content" style="display:none">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>报告月份</label>
+                    <input class="filter-select" type="month" id="data-filter-month" style="width:140px">
+                </div>
+                <div class="filter-item">
+                    <label>交易类型</label>
+                    <select class="filter-select" style="width:140px" id="data-filter-type">
+                        <option value="all">全部类型</option>
+                        <option>省内直接交易</option>
+                        <option>年度双边协商</option>
+                        <option>月度集中竞价</option>
+                        <option>月度双边协商</option>
+                        <option>绿电交易</option>
+                        <option>现货交易</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>电源类型</label>
+                    <select class="filter-select" style="width:120px" id="data-filter-source">
+                        <option value="all">全部类型</option>
+                        <option>燃煤火电</option>
+                        <option>新能源</option>
+                        <option>绿电(光伏)</option>
+                        <option>绿电(风电)</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="filterMarketData()">查询</button>
+                <div style="flex:1"></div>
+                <button class="btn-default" onclick="downloadMarketTemplate()">下载导入模板</button>
+                <button class="btn-default" onclick="openMarketImportModal()">批量导入</button>
+                <button class="btn-primary" onclick="openMarketDataModal()">+ 新增数据</button>
+            </div>
+
+            <div class="table-section" style="margin-top: var(--space-4)">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>报告月份</th>
+                            <th>交易类型</th>
+                            <th>电源类型</th>
+                            <th>交易电量(亿千瓦时)</th>
+                            <th>交易电价(元/MWh)</th>
+                            <th>最大负荷(MW)</th>
+                            <th>供电裕度(MW)</th>
+                            <th>关联报告</th>
+                            <th style="width:140px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="market-data-table-body"></tbody>
+                </table>
+                <div class="pagination">
+                    <span class="info-text" id="market-data-count">共 0 条记录</span>
+                    <div>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="archive-upload-modal" style="display:none">
+        <div class="modal-panel" style="width:560px">
+            <div class="modal-header">
+                <h3>上传信息披露报告</h3>
+                <button class="modal-close" onclick="closeArchiveUploadModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>报告月份 <span class="required">*</span></label>
+                    <input type="month" class="form-input" id="archive-upload-month" required>
+                </div>
+                <div class="form-group">
+                    <label>文件类型</label>
+                    <select class="form-input" id="archive-upload-file-type">
+                        <option value="pdf">PDF文档</option>
+                        <option value="excel">Excel表格</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="import-drop-area" onclick="document.getElementById('archive-upload-file').click()" style="border:2px dashed var(--border);border-radius:var(--radius);padding:var(--space-6);text-align:center;cursor:pointer;margin-bottom:var(--space-3);background:var(--bg-secondary)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto var(--space-3);color:var(--muted)">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <div style="font-size:var(--text-sm);color:var(--muted)">点击或拖拽文件到此处上传</div>
+                    <div style="font-size:var(--text-xs);color:var(--muted);margin-top:4px">支持 PDF、Excel、Word 等格式</div>
+                    <input type="file" id="archive-upload-file" accept=".pdf,.xlsx,.xls,.doc,.docx" style="display:none" onchange="handleArchiveUpload(this)">
+                </div>
+                <div id="archive-upload-filename" style="display:none;color:var(--primary);font-size:var(--text-sm);text-align:center"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeArchiveUploadModal()">取消</button>
+                <button class="btn-primary" onclick="confirmArchiveUpload()">确认上传</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="market-data-modal" style="display:none">
+        <div class="modal-panel" style="width:600px">
+            <div class="modal-header">
+                <h3 id="market-data-modal-title">新增市场交易数据</h3>
+                <button class="modal-close" onclick="closeMarketDataModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>报告月份 <span class="required">*</span></label>
+                    <input type="month" class="form-input" id="market-data-month" required>
+                </div>
+                <div class="form-group">
+                    <label>交易类型 <span class="required">*</span></label>
+                    <select class="form-input" id="market-data-type">
+                        <option>省内直接交易</option>
+                        <option>年度双边协商</option>
+                        <option>月度集中竞价</option>
+                        <option>月度双边协商</option>
+                        <option>绿电交易</option>
+                        <option>现货交易</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>电源类型</label>
+                    <select class="form-input" id="market-data-source">
+                        <option>燃煤火电</option>
+                        <option>新能源</option>
+                        <option>绿电(光伏)</option>
+                        <option>绿电(风电)</option>
+                        <option>优先电量</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1">
+                        <label>交易电量(亿千瓦时)</label>
+                        <input type="number" step="0.01" class="form-input" id="market-data-volume">
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>交易电价(元/MWh)</label>
+                        <input type="number" step="0.01" class="form-input" id="market-data-price">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1">
+                        <label>最大负荷(MW)</label>
+                        <input type="number" step="1" class="form-input" id="market-data-load">
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>供电裕度(MW)</label>
+                        <input type="number" step="1" class="form-input" id="market-data-margin">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>关联报告</label>
+                    <select class="form-input" id="market-data-report">
+                        <option value="">无关联报告</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeMarketDataModal()">取消</button>
+                <button class="btn-primary" onclick="saveMarketData()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="market-import-modal" style="display:none">
+        <div class="modal-panel" style="width:720px">
+            <div class="modal-header">
+                <h3>批量导入市场交易数据</h3>
+                <button class="modal-close" onclick="closeMarketImportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-3);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-4)">
+                    <strong>导入流程：</strong>
+                    <div style="display:flex;gap:var(--space-4);margin-top:8px">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px">1</span>
+                            <span style="font-size:var(--text-sm)">上传文件</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">2</span>
+                            <span style="font-size:var(--text-sm)">解析预览</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">3</span>
+                            <span style="font-size:var(--text-sm)">确认导入</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="import-drop-area" onclick="document.getElementById('market-import-file').click()" style="border:2px dashed var(--border);border-radius:var(--radius);padding:var(--space-6);text-align:center;cursor:pointer;margin-bottom:var(--space-4);background:var(--bg-secondary)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto var(--space-3);color:var(--muted)">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <div style="font-size:var(--text-sm);color:var(--muted)">点击或拖拽文件到此处上传</div>
+                    <input type="file" id="market-import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleMarketImport(this)">
+                </div>
+                <div style="margin-bottom:var(--space-3)">
+                    <h4 style="margin:0 0 var(--space-2);font-size:var(--text-sm);font-weight:600">已上传文件列表</h4>
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead>
+                            <tr>
+                                <th style="width:200px">文件名</th>
+                                <th style="width:120px">上传时间</th>
+                                <th style="width:80px">上传人</th>
+                                <th style="width:80px">数据条数</th>
+                                <th style="width:100px">状态</th>
+                                <th style="width:120px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="market-import-file-list"></tbody>
+                    </table>
+                    <div id="market-import-file-empty" style="text-align:center;color:var(--muted);padding:var(--space-4);display:none">暂无上传文件</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="downloadMarketTemplate()">下载模板</button>
+                <button class="btn-primary" onclick="document.getElementById('market-import-file').click()">选择文件上传</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="market-preview-modal" style="display:none">
+        <div class="modal-panel" style="width:800px">
+            <div class="modal-header">
+                <h3>数据预览</h3>
+                <button class="modal-close" onclick="closeMarketPreviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-2);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-3);font-size:var(--text-sm)">
+                    <strong>文件：</strong><span id="market-preview-filename"></span>
+                    <span style="margin-left:var(--space-4)"><strong>总条数：</strong><span id="market-preview-total"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>有效条数：</strong><span id="market-preview-valid"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>无效条数：</strong><span id="market-preview-invalid"></span></span>
+                </div>
+                <div style="max-height:350px;overflow-y:auto">
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead id="market-preview-thead"></thead>
+                        <tbody id="market-preview-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="market-preview-errors" style="margin-top:var(--space-3);max-height:150px;overflow-y:auto;display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeMarketPreviewModal()">取消</button>
+                <button class="btn-primary" onclick="confirmMarketImport()">确认导入</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var archiveData = [
+            { name: '2025年1月市场信息披露报告.pdf', type: 'pdf', month: '2025-01', size: '120 KB', uploadTime: '2026-02-27 16:27', uploader: '管理员' },
+            { name: '2025年1月湖南电力市场交易情况.pdf', type: 'pdf', month: '2025-01', size: '100 KB', uploadTime: '2026-02-27 16:27', uploader: '管理员' },
+            { name: '2025年上半年市场信息披露报告.pdf', type: 'pdf', month: '2025-06', size: '350 KB', uploadTime: '2026-03-15 09:45', uploader: '管理员' },
+            { name: '2025年三季度市场信息披露报告.pdf', type: 'pdf', month: '2025-09', size: '420 KB', uploadTime: '2026-04-20 14:30', uploader: '管理员' },
+            { name: '各类交易价格汇总.xlsx', type: 'excel', month: '2025-12', size: '50 KB', uploadTime: '2026-05-10 11:20', uploader: '管理员' }
+        ];
+
+        var marketData = [
+            { month: '2025-01', type: '省内直接交易', source: '燃煤火电', volume: 58.25, price: 468.65, load: null, margin: null, report: '2025年1月市场信息披露报告.pdf' },
+            { month: '2025-01', type: '省内直接交易', source: '新能源', volume: 25.25, price: 436.77, load: null, margin: null, report: '2025年1月市场信息披露报告.pdf' },
+            { month: '2025-12', type: '省内直接交易', source: '燃煤火电', volume: 689.93, price: 468.65, load: null, margin: null, report: '各类交易价格汇总.xlsx' },
+            { month: '2025-12', type: '省内直接交易', source: '新能源', volume: 303.00, price: 436.77, load: null, margin: null, report: '各类交易价格汇总.xlsx' },
+            { month: '2025-12', type: '省内直接交易', source: '绿电(光伏)', volume: 25.64, price: 438.79, load: null, margin: null, report: '各类交易价格汇总.xlsx' },
+            { month: '2025-12', type: '省内直接交易', source: '绿电(风电)', volume: 51.55, price: 446.01, load: null, margin: null, report: '各类交易价格汇总.xlsx' },
+            { month: '2025-10', type: '省内直接交易', source: '新能源', volume: 35.80, price: 442.30, load: 4500, margin: 500, report: '2025年三季度市场信息披露报告.pdf' },
+            { month: '2025-11', type: '现货交易', source: '新能源', volume: 8.20, price: 397.91, load: 4800, margin: 400, report: '2025年三季度市场信息披露报告.pdf' }
+        ];
+
+        var marketImportFiles = [];
+        var currentMarketPreviewData = [];
+        var currentMarketPreviewFile = null;
+        var editingMarketIndex = -1;
+
+        function switchMarketTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(content) { content.style.display = 'none'; });
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).style.display = 'block';
+            if (tab === 'archive') renderArchiveTable();
+            else renderMarketDataTable();
+        }
+
+        function renderArchiveTable() {
+            var tbody = document.getElementById('archive-table-body');
+            tbody.innerHTML = '';
+            archiveData.forEach(function(item, idx) {
+                var typeIcon = item.type === 'pdf' ? '<span style="color:#ff4d4f;font-size:14px">📄</span>' : 
+                               item.type === 'excel' ? '<span style="color:#52c41a;font-size:14px">📊</span>' : 
+                               '<span style="color:#4a9eff;font-size:14px">📎</span>';
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + typeIcon + ' ' + item.name + '</td>' +
+                    '<td><span class="badge ' + (item.type === 'pdf' ? 'badge-danger' : 'badge-success') + '">' + (item.type === 'pdf' ? 'PDF' : 'Excel') + '</span></td>' +
+                    '<td>' + item.month + '</td>' +
+                    '<td>' + item.size + '</td>' +
+                    '<td>' + item.uploadTime + '</td>' +
+                    '<td>' + item.uploader + '</td>' +
+                    '<td>' +
+                        '<button class="btn-default" onclick="downloadArchive(' + idx + ')" style="padding:2px 8px;font-size:12px">下载</button> ' +
+                        '<button class="btn-delete" onclick="deleteArchive(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            document.getElementById('archive-count').textContent = '共 ' + archiveData.length + ' 条记录';
+        }
+
+        function filterArchive() {
+            var month = document.getElementById('archive-filter-month').value;
+            var type = document.getElementById('archive-filter-type').value;
+            var filtered = archiveData.filter(function(item) {
+                var matchMonth = !month || item.month === month;
+                var matchType = type === 'all' || item.type === type;
+                return matchMonth && matchType;
+            });
+            var tbody = document.getElementById('archive-table-body');
+            tbody.innerHTML = '';
+            filtered.forEach(function(item, idx) {
+                var typeIcon = item.type === 'pdf' ? '<span style="color:#ff4d4f;font-size:14px">📄</span>' : 
+                               item.type === 'excel' ? '<span style="color:#52c41a;font-size:14px">📊</span>' : 
+                               '<span style="color:#4a9eff;font-size:14px">📎</span>';
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + typeIcon + ' ' + item.name + '</td>' +
+                    '<td><span class="badge ' + (item.type === 'pdf' ? 'badge-danger' : 'badge-success') + '">' + (item.type === 'pdf' ? 'PDF' : 'Excel') + '</span></td>' +
+                    '<td>' + item.month + '</td>' +
+                    '<td>' + item.size + '</td>' +
+                    '<td>' + item.uploadTime + '</td>' +
+                    '<td>' + item.uploader + '</td>' +
+                    '<td>' +
+                        '<button class="btn-default" onclick="downloadArchive(' + idx + ')" style="padding:2px 8px;font-size:12px">下载</button> ' +
+                        '<button class="btn-delete" onclick="deleteArchive(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            document.getElementById('archive-count').textContent = '共 ' + filtered.length + ' 条记录';
+        }
+
+        function downloadArchive(index) {
+            var item = archiveData[index];
+            alert('下载文件：' + item.name);
+        }
+
+        function deleteArchive(index) {
+            if (confirm('确认删除文件「' + archiveData[index].name + '」？')) {
+                archiveData.splice(index, 1);
+                renderArchiveTable();
+            }
+        }
+
+        function openArchiveUploadModal() {
+            document.getElementById('archive-upload-modal').style.display = 'flex';
+            document.getElementById('archive-upload-file').value = '';
+            document.getElementById('archive-upload-filename').style.display = 'none';
+        }
+
+        function closeArchiveUploadModal() {
+            document.getElementById('archive-upload-modal').style.display = 'none';
+        }
+
+        function handleArchiveUpload(input) {
+            var file = input.files[0];
+            if (file) {
+                document.getElementById('archive-upload-filename').textContent = '已选择：' + file.name;
+                document.getElementById('archive-upload-filename').style.display = 'block';
+            }
+        }
+
+        function confirmArchiveUpload() {
+            var month = document.getElementById('archive-upload-month').value;
+            var fileType = document.getElementById('archive-upload-file-type').value;
+            var fileInput = document.getElementById('archive-upload-file');
+            
+            if (!month) {
+                alert('请选择报告月份');
+                return;
+            }
+            if (!fileInput.files[0]) {
+                alert('请选择要上传的文件');
+                return;
+            }
+
+            var file = fileInput.files[0];
+            var now = new Date();
+            var newItem = {
+                name: file.name,
+                type: fileType,
+                month: month,
+                size: (file.size / 1024).toFixed(0) + ' KB',
+                uploadTime: now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + 
+                           String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'),
+                uploader: '管理员'
+            };
+            archiveData.unshift(newItem);
+            closeArchiveUploadModal();
+            renderArchiveTable();
+            alert('文件上传成功');
+        }
+
+        function renderMarketDataTable() {
+            var tbody = document.getElementById('market-data-table-body');
+            tbody.innerHTML = '';
+            marketData.forEach(function(item, idx) {
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + item.month + '</td>' +
+                    '<td>' + item.type + '</td>' +
+                    '<td>' + item.source + '</td>' +
+                    '<td>' + (item.volume || '-') + '</td>' +
+                    '<td>' + (item.price || '-') + '</td>' +
+                    '<td>' + (item.load || '-') + '</td>' +
+                    '<td>' + (item.margin || '-') + '</td>' +
+                    '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (item.report || '-') + '</td>' +
+                    '<td>' +
+                        '<button class="btn-default" onclick="openMarketDataModal(' + idx + ')" style="padding:2px 8px;font-size:12px">编辑</button> ' +
+                        '<button class="btn-delete" onclick="deleteMarketData(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            document.getElementById('market-data-count').textContent = '共 ' + marketData.length + ' 条记录';
+        }
+
+        function filterMarketData() {
+            var month = document.getElementById('data-filter-month').value;
+            var type = document.getElementById('data-filter-type').value;
+            var source = document.getElementById('data-filter-source').value;
+            var filtered = marketData.filter(function(item) {
+                var matchMonth = !month || item.month === month;
+                var matchType = type === 'all' || item.type === type;
+                var matchSource = source === 'all' || item.source === source;
+                return matchMonth && matchType && matchSource;
+            });
+            var tbody = document.getElementById('market-data-table-body');
+            tbody.innerHTML = '';
+            filtered.forEach(function(item, idx) {
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + item.month + '</td>' +
+                    '<td>' + item.type + '</td>' +
+                    '<td>' + item.source + '</td>' +
+                    '<td>' + (item.volume || '-') + '</td>' +
+                    '<td>' + (item.price || '-') + '</td>' +
+                    '<td>' + (item.load || '-') + '</td>' +
+                    '<td>' + (item.margin || '-') + '</td>' +
+                    '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (item.report || '-') + '</td>' +
+                    '<td>' +
+                        '<button class="btn-default" onclick="openMarketDataModal(' + idx + ')" style="padding:2px 8px;font-size:12px">编辑</button> ' +
+                        '<button class="btn-delete" onclick="deleteMarketData(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            document.getElementById('market-data-count').textContent = '共 ' + filtered.length + ' 条记录';
+        }
+
+        function openMarketDataModal(index) {
+            editingMarketIndex = index;
+            var reportSelect = document.getElementById('market-data-report');
+            reportSelect.innerHTML = '<option value="">无关联报告</option>';
+            archiveData.forEach(function(item) {
+                reportSelect.innerHTML += '<option value="' + item.name + '">' + item.name + '</option>';
+            });
+            
+            if (index >= 0) {
+                var item = marketData[index];
+                document.getElementById('market-data-modal-title').textContent = '编辑市场交易数据';
+                document.getElementById('market-data-month').value = item.month;
+                document.getElementById('market-data-type').value = item.type;
+                document.getElementById('market-data-source').value = item.source;
+                document.getElementById('market-data-volume').value = item.volume || '';
+                document.getElementById('market-data-price').value = item.price || '';
+                document.getElementById('market-data-load').value = item.load || '';
+                document.getElementById('market-data-margin').value = item.margin || '';
+                document.getElementById('market-data-report').value = item.report || '';
+            } else {
+                document.getElementById('market-data-modal-title').textContent = '新增市场交易数据';
+                document.getElementById('market-data-month').value = '';
+                document.getElementById('market-data-type').value = '省内直接交易';
+                document.getElementById('market-data-source').value = '燃煤火电';
+                document.getElementById('market-data-volume').value = '';
+                document.getElementById('market-data-price').value = '';
+                document.getElementById('market-data-load').value = '';
+                document.getElementById('market-data-margin').value = '';
+                document.getElementById('market-data-report').value = '';
+            }
+            document.getElementById('market-data-modal').style.display = 'flex';
+        }
+
+        function closeMarketDataModal() {
+            document.getElementById('market-data-modal').style.display = 'none';
+            editingMarketIndex = -1;
+        }
+
+        function saveMarketData() {
+            var month = document.getElementById('market-data-month').value;
+            var type = document.getElementById('market-data-type').value;
+            var source = document.getElementById('market-data-source').value;
+            var volume = parseFloat(document.getElementById('market-data-volume').value) || null;
+            var price = parseFloat(document.getElementById('market-data-price').value) || null;
+            var load = parseFloat(document.getElementById('market-data-load').value) || null;
+            var margin = parseFloat(document.getElementById('market-data-margin').value) || null;
+            var report = document.getElementById('market-data-report').value || null;
+
+            if (!month) {
+                alert('请选择报告月份');
+                return;
+            }
+
+            var newData = { month, type, source, volume, price, load, margin, report };
+            
+            if (editingMarketIndex >= 0) {
+                marketData[editingMarketIndex] = newData;
+            } else {
+                marketData.push(newData);
+            }
+            
+            closeMarketDataModal();
+            renderMarketDataTable();
+        }
+
+        function deleteMarketData(index) {
+            if (confirm('确认删除这条市场交易数据？')) {
+                marketData.splice(index, 1);
+                renderMarketDataTable();
+            }
+        }
+
+        function downloadMarketTemplate() {
+            var headers = ['报告月份', '交易类型', '电源类型', '交易电量(亿千瓦时)', '交易电价(元/MWh)', '最大负荷(MW)', '供电裕度(MW)', '关联报告'];
+            var csvContent = '\uFEFF' + headers.join(',') + '\n';
+            csvContent += '2025-01,省内直接交易,燃煤火电,58.25,468.65,,,\n';
+            
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '市场交易数据导入模板.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function openMarketImportModal() {
+            document.getElementById('market-import-modal').style.display = 'flex';
+            document.getElementById('market-import-file').value = '';
+            renderMarketImportFileList();
+        }
+
+        function closeMarketImportModal() {
+            document.getElementById('market-import-modal').style.display = 'none';
+        }
+
+        function renderMarketImportFileList() {
+            var tbody = document.getElementById('market-import-file-list');
+            var empty = document.getElementById('market-import-file-empty');
+            
+            if (marketImportFiles.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            tbody.innerHTML = '';
+            
+            marketImportFiles.forEach(function(f, idx) {
+                var statusText = f.status === '待解析' ? '<span class="badge badge-muted">待解析</span>' :
+                                 f.status === '已解析' ? '<span class="badge badge-success">已解析</span>' :
+                                 f.status === '已导入' ? '<span class="tag status-success">已导入</span>' :
+                                 '<span class="tag status-danger">导入失败</span>';
+                
+                var actions = '';
+                if (f.status === '待解析') {
+                    actions = '<button class="btn-default" onclick="parseMarketPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">解析预览</button> ' +
+                              '<button class="btn-delete" onclick="deleteMarketImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else if (f.status === '已解析') {
+                    actions = '<button class="btn-primary" onclick="parseMarketPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">确认导入</button> ' +
+                              '<button class="btn-delete" onclick="deleteMarketImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else {
+                    actions = '<button class="btn-default" onclick="parseMarketPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">查看</button>';
+                }
+                
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + f.name + '</strong></td>' +
+                    '<td>' + f.uploadTime + '</td>' +
+                    '<td>' + f.uploader + '</td>' +
+                    '<td>' + (f.rowCount || '-') + '</td>' +
+                    '<td>' + statusText + '</td>' +
+                    '<td>' + actions + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function handleMarketImport(input) {
+            var file = input.files[0];
+            if (!file) return;
+
+            var ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                alert('仅支持 Excel (.xlsx/.xls) 和 CSV 格式文件');
+                return;
+            }
+
+            var now = new Date();
+            var fileRecord = {
+                id: Date.now(),
+                name: file.name,
+                file: file,
+                uploadTime: now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + 
+                         String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'),
+                uploader: '管理员',
+                status: '待解析',
+                rowCount: null,
+                validCount: 0,
+                invalidCount: 0,
+                errors: [],
+                parsedData: null
+            };
+
+            marketImportFiles.unshift(fileRecord);
+            renderMarketImportFileList();
+            input.value = '';
+        }
+
+        function deleteMarketImportFile(index) {
+            if (confirm('确认删除文件「' + marketImportFiles[index].name + '」？')) {
+                marketImportFiles.splice(index, 1);
+                renderMarketImportFileList();
+            }
+        }
+
+        function parseMarketPreview(index) {
+            var fileRecord = marketImportFiles[index];
+            currentMarketPreviewFile = fileRecord;
+            
+            document.getElementById('market-preview-filename').textContent = fileRecord.name;
+            
+            setTimeout(function() {
+                var mockData = [
+                    { month: '2025-02', type: '省内直接交易', source: '燃煤火电', volume: 55.80, price: 465.20, load: null, margin: null, report: '' },
+                    { month: '2025-02', type: '省内直接交易', source: '新能源', volume: 22.50, price: 435.80, load: null, margin: null, report: '' },
+                    { month: '', type: '省内直接交易', source: '绿电(光伏)', volume: 3.20, price: 439.50, load: null, margin: null, report: '' },
+                    { month: '2025-03', type: '月度集中竞价', source: '新能源', volume: 28.60, price: 440.00, load: 4200, margin: 600, report: '' }
+                ];
+                
+                var errors = [];
+                mockData.forEach(function(row, i) {
+                    if (!row.month) errors.push('第' + (i + 2) + '行：报告月份不能为空');
+                });
+                
+                fileRecord.parsedData = mockData;
+                fileRecord.rowCount = mockData.length;
+                fileRecord.validCount = mockData.length - errors.length;
+                fileRecord.invalidCount = errors.length;
+                fileRecord.errors = errors;
+                fileRecord.status = '已解析';
+                
+                currentMarketPreviewData = mockData;
+                
+                document.getElementById('market-preview-total').textContent = mockData.length;
+                document.getElementById('market-preview-valid').textContent = fileRecord.validCount;
+                document.getElementById('market-preview-invalid').textContent = fileRecord.invalidCount;
+                
+                var headers = ['报告月份', '交易类型', '电源类型', '交易电量(亿千瓦时)', '交易电价(元/MWh)', '最大负荷(MW)', '供电裕度(MW)', '关联报告'];
+                var headerHtml = '<tr>';
+                headers.forEach(function(h) { headerHtml += '<th>' + h + '</th>'; });
+                headerHtml += '</tr>';
+                document.getElementById('market-preview-thead').innerHTML = headerHtml;
+                
+                var bodyHtml = '';
+                mockData.forEach(function(row, i) {
+                    var bgClass = !row.month ? 'style="background:#fff2f0"' : '';
+                    bodyHtml += '<tr ' + bgClass + '>' +
+                        '<td>' + (row.month || '<span style="color:var(--danger)">空</span>') + '</td>' +
+                        '<td>' + row.type + '</td>' +
+                        '<td>' + row.source + '</td>' +
+                        '<td>' + (row.volume || '-') + '</td>' +
+                        '<td>' + (row.price || '-') + '</td>' +
+                        '<td>' + (row.load || '-') + '</td>' +
+                        '<td>' + (row.margin || '-') + '</td>' +
+                        '<td>' + (row.report || '-') + '</td>' +
+                        '</tr>';
+                });
+                document.getElementById('market-preview-tbody').innerHTML = bodyHtml;
+                
+                if (errors.length > 0) {
+                    var errorHtml = '<strong style="color:var(--danger)">校验错误：</strong><br>';
+                    errors.forEach(function(err) {
+                        errorHtml += '<div style="padding:4px 0;color:var(--danger);font-size:var(--text-sm)">' + err + '</div>';
+                    });
+                    document.getElementById('market-preview-errors').innerHTML = errorHtml;
+                    document.getElementById('market-preview-errors').style.display = 'block';
+                } else {
+                    document.getElementById('market-preview-errors').style.display = 'none';
+                }
+                
+                renderMarketImportFileList();
+                document.getElementById('market-preview-modal').style.display = 'flex';
+            }, 500);
+        }
+
+        function closeMarketPreviewModal() {
+            document.getElementById('market-preview-modal').style.display = 'none';
+        }
+
+        function confirmMarketImport() {
+            if (!currentMarketPreviewFile || !currentMarketPreviewData) return;
+            
+            var successCount = 0;
+            var failedCount = 0;
+            
+            currentMarketPreviewData.forEach(function(row, i) {
+                if (!row.month) {
+                    failedCount++;
+                    return;
+                }
+                
+                var existingIndex = marketData.findIndex(function(m) { return m.month === row.month && m.type === row.type && m.source === row.source; });
+                if (existingIndex >= 0) {
+                    marketData[existingIndex] = row;
+                } else {
+                    marketData.push(row);
+                }
+                successCount++;
+            });
+            
+            currentMarketPreviewFile.status = failedCount === 0 ? '已导入' : '部分成功';
+            renderMarketImportFileList();
+            closeMarketPreviewModal();
+            
+            if (failedCount > 0) {
+                alert('导入完成：成功 ' + successCount + ' 条，失败 ' + failedCount + ' 条');
+            } else {
+                alert('导入完成：全部 ' + successCount + ' 条数据导入成功');
+            }
+            renderMarketDataTable();
+        }
+
+        renderArchiveTable();
+
+        window.switchMarketTab = switchMarketTab;
+        window.filterArchive = filterArchive;
+        window.downloadArchive = downloadArchive;
+        window.deleteArchive = deleteArchive;
+        window.openArchiveUploadModal = openArchiveUploadModal;
+        window.closeArchiveUploadModal = closeArchiveUploadModal;
+        window.handleArchiveUpload = handleArchiveUpload;
+        window.confirmArchiveUpload = confirmArchiveUpload;
+        window.filterMarketData = filterMarketData;
+        window.openMarketDataModal = openMarketDataModal;
+        window.closeMarketDataModal = closeMarketDataModal;
+        window.saveMarketData = saveMarketData;
+        window.deleteMarketData = deleteMarketData;
+        window.downloadMarketTemplate = downloadMarketTemplate;
+        window.openMarketImportModal = openMarketImportModal;
+        window.closeMarketImportModal = closeMarketImportModal;
+        window.handleMarketImport = handleMarketImport;
+        window.parseMarketPreview = parseMarketPreview;
+        window.closeMarketPreviewModal = closeMarketPreviewModal;
+        window.confirmMarketImport = confirmMarketImport;
+        window.deleteMarketImportFile = deleteMarketImportFile;
+    </script>
+</body>
+</html>

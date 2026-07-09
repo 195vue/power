@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>现货数据管理 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">现货数据管理</h2>
+            <p class="page-subtitle">维护现货出清电量、电价数据，支撑交易复盘与策略分析</p>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>交易日期</label>
+                <input class="filter-select" type="date" id="spot-filter-date" style="width:140px">
+            </div>
+            <div class="filter-item">
+                <label>节点名称</label>
+                <select class="filter-select" style="width:160px" id="spot-filter-node">
+                    <option value="all">全部节点</option>
+                    <option>湖南省均价</option>
+                    <option>坡窑山</option>
+                    <option>邱家湖</option>
+                    <option>青山界</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>电源类型</label>
+                <select class="filter-select" style="width:120px" id="spot-filter-type">
+                    <option value="all">全部类型</option>
+                    <option>总电量</option>
+                    <option>火电</option>
+                    <option>风电</option>
+                    <option>光伏</option>
+                    <option>储能</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="filterSpots()">查询</button>
+            <div style="flex:1"></div>
+            <button class="btn-default" onclick="downloadSpotTemplate()">下载导入模板</button>
+            <button class="btn-default" onclick="openSpotImportModal()">批量导入</button>
+            <button class="btn-primary" onclick="openSpotModal()">+ 新增数据</button>
+        </div>
+
+        <div class="table-section" style="margin-top: var(--space-4)">
+            <table class="data-table">
+                <thead>
+                        <tr>
+                            <th>交易日期</th>
+                            <th>交易时段</th>
+                            <th>节点名称</th>
+                            <th>日前出清电价(元/MWh)</th>
+                            <th>实时出清电价(元/MWh)</th>
+                            <th>日前出清电量(MWh)</th>
+                            <th>实时出清电量(MWh)</th>
+                            <th>电源类型</th>
+                            <th style="width:140px">操作</th>
+                        </tr>
+                    </thead>
+                <tbody id="spot-table-body"></tbody>
+            </table>
+            <div class="pagination">
+                <span class="info-text" id="spot-count">共 0 条记录</span>
+                <div>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 导入弹窗 -->
+    <div class="modal-overlay" id="spot-import-modal" style="display:none">
+        <div class="modal-panel" style="width:720px">
+            <div class="modal-header">
+                <h3>批量导入现货数据</h3>
+                <button class="modal-close" onclick="closeSpotImportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-3);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-4)">
+                    <strong>导入流程：</strong>
+                    <div style="display:flex;gap:var(--space-4);margin-top:8px">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px">1</span>
+                            <span style="font-size:var(--text-sm)">上传文件</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">2</span>
+                            <span style="font-size:var(--text-sm)">解析预览</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">3</span>
+                            <span style="font-size:var(--text-sm)">确认导入</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="import-drop-area" onclick="document.getElementById('spot-import-file').click()" style="border:2px dashed var(--border);border-radius:var(--radius);padding:var(--space-6);text-align:center;cursor:pointer;margin-bottom:var(--space-4);background:var(--bg-secondary)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto var(--space-3);color:var(--muted)">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <div style="font-size:var(--text-sm);color:var(--muted)">点击或拖拽文件到此处上传</div>
+                    <input type="file" id="spot-import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleSpotImport(this)">
+                </div>
+                <div style="margin-bottom:var(--space-3)">
+                    <h4 style="margin:0 0 var(--space-2);font-size:var(--text-sm);font-weight:600">已上传文件列表</h4>
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead>
+                            <tr>
+                                <th style="width:200px">文件名</th>
+                                <th style="width:120px">上传时间</th>
+                                <th style="width:80px">上传人</th>
+                                <th style="width:80px">数据条数</th>
+                                <th style="width:100px">状态</th>
+                                <th style="width:120px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="spot-import-file-list"></tbody>
+                    </table>
+                    <div id="spot-import-file-empty" style="text-align:center;color:var(--muted);padding:var(--space-4);display:none">暂无上传文件</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="downloadSpotTemplate()">下载模板</button>
+                <button class="btn-primary" onclick="document.getElementById('spot-import-file').click()">选择文件上传</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预览弹窗 -->
+    <div class="modal-overlay" id="spot-preview-modal" style="display:none">
+        <div class="modal-panel" style="width:800px">
+            <div class="modal-header">
+                <h3>数据预览</h3>
+                <button class="modal-close" onclick="closeSpotPreviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-2);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-3);font-size:var(--text-sm)">
+                    <strong>文件：</strong><span id="spot-preview-filename"></span>
+                    <span style="margin-left:var(--space-4)"><strong>总条数：</strong><span id="spot-preview-total"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>有效条数：</strong><span id="spot-preview-valid"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>无效条数：</strong><span id="spot-preview-invalid"></span></span>
+                </div>
+                <div style="max-height:350px;overflow-y:auto">
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead id="spot-preview-thead"></thead>
+                        <tbody id="spot-preview-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="spot-preview-errors" style="margin-top:var(--space-3);max-height:150px;overflow-y:auto;display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeSpotPreviewModal()">取消</button>
+                <button class="btn-primary" onclick="confirmSpotImport()">确认导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 现货数据弹窗 -->
+    <div class="modal-overlay" id="spot-modal" style="display:none">
+        <div class="modal-panel" style="width:640px">
+            <div class="modal-header">
+                <h3 id="spot-modal-title">新增现货数据</h3>
+                <button class="modal-close" onclick="closeSpotModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">交易日期 <span style="color:var(--danger)">*</span></label>
+                        <input class="form-input" id="spot-date" type="date">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">交易时段 <span style="color:var(--danger)">*</span></label>
+                        <input class="form-input" id="spot-period" placeholder="如：00:15:00">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">节点名称</label>
+                        <select class="form-input" id="spot-node">
+                            <option>湖南省均价</option>
+                            <option>坡窑山</option>
+                            <option>邱家湖</option>
+                            <option>青山界</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">电源类型</label>
+                        <select class="form-input" id="spot-type">
+                            <option>总电量</option>
+                            <option>火电</option>
+                            <option>风电</option>
+                            <option>光伏</option>
+                            <option>储能</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">日前出清电价(元/MWh)</label>
+                        <input class="form-input" id="spot-day-price" type="number" step="0.01" placeholder="如：360.695">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">实时出清电价(元/MWh)</label>
+                        <input class="form-input" id="spot-real-price" type="number" step="0.01" placeholder="如：372.549">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">日前出清电量(MWh)</label>
+                        <input class="form-input" id="spot-day-volume" type="number" step="0.01" placeholder="如：23213">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">实时出清电量(MWh)</label>
+                        <input class="form-input" id="spot-real-volume" type="number" step="0.01" placeholder="如：23718">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">备注说明</label>
+                    <textarea class="form-input" id="spot-notes" rows="2" placeholder="数据来源、备注等" style="resize:vertical;min-height:48px"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeSpotModal()">取消</button>
+                <button class="btn-primary" onclick="saveSpot()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var spotData = [];
+        var spotImportFiles = [];
+        var currentSpotPreviewData = [];
+        var currentSpotPreviewFile = null;
+        var baseDate = new Date('2025-11-01');
+        for (var day = 0; day < 2; day++) {
+            for (var interval = 1; interval < 96; interval += 4) {
+                var d = new Date(baseDate);
+                d.setDate(d.getDate() + day);
+                var dateStr = d.toISOString().slice(0, 10);
+                var hour = Math.floor(interval / 4);
+                var minute = (interval % 4) * 15;
+                var periodStr = hour.toString().padStart(2, '0') + ':' + minute.toString().padStart(2, '0') + ':00';
+                var basePrice = 350 + Math.random() * 50;
+                var baseVolume = 22000 + Math.random() * 3000;
+                
+                spotData.push({
+                    date: dateStr,
+                    period: periodStr,
+                    node: '湖南省均价',
+                    dayPrice: basePrice.toFixed(3),
+                    realPrice: (basePrice + Math.random() * 20 - 10).toFixed(3),
+                    dayVolume: baseVolume.toFixed(2),
+                    realVolume: (baseVolume + Math.random() * 500 - 250).toFixed(2),
+                    type: '总电量',
+                    notes: ''
+                });
+                
+                spotData.push({
+                    date: dateStr,
+                    period: periodStr,
+                    node: '坡窑山',
+                    dayPrice: (basePrice + Math.random() * 20).toFixed(3),
+                    realPrice: (basePrice + Math.random() * 30).toFixed(3),
+                    dayVolume: (baseVolume * 0.25).toFixed(2),
+                    realVolume: (baseVolume * 0.25).toFixed(2),
+                    type: '风电',
+                    notes: ''
+                });
+                
+                spotData.push({
+                    date: dateStr,
+                    period: periodStr,
+                    node: '邱家湖',
+                    dayPrice: (basePrice + Math.random() * 20).toFixed(3),
+                    realPrice: (basePrice + Math.random() * 30).toFixed(3),
+                    dayVolume: (baseVolume * 0.2).toFixed(2),
+                    realVolume: (baseVolume * 0.2).toFixed(2),
+                    type: '光伏',
+                    notes: ''
+                });
+            }
+        }
+        var spotEditIndex = -1;
+
+        function renderSpots(list) {
+            var data = list || spotData;
+            var tbody = document.getElementById('spot-table-body');
+            tbody.innerHTML = '';
+            var displayData = data.slice(0, 20);
+            displayData.forEach(function(s, i) {
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + s.date + '</td>' +
+                    '<td>' + s.period + '</td>' +
+                    '<td>' + s.node + '</td>' +
+                    '<td style="text-align:right">' + s.dayPrice + '</td>' +
+                    '<td style="text-align:right">' + s.realPrice + '</td>' +
+                    '<td style="text-align:right">' + s.dayVolume + '</td>' +
+                    '<td style="text-align:right">' + s.realVolume + '</td>' +
+                    '<td><span style="display:inline-block;padding:2px 8px;border-radius:var(--radius-pill);font-size:11px;background:color-mix(in oklab, var(--accent), transparent 90%);color:var(--accent)">' + s.type + '</span></td>' +
+                    '<td style="white-space:nowrap">' +
+                    '<button class="btn-config" onclick="openSpotModal(' + (data.indexOf(s)) + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteSpot(' + (data.indexOf(s)) + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '</td></tr>';
+            });
+            document.getElementById('spot-count').textContent = '共 ' + data.length + ' 条记录';
+        }
+
+        function openSpotModal(index) {
+            var modal = document.getElementById('spot-modal');
+            if (index === undefined || index === null || index === -1) {
+                spotEditIndex = -1;
+                document.getElementById('spot-modal-title').textContent = '新增现货数据';
+                ['spot-date','spot-period','spot-day-price','spot-real-price','spot-day-volume','spot-real-volume','spot-notes'].forEach(function(id) {
+                    document.getElementById(id).value = '';
+                });
+                document.getElementById('spot-node').value = '湖南省均价';
+                document.getElementById('spot-type').value = '总电量';
+            } else {
+                spotEditIndex = index;
+                document.getElementById('spot-modal-title').textContent = '编辑现货数据';
+                var s = spotData[index];
+                document.getElementById('spot-date').value = s.date;
+                document.getElementById('spot-period').value = s.period;
+                document.getElementById('spot-node').value = s.node;
+                document.getElementById('spot-type').value = s.type;
+                document.getElementById('spot-day-price').value = s.dayPrice;
+                document.getElementById('spot-real-price').value = s.realPrice;
+                document.getElementById('spot-day-volume').value = s.dayVolume;
+                document.getElementById('spot-real-volume').value = s.realVolume;
+                document.getElementById('spot-notes').value = s.notes || '';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeSpotModal() {
+            document.getElementById('spot-modal').style.display = 'none';
+        }
+
+        function saveSpot() {
+            var data = {
+                date: document.getElementById('spot-date').value,
+                period: document.getElementById('spot-period').value,
+                node: document.getElementById('spot-node').value,
+                type: document.getElementById('spot-type').value,
+                dayPrice: parseFloat(document.getElementById('spot-day-price').value) || 0,
+                realPrice: parseFloat(document.getElementById('spot-real-price').value) || 0,
+                dayVolume: parseFloat(document.getElementById('spot-day-volume').value) || 0,
+                realVolume: parseFloat(document.getElementById('spot-real-volume').value) || 0,
+                notes: document.getElementById('spot-notes').value
+            };
+            if (!data.date) { alert('请输入交易日期'); return; }
+            if (!data.period) { alert('请输入交易时段'); return; }
+            if (spotEditIndex === -1) {
+                spotData.push(data);
+            } else {
+                spotData[spotEditIndex] = data;
+            }
+            renderSpots();
+            closeSpotModal();
+        }
+
+        function deleteSpot(index) {
+            if (confirm('确认删除该条现货数据？')) {
+                spotData.splice(index, 1);
+                renderSpots();
+            }
+        }
+
+        function filterSpots() {
+            var date = document.getElementById('spot-filter-date').value;
+            var node = document.getElementById('spot-filter-node').value;
+            var type = document.getElementById('spot-filter-type').value;
+            var filtered = spotData.filter(function(s) {
+                if (date && s.date !== date) return false;
+                if (node !== 'all' && s.node !== node) return false;
+                if (type !== 'all' && s.type !== type) return false;
+                return true;
+            });
+            renderSpots(filtered);
+        }
+
+        function downloadSpotTemplate() {
+            var headers = ['交易日期', '交易时段', '节点名称', '日前出清电价(元/MWh)', '实时出清电价(元/MWh)', '日前出清电量(MWh)', '实时出清电量(MWh)', '电源类型'];
+            var csvContent = '\uFEFF' + headers.join(',') + '\n';
+            csvContent += '2025-11-01,00:15:00,湖南省均价,360.695,372.549,23213,23718,总电量\n';
+            
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '现货数据导入模板.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function openSpotImportModal() {
+            document.getElementById('spot-import-modal').style.display = 'flex';
+            document.getElementById('spot-import-file').value = '';
+            renderSpotImportFileList();
+        }
+
+        function closeSpotImportModal() {
+            document.getElementById('spot-import-modal').style.display = 'none';
+        }
+
+        function renderSpotImportFileList() {
+            var tbody = document.getElementById('spot-import-file-list');
+            var empty = document.getElementById('spot-import-file-empty');
+            
+            if (spotImportFiles.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            tbody.innerHTML = '';
+            
+            spotImportFiles.forEach(function(f, idx) {
+                var statusText = f.status === '待解析' ? '<span class="badge badge-muted">待解析</span>' :
+                                 f.status === '已解析' ? '<span class="badge badge-success">已解析</span>' :
+                                 f.status === '已导入' ? '<span class="tag status-success">已导入</span>' :
+                                 '<span class="tag status-danger">导入失败</span>';
+                
+                var actions = '';
+                if (f.status === '待解析') {
+                    actions = '<button class="btn-default" onclick="parseSpotPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">解析预览</button> ' +
+                              '<button class="btn-delete" onclick="deleteSpotImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else if (f.status === '已解析') {
+                    actions = '<button class="btn-primary" onclick="parseSpotPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">确认导入</button> ' +
+                              '<button class="btn-delete" onclick="deleteSpotImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else {
+                    actions = '<button class="btn-default" onclick="parseSpotPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">查看</button>';
+                }
+                
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + f.name + '</strong></td>' +
+                    '<td>' + f.uploadTime + '</td>' +
+                    '<td>' + f.uploader + '</td>' +
+                    '<td>' + (f.rowCount || '-') + '</td>' +
+                    '<td>' + statusText + '</td>' +
+                    '<td>' + actions + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function handleSpotImport(input) {
+            var file = input.files[0];
+            if (!file) return;
+
+            var ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                alert('仅支持 Excel (.xlsx/.xls) 和 CSV 格式文件');
+                return;
+            }
+
+            var now = new Date();
+            var fileRecord = {
+                id: Date.now(),
+                name: file.name,
+                file: file,
+                uploadTime: now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + 
+                         String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'),
+                uploader: '管理员',
+                status: '待解析',
+                rowCount: null,
+                validCount: 0,
+                invalidCount: 0,
+                errors: [],
+                parsedData: null
+            };
+
+            spotImportFiles.unshift(fileRecord);
+            renderSpotImportFileList();
+            input.value = '';
+        }
+
+        function deleteSpotImportFile(index) {
+            if (confirm('确认删除文件「' + spotImportFiles[index].name + '」？')) {
+                spotImportFiles.splice(index, 1);
+                renderSpotImportFileList();
+            }
+        }
+
+        function parseSpotPreview(index) {
+            var fileRecord = spotImportFiles[index];
+            currentSpotPreviewFile = fileRecord;
+            
+            document.getElementById('spot-preview-filename').textContent = fileRecord.name;
+            
+            setTimeout(function() {
+                var mockData = [
+                    { date: '2025-11-04', period: '00:15:00', node: '湖南省均价', dayPrice: '355.200', realPrice: '368.450', dayVolume: '22800.00', realVolume: '23100.00', type: '总电量' },
+                    { date: '', period: '03:15:00', node: '坡窑山', dayPrice: '362.800', realPrice: '375.200', dayVolume: '5700.00', realVolume: '5800.00', type: '风电' },
+                    { date: '2025-11-04', period: '06:15:00', node: '邱家湖', dayPrice: '358.600', realPrice: '370.800', dayVolume: '4560.00', realVolume: '4600.00', type: '光伏' }
+                ];
+                
+                var errors = [];
+                mockData.forEach(function(row, i) {
+                    if (!row.date) errors.push('第' + (i + 2) + '行：交易日期不能为空');
+                });
+                
+                fileRecord.parsedData = mockData;
+                fileRecord.rowCount = mockData.length;
+                fileRecord.validCount = mockData.length - errors.length;
+                fileRecord.invalidCount = errors.length;
+                fileRecord.errors = errors;
+                fileRecord.status = '已解析';
+                
+                currentSpotPreviewData = mockData;
+                
+                document.getElementById('spot-preview-total').textContent = mockData.length;
+                document.getElementById('spot-preview-valid').textContent = fileRecord.validCount;
+                document.getElementById('spot-preview-invalid').textContent = fileRecord.invalidCount;
+                
+                var headers = ['交易日期', '交易时段', '节点名称', '日前出清电价(元/MWh)', '实时出清电价(元/MWh)', '日前出清电量(MWh)', '实时出清电量(MWh)', '电源类型'];
+                var headerHtml = '<tr>';
+                headers.forEach(function(h) { headerHtml += '<th>' + h + '</th>'; });
+                headerHtml += '</tr>';
+                document.getElementById('spot-preview-thead').innerHTML = headerHtml;
+                
+                var bodyHtml = '';
+                mockData.forEach(function(row, i) {
+                    var bgClass = !row.date ? 'style="background:#fff2f0"' : '';
+                    bodyHtml += '<tr ' + bgClass + '>' +
+                        '<td>' + (row.date || '<span style="color:var(--danger)">空</span>') + '</td>' +
+                        '<td>' + row.period + '</td>' +
+                        '<td>' + row.node + '</td>' +
+                        '<td style="text-align:right">' + row.dayPrice + '</td>' +
+                        '<td style="text-align:right">' + row.realPrice + '</td>' +
+                        '<td style="text-align:right">' + row.dayVolume + '</td>' +
+                        '<td style="text-align:right">' + row.realVolume + '</td>' +
+                        '<td>' + row.type + '</td>' +
+                        '</tr>';
+                });
+                document.getElementById('spot-preview-tbody').innerHTML = bodyHtml;
+                
+                if (errors.length > 0) {
+                    var errorHtml = '<strong style="color:var(--danger)">校验错误：</strong><br>';
+                    errors.forEach(function(err) {
+                        errorHtml += '<div style="padding:4px 0;color:var(--danger);font-size:var(--text-sm)">' + err + '</div>';
+                    });
+                    document.getElementById('spot-preview-errors').innerHTML = errorHtml;
+                    document.getElementById('spot-preview-errors').style.display = 'block';
+                } else {
+                    document.getElementById('spot-preview-errors').style.display = 'none';
+                }
+                
+                renderSpotImportFileList();
+                document.getElementById('spot-preview-modal').style.display = 'flex';
+            }, 500);
+        }
+
+        function closeSpotPreviewModal() {
+            document.getElementById('spot-preview-modal').style.display = 'none';
+        }
+
+        function confirmSpotImport() {
+            if (!currentSpotPreviewFile || !currentSpotPreviewData) return;
+            
+            var successCount = 0;
+            var failedCount = 0;
+            
+            currentSpotPreviewData.forEach(function(row, i) {
+                if (!row.date) {
+                    failedCount++;
+                    return;
+                }
+                
+                spotData.push(row);
+                successCount++;
+            });
+            
+            currentSpotPreviewFile.status = failedCount === 0 ? '已导入' : '部分成功';
+            renderSpotImportFileList();
+            closeSpotPreviewModal();
+            
+            if (failedCount > 0) {
+                alert('导入完成：成功 ' + successCount + ' 条，失败 ' + failedCount + ' 条');
+            } else {
+                alert('导入完成：全部 ' + successCount + ' 条数据导入成功');
+            }
+            renderSpots();
+        }
+
+        document.getElementById('spot-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeSpotModal();
+        });
+
+        renderSpots();
+
+        window.openSpotModal = openSpotModal;
+        window.closeSpotModal = closeSpotModal;
+        window.saveSpot = saveSpot;
+        window.deleteSpot = deleteSpot;
+        window.filterSpots = filterSpots;
+        window.downloadSpotTemplate = downloadSpotTemplate;
+        window.openSpotImportModal = openSpotImportModal;
+        window.closeSpotImportModal = closeSpotImportModal;
+        window.handleSpotImport = handleSpotImport;
+        window.parseSpotPreview = parseSpotPreview;
+        window.closeSpotPreviewModal = closeSpotPreviewModal;
+        window.confirmSpotImport = confirmSpotImport;
+        window.deleteSpotImportFile = deleteSpotImportFile;
+    </script>
+</body>
+</html>

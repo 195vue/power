@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCADA实时数据管理 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">SCADA实时数据管理</h2>
+            <p class="page-subtitle">管理风机15分钟级出力数据，支撑功率预测偏差分析与发电统计</p>
+        </div>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchScadaTab('realtime')">15分钟出力数据</button>
+            <button class="tab-btn" onclick="switchScadaTab('daily')">日统计数据</button>
+            <button class="tab-btn" onclick="switchScadaTab('monthly')">月统计数据</button>
+        </div>
+
+        <div id="tab-realtime" class="tab-content" style="display:block">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>场站名称</label>
+                    <select class="filter-select" style="width:160px" id="scada-filter-station">
+                        <option value="all">全部场站</option>
+                        <option>桂阳月和风电场</option>
+                        <option>光伏电站A</option>
+                        <option>风电场B</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>日期</label>
+                    <input class="filter-select" type="date" id="scada-filter-date" style="width:140px">
+                </div>
+                <div class="filter-item">
+                    <label>机组编号</label>
+                    <select class="filter-select" style="width:120px" id="scada-filter-unit">
+                        <option value="all">全部机组</option>
+                        <option>1#</option>
+                        <option>2#</option>
+                        <option>3#</option>
+                        <option>4#</option>
+                        <option>5#</option>
+                        <option>汇总</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="filterScadaData()">查询</button>
+                <div style="flex:1"></div>
+                <button class="btn-default" onclick="downloadScadaTemplate()">下载导入模板</button>
+                <button class="btn-default" onclick="openScadaImportModal()">批量导入</button>
+                <button class="btn-primary" onclick="openScadaModal()">+ 新增数据</button>
+            </div>
+
+            <div class="table-section" style="margin-top: var(--space-4)">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>时段(15min)</th>
+                            <th>场站名称</th>
+                            <th>机组编号</th>
+                            <th>上网功率(MW)</th>
+                            <th>预测功率(MW)</th>
+                            <th>偏差(MW)</th>
+                            <th>偏差率(%)</th>
+                            <th>状态</th>
+                            <th style="width:140px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scada-table-body"></tbody>
+                </table>
+                <div class="pagination">
+                    <span class="info-text" id="scada-count">共 0 条记录</span>
+                    <div>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-daily" class="tab-content" style="display:none">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>场站名称</label>
+                    <select class="filter-select" style="width:160px" id="daily-filter-station">
+                        <option value="all">全部场站</option>
+                        <option>桂阳月和风电场</option>
+                        <option>光伏电站A</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>日期范围</label>
+                    <input class="filter-select" type="date" id="daily-filter-start" style="width:120px">
+                    <span style="margin:0 4px">-</span>
+                    <input class="filter-select" type="date" id="daily-filter-end" style="width:120px">
+                </div>
+                <button class="btn-primary" onclick="filterDailyData()">查询</button>
+                <div style="flex:1"></div>
+                <button class="btn-default" onclick="exportDailyData()">导出数据</button>
+            </div>
+            <div class="table-section" style="margin-top: var(--space-4)">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>场站名称</th>
+                            <th>日发电量(MWh)</th>
+                            <th>利用小时数(h)</th>
+                            <th>最大出力(MW)</th>
+                            <th>最小出力(MW)</th>
+                            <th>平均出力(MW)</th>
+                            <th>出力系数(%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="daily-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-monthly" class="tab-content" style="display:none">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>场站名称</label>
+                    <select class="filter-select" style="width:160px" id="monthly-filter-station">
+                        <option value="all">全部场站</option>
+                        <option>桂阳月和风电场</option>
+                        <option>光伏电站A</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>月份</label>
+                    <input class="filter-select" type="month" id="monthly-filter-month" style="width:140px">
+                </div>
+                <button class="btn-primary" onclick="filterMonthlyData()">查询</button>
+                <div style="flex:1"></div>
+                <button class="btn-default" onclick="exportMonthlyData()">导出数据</button>
+            </div>
+            <div class="table-section" style="margin-top: var(--space-4)">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>月份</th>
+                            <th>场站名称</th>
+                            <th>月发电量(MWh)</th>
+                            <th>累计利用小时数(h)</th>
+                            <th>日均利用小时(h)</th>
+                            <th>最大出力(MW)</th>
+                            <th>最小出力(MW)</th>
+                            <th>平均出力(MW)</th>
+                            <th>出力系数(%)</th>
+                            <th>同比(%)</th>
+                            <th>环比(%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthly-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="scada-modal" style="display:none">
+        <div class="modal-panel" style="width:640px">
+            <div class="modal-header">
+                <h3 id="scada-modal-title">新增15分钟出力数据</h3>
+                <button class="modal-close" onclick="closeScadaModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group" style="flex:1">
+                        <label>日期 <span class="required">*</span></label>
+                        <input type="date" class="form-input" id="scada-date" required>
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>时段 <span class="required">*</span></label>
+                        <select class="form-input" id="scada-period">
+                            <option>00:00</option><option>00:15</option><option>00:30</option><option>00:45</option>
+                            <option>01:00</option><option>01:15</option><option>01:30</option><option>01:45</option>
+                            <option>02:00</option><option>02:15</option><option>02:30</option><option>02:45</option>
+                            <option>03:00</option><option>03:15</option><option>03:30</option><option>03:45</option>
+                            <option>04:00</option><option>04:15</option><option>04:30</option><option>04:45</option>
+                            <option>05:00</option><option>05:15</option><option>05:30</option><option>05:45</option>
+                            <option>06:00</option><option>06:15</option><option>06:30</option><option>06:45</option>
+                            <option>07:00</option><option>07:15</option><option>07:30</option><option>07:45</option>
+                            <option>08:00</option><option>08:15</option><option>08:30</option><option>08:45</option>
+                            <option>09:00</option><option>09:15</option><option>09:30</option><option>09:45</option>
+                            <option>10:00</option><option>10:15</option><option>10:30</option><option>10:45</option>
+                            <option>11:00</option><option>11:15</option><option>11:30</option><option>11:45</option>
+                            <option>12:00</option><option>12:15</option><option>12:30</option><option>12:45</option>
+                            <option>13:00</option><option>13:15</option><option>13:30</option><option>13:45</option>
+                            <option>14:00</option><option>14:15</option><option>14:30</option><option>14:45</option>
+                            <option>15:00</option><option>15:15</option><option>15:30</option><option>15:45</option>
+                            <option>16:00</option><option>16:15</option><option>16:30</option><option>16:45</option>
+                            <option>17:00</option><option>17:15</option><option>17:30</option><option>17:45</option>
+                            <option>18:00</option><option>18:15</option><option>18:30</option><option>18:45</option>
+                            <option>19:00</option><option>19:15</option><option>19:30</option><option>19:45</option>
+                            <option>20:00</option><option>20:15</option><option>20:30</option><option>20:45</option>
+                            <option>21:00</option><option>21:15</option><option>21:30</option><option>21:45</option>
+                            <option>22:00</option><option>22:15</option><option>22:30</option><option>22:45</option>
+                            <option>23:00</option><option>23:15</option><option>23:30</option><option>23:45</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1">
+                        <label>场站名称 <span class="required">*</span></label>
+                        <select class="form-input" id="scada-station">
+                            <option>桂阳月和风电场</option>
+                            <option>光伏电站A</option>
+                            <option>风电场B</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>机组编号</label>
+                        <select class="form-input" id="scada-unit">
+                            <option>汇总</option>
+                            <option>1#</option>
+                            <option>2#</option>
+                            <option>3#</option>
+                            <option>4#</option>
+                            <option>5#</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1">
+                        <label>上网功率(MW)</label>
+                        <input type="number" step="0.01" class="form-input" id="scada-actual">
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>预测功率(MW)</label>
+                        <input type="number" step="0.01" class="form-input" id="scada-predict">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>状态</label>
+                    <select class="form-input" id="scada-status">
+                        <option>正常</option>
+                        <option>异常</option>
+                        <option>缺失</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeScadaModal()">取消</button>
+                <button class="btn-primary" onclick="saveScadaData()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="scada-import-modal" style="display:none">
+        <div class="modal-panel" style="width:720px">
+            <div class="modal-header">
+                <h3>批量导入15分钟出力数据</h3>
+                <button class="modal-close" onclick="closeScadaImportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-3);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-4)">
+                    <strong>导入流程：</strong>
+                    <div style="display:flex;gap:var(--space-4);margin-top:8px">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px">1</span>
+                            <span style="font-size:var(--text-sm)">上传文件</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">2</span>
+                            <span style="font-size:var(--text-sm)">解析预览</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">3</span>
+                            <span style="font-size:var(--text-sm)">确认导入</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="import-drop-area" onclick="document.getElementById('scada-import-file').click()" style="border:2px dashed var(--border);border-radius:var(--radius);padding:var(--space-6);text-align:center;cursor:pointer;margin-bottom:var(--space-4);background:var(--bg-secondary)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto var(--space-3);color:var(--muted)">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <div style="font-size:var(--text-sm);color:var(--muted)">点击或拖拽文件到此处上传</div>
+                    <input type="file" id="scada-import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleScadaImport(this)">
+                </div>
+                <div style="margin-bottom:var(--space-3)">
+                    <h4 style="margin:0 0 var(--space-2);font-size:var(--text-sm);font-weight:600">已上传文件列表</h4>
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead>
+                            <tr>
+                                <th style="width:200px">文件名</th>
+                                <th style="width:120px">上传时间</th>
+                                <th style="width:80px">上传人</th>
+                                <th style="width:80px">数据条数</th>
+                                <th style="width:100px">状态</th>
+                                <th style="width:120px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scada-import-file-list"></tbody>
+                    </table>
+                    <div id="scada-import-file-empty" style="text-align:center;color:var(--muted);padding:var(--space-4);display:none">暂无上传文件</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="downloadScadaTemplate()">下载模板</button>
+                <button class="btn-primary" onclick="document.getElementById('scada-import-file').click()">选择文件上传</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="scada-preview-modal" style="display:none">
+        <div class="modal-panel" style="width:800px">
+            <div class="modal-header">
+                <h3>数据预览</h3>
+                <button class="modal-close" onclick="closeScadaPreviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-2);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-3);font-size:var(--text-sm)">
+                    <strong>文件：</strong><span id="scada-preview-filename"></span>
+                    <span style="margin-left:var(--space-4)"><strong>总条数：</strong><span id="scada-preview-total"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>有效条数：</strong><span id="scada-preview-valid"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>无效条数：</strong><span id="scada-preview-invalid"></span></span>
+                </div>
+                <div style="max-height:350px;overflow-y:auto">
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead id="scada-preview-thead"></thead>
+                        <tbody id="scada-preview-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="scada-preview-errors" style="margin-top:var(--space-3);max-height:150px;overflow-y:auto;display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeScadaPreviewModal()">取消</button>
+                <button class="btn-primary" onclick="confirmScadaImport()">确认导入</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var scadaData = [
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '汇总', actual: 38.50, predict: 40.00, status: '正常' },
+            { date: '2025-11-01', period: '00:15', station: '桂阳月和风电场', unit: '汇总', actual: 37.80, predict: 39.50, status: '正常' },
+            { date: '2025-11-01', period: '00:30', station: '桂阳月和风电场', unit: '汇总', actual: 38.20, predict: 39.00, status: '正常' },
+            { date: '2025-11-01', period: '00:45', station: '桂阳月和风电场', unit: '汇总', actual: 37.50, predict: 38.50, status: '正常' },
+            { date: '2025-11-01', period: '01:00', station: '桂阳月和风电场', unit: '汇总', actual: 36.80, predict: 38.00, status: '正常' },
+            { date: '2025-11-01', period: '01:15', station: '桂阳月和风电场', unit: '汇总', actual: 36.20, predict: 37.50, status: '正常' },
+            { date: '2025-11-01', period: '01:30', station: '桂阳月和风电场', unit: '汇总', actual: 35.80, predict: 37.00, status: '正常' },
+            { date: '2025-11-01', period: '01:45', station: '桂阳月和风电场', unit: '汇总', actual: 35.50, predict: 36.50, status: '正常' },
+            { date: '2025-11-01', period: '02:00', station: '桂阳月和风电场', unit: '汇总', actual: 35.20, predict: 36.00, status: '正常' },
+            { date: '2025-11-01', period: '02:15', station: '桂阳月和风电场', unit: '汇总', actual: 34.80, predict: 35.50, status: '正常' },
+            { date: '2025-11-01', period: '07:00', station: '桂阳月和风电场', unit: '汇总', actual: 48.50, predict: 45.00, status: '正常' },
+            { date: '2025-11-01', period: '12:00', station: '桂阳月和风电场', unit: '汇总', actual: 45.20, predict: 46.80, status: '正常' },
+            { date: '2025-11-01', period: '18:00', station: '桂阳月和风电场', unit: '汇总', actual: 42.80, predict: 43.50, status: '正常' },
+            { date: '2025-11-01', period: '23:00', station: '桂阳月和风电场', unit: '汇总', actual: 39.20, predict: 40.50, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '光伏电站A', unit: '汇总', actual: 0, predict: 0, status: '正常' },
+            { date: '2025-11-01', period: '07:00', station: '光伏电站A', unit: '汇总', actual: 120.50, predict: 115.00, status: '正常' },
+            { date: '2025-11-01', period: '12:00', station: '光伏电站A', unit: '汇总', actual: 148.20, predict: 150.00, status: '正常' },
+            { date: '2025-11-01', period: '18:00', station: '光伏电站A', unit: '汇总', actual: 85.60, predict: 88.00, status: '正常' }
+        ];
+
+        var dailyData = [
+            { date: '2025-11-01', station: '桂阳月和风电场', generation: 1120.50, hours: 22.41, maxPower: 48.50, minPower: 34.80, avgPower: 37.35, factor: 74.70 },
+            { date: '2025-11-02', station: '桂阳月和风电场', generation: 1085.20, hours: 21.70, maxPower: 46.80, minPower: 33.20, avgPower: 36.17, factor: 72.34 },
+            { date: '2025-11-01', station: '光伏电站A', generation: 3650.80, hours: 9.58, maxPower: 148.20, minPower: 0, avgPower: 94.50, factor: 63.00 },
+            { date: '2025-11-02', station: '光伏电站A', generation: 3420.50, hours: 9.00, maxPower: 145.60, minPower: 0, avgPower: 90.01, factor: 60.01 }
+        ];
+
+        var monthlyData = [
+            { month: '2025-10', station: '桂阳月和风电场', generation: 32560.80, hours: 651.22, avgDailyHours: 21.01, maxPower: 50.00, minPower: 28.50, avgPower: 36.18, factor: 72.36, yoy: 12.50, mom: 5.20 },
+            { month: '2025-11', station: '桂阳月和风电场', generation: 34280.50, hours: 685.61, avgDailyHours: 22.85, maxPower: 48.50, minPower: 33.20, avgPower: 37.25, factor: 74.50, yoy: 15.80, mom: 5.28 },
+            { month: '2025-10', station: '光伏电站A', generation: 108520.50, hours: 285.58, avgDailyHours: 9.21, maxPower: 150.00, minPower: 0, avgPower: 93.50, factor: 62.33, yoy: 8.50, mom: -2.30 },
+            { month: '2025-11', station: '光伏电站A', generation: 105280.80, hours: 276.53, avgDailyHours: 9.22, maxPower: 148.20, minPower: 0, avgPower: 91.80, factor: 61.20, yoy: 5.20, mom: -3.00 }
+        ];
+
+        var scadaImportFiles = [];
+        var currentScadaPreviewData = [];
+        var currentScadaPreviewFile = null;
+        var editingScadaIndex = -1;
+
+        function switchScadaTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(content) { content.style.display = 'none'; });
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).style.display = 'block';
+            if (tab === 'realtime') renderScadaTable();
+            else if (tab === 'daily') renderDailyTable();
+            else renderMonthlyTable();
+        }
+
+        function renderScadaTable() {
+            var tbody = document.getElementById('scada-table-body');
+            tbody.innerHTML = '';
+            scadaData.forEach(function(item, idx) {
+                var deviation = item.predict !== undefined && item.predict !== null ? (item.actual - item.predict).toFixed(2) : '-';
+                var deviationRate = item.predict !== undefined && item.predict !== null && item.predict !== 0 ? 
+                    ((item.actual - item.predict) / item.predict * 100).toFixed(2) : '-';
+                var statusClass = item.status === '正常' ? 'badge-success' : (item.status === '异常' ? 'badge-danger' : 'badge-muted');
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + item.date + '</td>' +
+                    '<td>' + item.period + '</td>' +
+                    '<td>' + item.station + '</td>' +
+                    '<td>' + item.unit + '</td>' +
+                    '<td>' + (item.actual || '-') + '</td>' +
+                    '<td>' + (item.predict || '-') + '</td>' +
+                    '<td>' + deviation + '</td>' +
+                    '<td>' + deviationRate + '</td>' +
+                    '<td><span class="badge ' + statusClass + '">' + item.status + '</span></td>' +
+                    '<td>' +
+                        '<button class="btn-default" onclick="openScadaModal(' + idx + ')" style="padding:2px 8px;font-size:12px">编辑</button> ' +
+                        '<button class="btn-delete" onclick="deleteScadaData(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            document.getElementById('scada-count').textContent = '共 ' + scadaData.length + ' 条记录';
+        }
+
+        function filterScadaData() {
+            var station = document.getElementById('scada-filter-station').value;
+            var date = document.getElementById('scada-filter-date').value;
+            var unit = document.getElementById('scada-filter-unit').value;
+            var filtered = scadaData.filter(function(item) {
+                var matchStation = station === 'all' || item.station === station;
+                var matchDate = !date || item.date === date;
+                var matchUnit = unit === 'all' || item.unit === unit;
+                return matchStation && matchDate && matchUnit;
+            });
+            var tbody = document.getElementById('scada-table-body');
+            tbody.innerHTML = '';
+            filtered.forEach(function(item, idx) {
+                var deviation = item.predict !== undefined && item.predict !== null ? (item.actual - item.predict).toFixed(2) : '-';
+                var deviationRate = item.predict !== undefined && item.predict !== null && item.predict !== 0 ? 
+                    ((item.actual - item.predict) / item.predict * 100).toFixed(2) : '-';
+                var statusClass = item.status === '正常' ? 'badge-success' : (item.status === '异常' ? 'badge-danger' : 'badge-muted');
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + item.date + '</td>' +
+                    '<td>' + item.period + '</td>' +
+                    '<td>' + item.station + '</td>' +
+                    '<td>' + item.unit + '</td>' +
+                    '<td>' + (item.actual || '-') + '</td>' +
+                    '<td>' + (item.predict || '-') + '</td>' +
+                    '<td>' + deviation + '</td>' +
+                    '<td>' + deviationRate + '</td>' +
+                    '<td><span class="badge ' + statusClass + '">' + item.status + '</span></td>' +
+                    '<td>' +
+                        '<button class="btn-default" onclick="openScadaModal(' + idx + ')" style="padding:2px 8px;font-size:12px">编辑</button> ' +
+                        '<button class="btn-delete" onclick="deleteScadaData(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>' +
+                    '</td>' +
+                    '</tr>';
+            });
+            document.getElementById('scada-count').textContent = '共 ' + filtered.length + ' 条记录';
+        }
+
+        function openScadaModal(index) {
+            editingScadaIndex = index;
+            if (index >= 0) {
+                var item = scadaData[index];
+                document.getElementById('scada-modal-title').textContent = '编辑15分钟出力数据';
+                document.getElementById('scada-date').value = item.date;
+                document.getElementById('scada-period').value = item.period;
+                document.getElementById('scada-station').value = item.station;
+                document.getElementById('scada-unit').value = item.unit;
+                document.getElementById('scada-actual').value = item.actual || '';
+                document.getElementById('scada-predict').value = item.predict || '';
+                document.getElementById('scada-status').value = item.status;
+            } else {
+                document.getElementById('scada-modal-title').textContent = '新增15分钟出力数据';
+                document.getElementById('scada-date').value = '';
+                document.getElementById('scada-period').value = '00:00';
+                document.getElementById('scada-station').value = '桂阳月和风电场';
+                document.getElementById('scada-unit').value = '汇总';
+                document.getElementById('scada-actual').value = '';
+                document.getElementById('scada-predict').value = '';
+                document.getElementById('scada-status').value = '正常';
+            }
+            document.getElementById('scada-modal').style.display = 'flex';
+        }
+
+        function closeScadaModal() {
+            document.getElementById('scada-modal').style.display = 'none';
+            editingScadaIndex = -1;
+        }
+
+        function saveScadaData() {
+            var date = document.getElementById('scada-date').value;
+            var period = document.getElementById('scada-period').value;
+            var station = document.getElementById('scada-station').value;
+            var unit = document.getElementById('scada-unit').value;
+            var actual = parseFloat(document.getElementById('scada-actual').value) || null;
+            var predict = parseFloat(document.getElementById('scada-predict').value) || null;
+            var status = document.getElementById('scada-status').value;
+
+            if (!date) {
+                alert('请选择日期');
+                return;
+            }
+
+            var newData = { date, period, station, unit, actual, predict, status };
+            
+            if (editingScadaIndex >= 0) {
+                scadaData[editingScadaIndex] = newData;
+            } else {
+                scadaData.push(newData);
+            }
+            
+            closeScadaModal();
+            renderScadaTable();
+        }
+
+        function deleteScadaData(index) {
+            if (confirm('确认删除这条数据？')) {
+                scadaData.splice(index, 1);
+                renderScadaTable();
+            }
+        }
+
+        function downloadScadaTemplate() {
+            var headers = ['日期', '时段(15min)', '场站名称', '机组编号', '上网功率(MW)', '预测功率(MW)', '状态'];
+            var csvContent = '\uFEFF' + headers.join(',') + '\n';
+            csvContent += '2025-11-01,00:00,桂阳月和风电场,汇总,38.50,40.00,正常\n';
+            
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '15分钟出力数据导入模板.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function renderDailyTable() {
+            var tbody = document.getElementById('daily-table-body');
+            tbody.innerHTML = '';
+            dailyData.forEach(function(item) {
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + item.date + '</td>' +
+                    '<td>' + item.station + '</td>' +
+                    '<td>' + item.generation + '</td>' +
+                    '<td>' + item.hours.toFixed(2) + '</td>' +
+                    '<td>' + item.maxPower + '</td>' +
+                    '<td>' + item.minPower + '</td>' +
+                    '<td>' + item.avgPower.toFixed(2) + '</td>' +
+                    '<td>' + item.factor.toFixed(2) + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function filterDailyData() {
+            var station = document.getElementById('daily-filter-station').value;
+            var start = document.getElementById('daily-filter-start').value;
+            var end = document.getElementById('daily-filter-end').value;
+            var filtered = dailyData.filter(function(item) {
+                var matchStation = station === 'all' || item.station === station;
+                var matchDate = (!start && !end) || 
+                    (start && end && item.date >= start && item.date <= end) ||
+                    (start && !end && item.date >= start) ||
+                    (!start && end && item.date <= end);
+                return matchStation && matchDate;
+            });
+            var tbody = document.getElementById('daily-table-body');
+            tbody.innerHTML = '';
+            filtered.forEach(function(item) {
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + item.date + '</td>' +
+                    '<td>' + item.station + '</td>' +
+                    '<td>' + item.generation + '</td>' +
+                    '<td>' + item.hours.toFixed(2) + '</td>' +
+                    '<td>' + item.maxPower + '</td>' +
+                    '<td>' + item.minPower + '</td>' +
+                    '<td>' + item.avgPower.toFixed(2) + '</td>' +
+                    '<td>' + item.factor.toFixed(2) + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function exportDailyData() {
+            var headers = ['日期', '场站名称', '日发电量(MWh)', '利用小时数(h)', '最大出力(MW)', '最小出力(MW)', '平均出力(MW)', '出力系数(%)'];
+            var csvContent = '\uFEFF' + headers.join(',') + '\n';
+            dailyData.forEach(function(item) {
+                csvContent += item.date + ',' + item.station + ',' + item.generation + ',' + 
+                    item.hours.toFixed(2) + ',' + item.maxPower + ',' + item.minPower + ',' + 
+                    item.avgPower.toFixed(2) + ',' + item.factor.toFixed(2) + '\n';
+            });
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '日统计数据.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function renderMonthlyTable() {
+            var tbody = document.getElementById('monthly-table-body');
+            tbody.innerHTML = '';
+            monthlyData.forEach(function(item) {
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + item.month + '</td>' +
+                    '<td>' + item.station + '</td>' +
+                    '<td>' + item.generation + '</td>' +
+                    '<td>' + item.hours.toFixed(2) + '</td>' +
+                    '<td>' + item.avgDailyHours.toFixed(2) + '</td>' +
+                    '<td>' + item.maxPower + '</td>' +
+                    '<td>' + item.minPower + '</td>' +
+                    '<td>' + item.avgPower.toFixed(2) + '</td>' +
+                    '<td>' + item.factor.toFixed(2) + '</td>' +
+                    '<td>' + item.yoy.toFixed(2) + '</td>' +
+                    '<td>' + item.mom.toFixed(2) + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function filterMonthlyData() {
+            var station = document.getElementById('monthly-filter-station').value;
+            var month = document.getElementById('monthly-filter-month').value;
+            var filtered = monthlyData.filter(function(item) {
+                var matchStation = station === 'all' || item.station === station;
+                var matchMonth = !month || item.month === month;
+                return matchStation && matchMonth;
+            });
+            var tbody = document.getElementById('monthly-table-body');
+            tbody.innerHTML = '';
+            filtered.forEach(function(item) {
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + item.month + '</td>' +
+                    '<td>' + item.station + '</td>' +
+                    '<td>' + item.generation + '</td>' +
+                    '<td>' + item.hours.toFixed(2) + '</td>' +
+                    '<td>' + item.avgDailyHours.toFixed(2) + '</td>' +
+                    '<td>' + item.maxPower + '</td>' +
+                    '<td>' + item.minPower + '</td>' +
+                    '<td>' + item.avgPower.toFixed(2) + '</td>' +
+                    '<td>' + item.factor.toFixed(2) + '</td>' +
+                    '<td>' + item.yoy.toFixed(2) + '</td>' +
+                    '<td>' + item.mom.toFixed(2) + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function exportMonthlyData() {
+            var headers = ['月份', '场站名称', '月发电量(MWh)', '累计利用小时数(h)', '日均利用小时(h)', '最大出力(MW)', '最小出力(MW)', '平均出力(MW)', '出力系数(%)', '同比(%)', '环比(%)'];
+            var csvContent = '\uFEFF' + headers.join(',') + '\n';
+            monthlyData.forEach(function(item) {
+                csvContent += item.month + ',' + item.station + ',' + item.generation + ',' + 
+                    item.hours.toFixed(2) + ',' + item.avgDailyHours.toFixed(2) + ',' + 
+                    item.maxPower + ',' + item.minPower + ',' + item.avgPower.toFixed(2) + ',' + 
+                    item.factor.toFixed(2) + ',' + item.yoy.toFixed(2) + ',' + item.mom.toFixed(2) + '\n';
+            });
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '月统计数据.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function openScadaImportModal() {
+            document.getElementById('scada-import-modal').style.display = 'flex';
+            document.getElementById('scada-import-file').value = '';
+            renderScadaImportFileList();
+        }
+
+        function closeScadaImportModal() {
+            document.getElementById('scada-import-modal').style.display = 'none';
+        }
+
+        function renderScadaImportFileList() {
+            var tbody = document.getElementById('scada-import-file-list');
+            var empty = document.getElementById('scada-import-file-empty');
+            
+            if (scadaImportFiles.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            tbody.innerHTML = '';
+            
+            scadaImportFiles.forEach(function(f, idx) {
+                var statusText = f.status === '待解析' ? '<span class="badge badge-muted">待解析</span>' :
+                                 f.status === '已解析' ? '<span class="badge badge-success">已解析</span>' :
+                                 f.status === '已导入' ? '<span class="tag status-success">已导入</span>' :
+                                 '<span class="tag status-danger">导入失败</span>';
+                
+                var actions = '';
+                if (f.status === '待解析') {
+                    actions = '<button class="btn-default" onclick="parseScadaPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">解析预览</button> ' +
+                              '<button class="btn-delete" onclick="deleteScadaImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else if (f.status === '已解析') {
+                    actions = '<button class="btn-primary" onclick="parseScadaPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">确认导入</button> ' +
+                              '<button class="btn-delete" onclick="deleteScadaImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else {
+                    actions = '<button class="btn-default" onclick="parseScadaPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">查看</button>';
+                }
+                
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + f.name + '</strong></td>' +
+                    '<td>' + f.uploadTime + '</td>' +
+                    '<td>' + f.uploader + '</td>' +
+                    '<td>' + (f.rowCount || '-') + '</td>' +
+                    '<td>' + statusText + '</td>' +
+                    '<td>' + actions + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function handleScadaImport(input) {
+            var file = input.files[0];
+            if (!file) return;
+
+            var ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                alert('仅支持 Excel (.xlsx/.xls) 和 CSV 格式文件');
+                return;
+            }
+
+            var now = new Date();
+            var fileRecord = {
+                id: Date.now(),
+                name: file.name,
+                file: file,
+                uploadTime: now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + 
+                         String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'),
+                uploader: '管理员',
+                status: '待解析',
+                rowCount: null,
+                validCount: 0,
+                invalidCount: 0,
+                errors: [],
+                parsedData: null
+            };
+
+            scadaImportFiles.unshift(fileRecord);
+            renderScadaImportFileList();
+            input.value = '';
+        }
+
+        function deleteScadaImportFile(index) {
+            if (confirm('确认删除文件「' + scadaImportFiles[index].name + '」？')) {
+                scadaImportFiles.splice(index, 1);
+                renderScadaImportFileList();
+            }
+        }
+
+        function parseScadaPreview(index) {
+            var fileRecord = scadaImportFiles[index];
+            currentScadaPreviewFile = fileRecord;
+            
+            document.getElementById('scada-preview-filename').textContent = fileRecord.name;
+            
+            setTimeout(function() {
+                var mockData = [
+                    { date: '2025-11-02', period: '00:00', station: '桂阳月和风电场', unit: '汇总', actual: 39.20, predict: 40.50, deviation: -1.30, deviationRate: -3.21, status: '正常' },
+                    { date: '2025-11-02', period: '00:15', station: '桂阳月和风电场', unit: '汇总', actual: 38.80, predict: 40.00, deviation: -1.20, deviationRate: -3.00, status: '正常' },
+                    { date: '', period: '00:30', station: '桂阳月和风电场', unit: '汇总', actual: 38.50, predict: 39.50, deviation: -1.00, deviationRate: -2.53, status: '正常' },
+                    { date: '2025-11-02', period: '00:45', station: '桂阳月和风电场', unit: '汇总', actual: 38.20, predict: 39.00, deviation: -0.80, deviationRate: -2.05, status: '正常' }
+                ];
+                
+                var errors = [];
+                mockData.forEach(function(row, i) {
+                    if (!row.date) errors.push('第' + (i + 2) + '行：日期不能为空');
+                });
+                
+                fileRecord.parsedData = mockData;
+                fileRecord.rowCount = mockData.length;
+                fileRecord.validCount = mockData.length - errors.length;
+                fileRecord.invalidCount = errors.length;
+                fileRecord.errors = errors;
+                fileRecord.status = '已解析';
+                
+                currentScadaPreviewData = mockData;
+                
+                document.getElementById('scada-preview-total').textContent = mockData.length;
+                document.getElementById('scada-preview-valid').textContent = fileRecord.validCount;
+                document.getElementById('scada-preview-invalid').textContent = fileRecord.invalidCount;
+                
+                var headers = ['日期', '时段(15min)', '场站名称', '机组编号', '上网功率(MW)', '预测功率(MW)', '状态'];
+                var headerHtml = '<tr>';
+                headers.forEach(function(h) { headerHtml += '<th>' + h + '</th>'; });
+                headerHtml += '</tr>';
+                document.getElementById('scada-preview-thead').innerHTML = headerHtml;
+                
+                var bodyHtml = '';
+                mockData.forEach(function(row, i) {
+                    var bgClass = !row.date ? 'style="background:#fff2f0"' : '';
+                    var deviation = row.predict !== undefined && row.predict !== null ? (row.actual - row.predict).toFixed(2) : '-';
+                    var deviationRate = row.predict !== undefined && row.predict !== null && row.predict !== 0 ? 
+                        ((row.actual - row.predict) / row.predict * 100).toFixed(2) : '-';
+                    bodyHtml += '<tr ' + bgClass + '>' +
+                        '<td>' + (row.date || '<span style="color:var(--danger)">空</span>') + '</td>' +
+                        '<td>' + row.period + '</td>' +
+                        '<td>' + row.station + '</td>' +
+                        '<td>' + row.unit + '</td>' +
+                        '<td>' + (row.actual || '-') + '</td>' +
+                        '<td>' + (row.predict || '-') + '</td>' +
+                        '<td>' + row.status + '</td>' +
+                        '</tr>';
+                });
+                document.getElementById('scada-preview-tbody').innerHTML = bodyHtml;
+                
+                if (errors.length > 0) {
+                    var errorHtml = '<strong style="color:var(--danger)">校验错误：</strong><br>';
+                    errors.forEach(function(err) {
+                        errorHtml += '<div style="padding:4px 0;color:var(--danger);font-size:var(--text-sm)">' + err + '</div>';
+                    });
+                    document.getElementById('scada-preview-errors').innerHTML = errorHtml;
+                    document.getElementById('scada-preview-errors').style.display = 'block';
+                } else {
+                    document.getElementById('scada-preview-errors').style.display = 'none';
+                }
+                
+                renderScadaImportFileList();
+                document.getElementById('scada-preview-modal').style.display = 'flex';
+            }, 500);
+        }
+
+        function closeScadaPreviewModal() {
+            document.getElementById('scada-preview-modal').style.display = 'none';
+        }
+
+        function confirmScadaImport() {
+            if (!currentScadaPreviewFile || !currentScadaPreviewData) return;
+            
+            var successCount = 0;
+            var failedCount = 0;
+            
+            currentScadaPreviewData.forEach(function(row, i) {
+                if (!row.date) {
+                    failedCount++;
+                    return;
+                }
+                
+                var existingIndex = scadaData.findIndex(function(s) { return s.date === row.date && s.period === row.period && s.station === row.station && s.unit === row.unit; });
+                if (existingIndex >= 0) {
+                    scadaData[existingIndex] = row;
+                } else {
+                    scadaData.push(row);
+                }
+                successCount++;
+            });
+            
+            currentScadaPreviewFile.status = failedCount === 0 ? '已导入' : '部分成功';
+            renderScadaImportFileList();
+            closeScadaPreviewModal();
+            
+            if (failedCount > 0) {
+                alert('导入完成：成功 ' + successCount + ' 条，失败 ' + failedCount + ' 条');
+            } else {
+                alert('导入完成：全部 ' + successCount + ' 条数据导入成功');
+            }
+            renderScadaTable();
+        }
+
+        renderScadaTable();
+
+        window.switchScadaTab = switchScadaTab;
+        window.filterScadaData = filterScadaData;
+        window.openScadaModal = openScadaModal;
+        window.closeScadaModal = closeScadaModal;
+        window.saveScadaData = saveScadaData;
+        window.deleteScadaData = deleteScadaData;
+        window.downloadScadaTemplate = downloadScadaTemplate;
+        window.filterDailyData = filterDailyData;
+        window.exportDailyData = exportDailyData;
+        window.filterMonthlyData = filterMonthlyData;
+        window.exportMonthlyData = exportMonthlyData;
+        window.openScadaImportModal = openScadaImportModal;
+        window.closeScadaImportModal = closeScadaImportModal;
+        window.handleScadaImport = handleScadaImport;
+        window.parseScadaPreview = parseScadaPreview;
+        window.closeScadaPreviewModal = closeScadaPreviewModal;
+        window.confirmScadaImport = confirmScadaImport;
+        window.deleteScadaImportFile = deleteScadaImportFile;
+    </script>
+</body>
+</html>

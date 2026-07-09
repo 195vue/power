@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预测数据管理 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">预测数据管理</h2>
+            <p class="page-subtitle">维护中长期电价预测、日前现货价格预测等数据</p>
+        </div>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchPredictTab('ml')">中长期电价预测</button>
+            <button class="tab-btn" onclick="switchPredictTab('spot')">日前现货价格预测</button>
+        </div>
+
+        <!-- 中长期电价预测 -->
+        <div id="tab-ml" class="tab-content" style="display:block">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>预测月份</label>
+                    <input class="filter-select" type="month" id="ml-filter-month" style="width:140px">
+                </div>
+                <div class="filter-item">
+                    <label>口径</label>
+                    <select class="filter-select" style="width:140px" id="ml-filter-company">
+                        <option value="all">全部口径</option>
+                        <option>全省口径</option>
+                        <option>新能源公司</option>
+                        <option>传统能源公司</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>数据类型</label>
+                    <select class="filter-select" style="width:120px" id="ml-filter-type">
+                        <option value="all">全部类型</option>
+                        <option>历史实际</option>
+                        <option>预测数据</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="filterMlPrice()">查询</button>
+                <div style="flex:1"></div>
+                <button class="btn-default" onclick="downloadMlTemplate()">下载导入模板</button>
+                <button class="btn-default" onclick="openMlImportModal()">批量导入</button>
+                <button class="btn-primary" onclick="openMlModal()">+ 新增数据</button>
+            </div>
+
+            <div class="table-section" style="margin-top: var(--space-4)">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>预测月份</th>
+                            <th>口径</th>
+                            <th>预测类型</th>
+                            <th>预测电价(元/MWh)</th>
+                            <th>置信下限(元/MWh)</th>
+                            <th>置信上限(元/MWh)</th>
+                            <th>环比(%)</th>
+                            <th>模型名称</th>
+                            <th style="width:140px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ml-table-body"></tbody>
+                </table>
+                <div class="pagination">
+                    <span class="info-text" id="ml-count">共 0 条记录</span>
+                    <div>
+                        <button class="page-btn active">1</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日前现货价格预测 -->
+        <div id="tab-spot" class="tab-content" style="display:none">
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>预测日期</label>
+                    <input class="filter-select" type="date" id="spot-pred-filter-date" style="width:140px">
+                </div>
+                <div class="filter-item">
+                    <label>交易时段</label>
+                    <select class="filter-select" style="width:120px" id="spot-pred-filter-period">
+                        <option value="all">全部时段</option>
+                        <option>00:00-01:00</option>
+                        <option>08:00-09:00</option>
+                        <option>12:00-13:00</option>
+                        <option>18:00-19:00</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="filterSpotPred()">查询</button>
+                <div style="flex:1"></div>
+                <button class="btn-default" onclick="downloadSpotPredTemplate()">下载导入模板</button>
+                <button class="btn-default" onclick="openSpotPredImportModal()">批量导入</button>
+                <button class="btn-primary" onclick="openSpotPredModal()">+ 新增预测</button>
+            </div>
+
+            <div class="table-section" style="margin-top: var(--space-4)">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>预测日期</th>
+                            <th>交易时段</th>
+                            <th>预测电价(元/MWh)</th>
+                            <th>预测精度(%)</th>
+                            <th>预测时间</th>
+                            <th>模型名称</th>
+                            <th style="width:140px">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spot-pred-table-body"></tbody>
+                </table>
+                <div class="pagination">
+                    <span class="info-text" id="spot-pred-count">共 0 条记录</span>
+                    <div>
+                        <button class="page-btn active">1</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 中长期预测导入弹窗 -->
+    <div class="modal-overlay" id="ml-import-modal" style="display:none">
+        <div class="modal-panel" style="width:720px">
+            <div class="modal-header">
+                <h3>批量导入中长期电价预测数据</h3>
+                <button class="modal-close" onclick="closeMlImportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-3);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-4)">
+                    <strong>导入流程：</strong>
+                    <div style="display:flex;gap:var(--space-4);margin-top:8px">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px">1</span>
+                            <span style="font-size:var(--text-sm)">上传文件</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">2</span>
+                            <span style="font-size:var(--text-sm)">解析预览</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">3</span>
+                            <span style="font-size:var(--text-sm)">确认导入</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="import-drop-area" onclick="document.getElementById('ml-import-file').click()" style="border:2px dashed var(--border);border-radius:var(--radius);padding:var(--space-6);text-align:center;cursor:pointer;margin-bottom:var(--space-4);background:var(--bg-secondary)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto var(--space-3);color:var(--muted)">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <div style="font-size:var(--text-sm);color:var(--muted)">点击或拖拽文件到此处上传</div>
+                    <input type="file" id="ml-import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleMlImport(this)">
+                </div>
+                <div style="margin-bottom:var(--space-3)">
+                    <h4 style="margin:0 0 var(--space-2);font-size:var(--text-sm);font-weight:600">已上传文件列表</h4>
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead>
+                            <tr>
+                                <th style="width:200px">文件名</th>
+                                <th style="width:120px">上传时间</th>
+                                <th style="width:80px">上传人</th>
+                                <th style="width:80px">数据条数</th>
+                                <th style="width:100px">状态</th>
+                                <th style="width:120px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ml-import-file-list"></tbody>
+                    </table>
+                    <div id="ml-import-file-empty" style="text-align:center;color:var(--muted);padding:var(--space-4);display:none">暂无上传文件</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="downloadMlTemplate()">下载模板</button>
+                <button class="btn-primary" onclick="document.getElementById('ml-import-file').click()">选择文件上传</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 中长期预测预览弹窗 -->
+    <div class="modal-overlay" id="ml-preview-modal" style="display:none">
+        <div class="modal-panel" style="width:800px">
+            <div class="modal-header">
+                <h3>数据预览</h3>
+                <button class="modal-close" onclick="closeMlPreviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-2);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-3);font-size:var(--text-sm)">
+                    <strong>文件：</strong><span id="ml-preview-filename"></span>
+                    <span style="margin-left:var(--space-4)"><strong>总条数：</strong><span id="ml-preview-total"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>有效条数：</strong><span id="ml-preview-valid"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>无效条数：</strong><span id="ml-preview-invalid"></span></span>
+                </div>
+                <div style="max-height:350px;overflow-y:auto">
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead id="ml-preview-thead"></thead>
+                        <tbody id="ml-preview-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="ml-preview-errors" style="margin-top:var(--space-3);max-height:150px;overflow-y:auto;display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeMlPreviewModal()">取消</button>
+                <button class="btn-primary" onclick="confirmMlImport()">确认导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 现货预测导入弹窗 -->
+    <div class="modal-overlay" id="spot-pred-import-modal" style="display:none">
+        <div class="modal-panel" style="width:720px">
+            <div class="modal-header">
+                <h3>批量导入日前现货价格预测数据</h3>
+                <button class="modal-close" onclick="closeSpotPredImportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-3);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-4)">
+                    <strong>导入流程：</strong>
+                    <div style="display:flex;gap:var(--space-4);margin-top:8px">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px">1</span>
+                            <span style="font-size:var(--text-sm)">上传文件</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">2</span>
+                            <span style="font-size:var(--text-sm)">解析预览</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">3</span>
+                            <span style="font-size:var(--text-sm)">确认导入</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="import-drop-area" onclick="document.getElementById('spot-pred-import-file').click()" style="border:2px dashed var(--border);border-radius:var(--radius);padding:var(--space-6);text-align:center;cursor:pointer;margin-bottom:var(--space-4);background:var(--bg-secondary)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto var(--space-3);color:var(--muted)">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <div style="font-size:var(--text-sm);color:var(--muted)">点击或拖拽文件到此处上传</div>
+                    <input type="file" id="spot-pred-import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleSpotPredImport(this)">
+                </div>
+                <div style="margin-bottom:var(--space-3)">
+                    <h4 style="margin:0 0 var(--space-2);font-size:var(--text-sm);font-weight:600">已上传文件列表</h4>
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead>
+                            <tr>
+                                <th style="width:200px">文件名</th>
+                                <th style="width:120px">上传时间</th>
+                                <th style="width:80px">上传人</th>
+                                <th style="width:80px">数据条数</th>
+                                <th style="width:100px">状态</th>
+                                <th style="width:120px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="spot-pred-import-file-list"></tbody>
+                    </table>
+                    <div id="spot-pred-import-file-empty" style="text-align:center;color:var(--muted);padding:var(--space-4);display:none">暂无上传文件</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="downloadSpotPredTemplate()">下载模板</button>
+                <button class="btn-primary" onclick="document.getElementById('spot-pred-import-file').click()">选择文件上传</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 现货预测预览弹窗 -->
+    <div class="modal-overlay" id="spot-pred-preview-modal" style="display:none">
+        <div class="modal-panel" style="width:800px">
+            <div class="modal-header">
+                <h3>数据预览</h3>
+                <button class="modal-close" onclick="closeSpotPredPreviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-2);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-3);font-size:var(--text-sm)">
+                    <strong>文件：</strong><span id="spot-pred-preview-filename"></span>
+                    <span style="margin-left:var(--space-4)"><strong>总条数：</strong><span id="spot-pred-preview-total"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>有效条数：</strong><span id="spot-pred-preview-valid"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>无效条数：</strong><span id="spot-pred-preview-invalid"></span></span>
+                </div>
+                <div style="max-height:350px;overflow-y:auto">
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead id="spot-pred-preview-thead"></thead>
+                        <tbody id="spot-pred-preview-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="spot-pred-preview-errors" style="margin-top:var(--space-3);max-height:150px;overflow-y:auto;display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeSpotPredPreviewModal()">取消</button>
+                <button class="btn-primary" onclick="confirmSpotPredImport()">确认导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 中长期预测弹窗 -->
+    <div class="modal-overlay" id="ml-modal" style="display:none">
+        <div class="modal-panel" style="width:600px">
+            <div class="modal-header">
+                <h3 id="ml-modal-title">新增中长期电价预测</h3>
+                <button class="modal-close" onclick="closeMlModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">预测月份 <span style="color:var(--danger)">*</span></label>
+                        <input class="form-input" id="ml-month" type="month">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">口径</label>
+                        <select class="form-input" id="ml-company">
+                            <option>全省口径</option>
+                            <option>新能源公司</option>
+                            <option>传统能源公司</option>
+                            <option>独立售电公司</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">预测类型</label>
+                        <select class="form-input" id="ml-type">
+                            <option>历史实际</option>
+                            <option>预测数据</option>
+                        </select>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                    <label class="form-label">模型名称</label>
+                    <select class="form-input" id="ml-model">
+                        <option>seasonal（季节分解）</option>
+                        <option>naive（持平）</option>
+                        <option>ma3（移动平均）</option>
+                        <option>ses（指数平滑）</option>
+                        <option>damped（阻尼趋势）</option>
+                        <option>drift（漂移）</option>
+                    </select>
+                </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">预测电价(元/MWh)</label>
+                        <input class="form-input" id="ml-price" type="number" step="0.01" placeholder="如：380.74">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">环比(%)</label>
+                        <input class="form-input" id="ml-change" type="number" step="0.1" placeholder="如：5.2">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">置信下限(元/MWh)</label>
+                        <input class="form-input" id="ml-low" type="number" step="0.01" placeholder="如：320">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">置信上限(元/MWh)</label>
+                        <input class="form-input" id="ml-high" type="number" step="0.01" placeholder="如：440">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">备注说明</label>
+                    <textarea class="form-input" id="ml-notes" rows="2" placeholder="预测说明、模型参数等" style="resize:vertical;min-height:48px"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeMlModal()">取消</button>
+                <button class="btn-primary" onclick="saveMl()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 现货预测弹窗 -->
+    <div class="modal-overlay" id="spot-pred-modal" style="display:none">
+        <div class="modal-panel" style="width:560px">
+            <div class="modal-header">
+                <h3 id="spot-pred-modal-title">新增日前现货价格预测</h3>
+                <button class="modal-close" onclick="closeSpotPredModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">预测日期 <span style="color:var(--danger)">*</span></label>
+                        <input class="form-input" id="spot-pred-date" type="date">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">交易时段</label>
+                        <input class="form-input" id="spot-pred-period" placeholder="如：00:00-01:00">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">预测电价(元/MWh)</label>
+                        <input class="form-input" id="spot-pred-price" type="number" step="0.01" placeholder="如：360.69">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">预测精度(%)</label>
+                        <input class="form-input" id="spot-pred-accuracy" type="number" step="0.1" placeholder="如：92.5">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">预测时间</label>
+                        <input class="form-input" id="spot-pred-time" type="datetime-local">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">模型名称</label>
+                        <input class="form-input" id="spot-pred-model" placeholder="如：LSTM_v2">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <label class="form-label">备注说明</label>
+                    <textarea class="form-input" id="spot-pred-notes" rows="2" placeholder="预测说明等" style="resize:vertical;min-height:48px"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeSpotPredModal()">取消</button>
+                <button class="btn-primary" onclick="saveSpotPred()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            margin-bottom: var(--space-4);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: var(--space-3) var(--space-4);
+            font: 500 var(--text-sm)/1.4 var(--font-body);
+            color: var(--muted);
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--motion-fast);
+        }
+        .tab-btn:hover {
+            background: var(--bg);
+        }
+        .tab-btn.active {
+            background: var(--accent);
+            color: var(--accent-on);
+        }
+        .tab-content {
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        // ─── 导入相关变量 ──────────────────────────────────────────────
+        var mlImportFiles = [];
+        var currentMlPreviewData = [];
+        var currentMlPreviewFile = null;
+        var spotPredImportFiles = [];
+        var currentSpotPredPreviewData = [];
+        var currentSpotPredPreviewFile = null;
+
+        // ─── 中长期电价预测数据 ────────────────────────────────────────
+        var mlData = [
+            { month: '2025-12', company: '全省口径', type: '历史实际', price: 380.74, low: null, high: null, change: null, model: '-', notes: '' },
+            { month: '2026-01', company: '全省口径', type: '历史实际', price: 436.69, low: null, high: null, change: 14.7, model: '-', notes: '' },
+            { month: '2026-02', company: '全省口径', type: '历史实际', price: 440.23, low: null, high: null, change: 0.8, model: '-', notes: '' },
+            { month: '2026-03', company: '全省口径', type: '历史实际', price: 435.12, low: null, high: null, change: -1.2, model: '-', notes: '' },
+            { month: '2026-04', company: '全省口径', type: '历史实际', price: 390.67, low: null, high: null, change: -10.2, model: '-', notes: '' },
+            { month: '2026-05', company: '全省口径', type: '历史实际', price: 350.45, low: null, high: null, change: -10.3, model: '-', notes: '' },
+            { month: '2026-06', company: '全省口径', type: '预测数据', price: 310.72, low: 247.74, high: 373.70, change: -11.3, model: 'seasonal（季节分解）', notes: '汛期价格低点' },
+            { month: '2026-07', company: '全省口径', type: '预测数据', price: 345.89, low: 278.35, high: 413.43, change: 11.3, model: 'seasonal（季节分解）', notes: '度夏负荷回升' },
+            { month: '2026-08', company: '全省口径', type: '预测数据', price: 368.21, low: 297.83, high: 438.59, change: 6.5, model: 'seasonal（季节分解）', notes: '夏季高峰' },
+            { month: '2026-09', company: '全省口径', type: '预测数据', price: 385.67, low: 312.28, high: 459.06, change: 4.7, model: 'seasonal（季节分解）', notes: '汛期结束' },
+            { month: '2026-10', company: '全省口径', type: '预测数据', price: 410.34, low: 333.68, high: 487.00, change: 6.4, model: 'seasonal（季节分解）', notes: '枯水期开始' },
+            { month: '2026-11', company: '全省口径', type: '预测数据', price: 425.89, low: 345.76, high: 506.02, change: 3.8, model: 'seasonal（季节分解）', notes: '枯水期高点' }
+        ];
+        var mlEditIndex = -1;
+
+        function renderMlPrice(list) {
+            var data = list || mlData;
+            var tbody = document.getElementById('ml-table-body');
+            tbody.innerHTML = '';
+            data.forEach(function(m, i) {
+                var typeCls = m.type === '历史实际' ? 'badge-muted' : 'badge';
+                var changeCls = m.change !== null ? (m.change >= 0 ? 'color:var(--danger)' : 'color:var(--success)') : '';
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + m.month + '</td>' +
+                    '<td>' + m.company + '</td>' +
+                    '<td><span class="badge ' + typeCls + '">' + m.type + '</span></td>' +
+                    '<td style="text-align:right;font-weight:600">' + m.price + '</td>' +
+                    '<td style="text-align:right">' + (m.low || '-') + '</td>' +
+                    '<td style="text-align:right">' + (m.high || '-') + '</td>' +
+                    '<td style="text-align:right;' + changeCls + '">' + (m.change !== null ? m.change + '%' : '-') + '</td>' +
+                    '<td>' + m.model + '</td>' +
+                    '<td style="white-space:nowrap">' +
+                    '<button class="btn-config" onclick="openMlModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteMl(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '</td></tr>';
+            });
+            document.getElementById('ml-count').textContent = '共 ' + data.length + ' 条记录';
+        }
+
+        function openMlModal(index) {
+            var modal = document.getElementById('ml-modal');
+            if (index === undefined || index === null || index === -1) {
+                mlEditIndex = -1;
+                document.getElementById('ml-modal-title').textContent = '新增中长期电价预测';
+                ['ml-month','ml-price','ml-change','ml-low','ml-high','ml-notes'].forEach(function(id) {
+                    document.getElementById(id).value = '';
+                });
+                document.getElementById('ml-company').value = '全省口径';
+                document.getElementById('ml-type').value = '预测数据';
+                document.getElementById('ml-model').value = 'seasonal（季节分解）';
+            } else {
+                mlEditIndex = index;
+                document.getElementById('ml-modal-title').textContent = '编辑中长期电价预测';
+                var m = mlData[index];
+                document.getElementById('ml-month').value = m.month;
+                document.getElementById('ml-company').value = m.company;
+                document.getElementById('ml-type').value = m.type;
+                document.getElementById('ml-model').value = m.model;
+                document.getElementById('ml-price').value = m.price;
+                document.getElementById('ml-change').value = m.change || '';
+                document.getElementById('ml-low').value = m.low || '';
+                document.getElementById('ml-high').value = m.high || '';
+                document.getElementById('ml-notes').value = m.notes || '';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeMlModal() {
+            document.getElementById('ml-modal').style.display = 'none';
+        }
+
+        function saveMl() {
+            var data = {
+                month: document.getElementById('ml-month').value,
+                company: document.getElementById('ml-company').value,
+                type: document.getElementById('ml-type').value,
+                model: document.getElementById('ml-model').value,
+                price: parseFloat(document.getElementById('ml-price').value) || 0,
+                change: parseFloat(document.getElementById('ml-change').value) || null,
+                low: parseFloat(document.getElementById('ml-low').value) || null,
+                high: parseFloat(document.getElementById('ml-high').value) || null,
+                notes: document.getElementById('ml-notes').value
+            };
+            if (!data.month) { alert('请输入预测月份'); return; }
+            if (mlEditIndex === -1) {
+                mlData.push(data);
+            } else {
+                mlData[mlEditIndex] = data;
+            }
+            renderMlPrice();
+            closeMlModal();
+        }
+
+        function deleteMl(index) {
+            if (confirm('确认删除该条预测数据？')) {
+                mlData.splice(index, 1);
+                renderMlPrice();
+            }
+        }
+
+        function filterMlPrice() {
+            var month = document.getElementById('ml-filter-month').value;
+            var company = document.getElementById('ml-filter-company').value;
+            var type = document.getElementById('ml-filter-type').value;
+            var filtered = mlData.filter(function(m) {
+                if (month && m.month !== month) return false;
+                if (company !== 'all' && m.company !== company) return false;
+                if (type !== 'all' && m.type !== type) return false;
+                return true;
+            });
+            renderMlPrice(filtered);
+        }
+
+        // ─── 中长期电价预测导入功能 ────────────────────────────────────
+        function downloadMlTemplate() {
+            var headers = ['预测月份', '口径', '预测类型', '预测电价(元/MWh)', '置信下限(元/MWh)', '置信上限(元/MWh)', '环比(%)', '模型名称', '备注说明'];
+            var csvContent = '\uFEFF' + headers.join(',') + '\n';
+            csvContent += '2026-06,全省口径,预测数据,310.72,247.74,373.70,-11.3,seasonal,汛期价格低点\n';
+            
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '中长期电价预测导入模板.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function openMlImportModal() {
+            document.getElementById('ml-import-modal').style.display = 'flex';
+            document.getElementById('ml-import-file').value = '';
+            renderMlImportFileList();
+        }
+
+        function closeMlImportModal() {
+            document.getElementById('ml-import-modal').style.display = 'none';
+        }
+
+        function renderMlImportFileList() {
+            var tbody = document.getElementById('ml-import-file-list');
+            var empty = document.getElementById('ml-import-file-empty');
+            
+            if (mlImportFiles.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            tbody.innerHTML = '';
+            
+            mlImportFiles.forEach(function(f, idx) {
+                var statusText = f.status === '待解析' ? '<span class="badge badge-muted">待解析</span>' :
+                                 f.status === '已解析' ? '<span class="badge badge-success">已解析</span>' :
+                                 f.status === '已导入' ? '<span class="tag status-success">已导入</span>' :
+                                 '<span class="tag status-danger">导入失败</span>';
+                
+                var actions = '';
+                if (f.status === '待解析') {
+                    actions = '<button class="btn-default" onclick="parseMlPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">解析预览</button> ' +
+                              '<button class="btn-delete" onclick="deleteMlImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else if (f.status === '已解析') {
+                    actions = '<button class="btn-primary" onclick="parseMlPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">确认导入</button> ' +
+                              '<button class="btn-delete" onclick="deleteMlImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else {
+                    actions = '<button class="btn-default" onclick="parseMlPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">查看</button>';
+                }
+                
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + f.name + '</strong></td>' +
+                    '<td>' + f.uploadTime + '</td>' +
+                    '<td>' + f.uploader + '</td>' +
+                    '<td>' + (f.rowCount || '-') + '</td>' +
+                    '<td>' + statusText + '</td>' +
+                    '<td>' + actions + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function handleMlImport(input) {
+            var file = input.files[0];
+            if (!file) return;
+
+            var ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                alert('仅支持 Excel (.xlsx/.xls) 和 CSV 格式文件');
+                return;
+            }
+
+            var now = new Date();
+            var fileRecord = {
+                id: Date.now(),
+                name: file.name,
+                file: file,
+                uploadTime: now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + 
+                         String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'),
+                uploader: '管理员',
+                status: '待解析',
+                rowCount: null,
+                validCount: 0,
+                invalidCount: 0,
+                errors: [],
+                parsedData: null
+            };
+
+            mlImportFiles.unshift(fileRecord);
+            renderMlImportFileList();
+            input.value = '';
+        }
+
+        function deleteMlImportFile(index) {
+            if (confirm('确认删除文件「' + mlImportFiles[index].name + '」？')) {
+                mlImportFiles.splice(index, 1);
+                renderMlImportFileList();
+            }
+        }
+
+        function parseMlPreview(index) {
+            var fileRecord = mlImportFiles[index];
+            currentMlPreviewFile = fileRecord;
+            
+            document.getElementById('ml-preview-filename').textContent = fileRecord.name;
+            
+            setTimeout(function() {
+                var mockData = [
+                    { month: '2026-12', company: '全省口径', type: '预测数据', price: 430.50, low: 350.00, high: 510.00, change: 1.0, model: 'seasonal（季节分解）', notes: '' },
+                    { month: '', company: '全省口径', type: '预测数据', price: 415.00, low: 335.00, high: 495.00, change: -3.6, model: 'seasonal（季节分解）', notes: '' },
+                    { month: '2027-02', company: '全省口径', type: '预测数据', price: 428.00, low: 348.00, high: 508.00, change: 3.1, model: 'seasonal（季节分解）', notes: '' }
+                ];
+                
+                var errors = [];
+                mockData.forEach(function(row, i) {
+                    if (!row.month) errors.push('第' + (i + 2) + '行：预测月份不能为空');
+                });
+                
+                fileRecord.parsedData = mockData;
+                fileRecord.rowCount = mockData.length;
+                fileRecord.validCount = mockData.length - errors.length;
+                fileRecord.invalidCount = errors.length;
+                fileRecord.errors = errors;
+                fileRecord.status = '已解析';
+                
+                currentMlPreviewData = mockData;
+                
+                document.getElementById('ml-preview-total').textContent = mockData.length;
+                document.getElementById('ml-preview-valid').textContent = fileRecord.validCount;
+                document.getElementById('ml-preview-invalid').textContent = fileRecord.invalidCount;
+                
+                var headers = ['预测月份', '口径', '预测类型', '预测电价(元/MWh)', '置信下限(元/MWh)', '置信上限(元/MWh)', '环比(%)', '模型名称'];
+                var headerHtml = '<tr>';
+                headers.forEach(function(h) { headerHtml += '<th>' + h + '</th>'; });
+                headerHtml += '</tr>';
+                document.getElementById('ml-preview-thead').innerHTML = headerHtml;
+                
+                var bodyHtml = '';
+                mockData.forEach(function(row, i) {
+                    var bgClass = !row.month ? 'style="background:#fff2f0"' : '';
+                    bodyHtml += '<tr ' + bgClass + '>' +
+                        '<td>' + (row.month || '<span style="color:var(--danger)">空</span>') + '</td>' +
+                        '<td>' + row.company + '</td>' +
+                        '<td>' + row.type + '</td>' +
+                        '<td style="text-align:right">' + row.price + '</td>' +
+                        '<td style="text-align:right">' + (row.low || '-') + '</td>' +
+                        '<td style="text-align:right">' + (row.high || '-') + '</td>' +
+                        '<td style="text-align:right">' + (row.change !== null ? row.change + '%' : '-') + '</td>' +
+                        '<td>' + row.model + '</td>' +
+                        '</tr>';
+                });
+                document.getElementById('ml-preview-tbody').innerHTML = bodyHtml;
+                
+                if (errors.length > 0) {
+                    var errorHtml = '<strong style="color:var(--danger)">校验错误：</strong><br>';
+                    errors.forEach(function(err) {
+                        errorHtml += '<div style="padding:4px 0;color:var(--danger);font-size:var(--text-sm)">' + err + '</div>';
+                    });
+                    document.getElementById('ml-preview-errors').innerHTML = errorHtml;
+                    document.getElementById('ml-preview-errors').style.display = 'block';
+                } else {
+                    document.getElementById('ml-preview-errors').style.display = 'none';
+                }
+                
+                renderMlImportFileList();
+                document.getElementById('ml-preview-modal').style.display = 'flex';
+            }, 500);
+        }
+
+        function closeMlPreviewModal() {
+            document.getElementById('ml-preview-modal').style.display = 'none';
+        }
+
+        function confirmMlImport() {
+            if (!currentMlPreviewFile || !currentMlPreviewData) return;
+            
+            var successCount = 0;
+            var failedCount = 0;
+            
+            currentMlPreviewData.forEach(function(row, i) {
+                if (!row.month) {
+                    failedCount++;
+                    return;
+                }
+                
+                var existingIndex = mlData.findIndex(function(m) { return m.month === row.month && m.company === row.company && m.type === row.type; });
+                if (existingIndex >= 0) {
+                    mlData[existingIndex] = row;
+                } else {
+                    mlData.push(row);
+                }
+                successCount++;
+            });
+            
+            currentMlPreviewFile.status = failedCount === 0 ? '已导入' : '部分成功';
+            renderMlImportFileList();
+            closeMlPreviewModal();
+            
+            if (failedCount > 0) {
+                alert('导入完成：成功 ' + successCount + ' 条，失败 ' + failedCount + ' 条');
+            } else {
+                alert('导入完成：全部 ' + successCount + ' 条数据导入成功');
+            }
+            renderMlPrice();
+        }
+
+        // ─── 日前现货价格预测数据 ──────────────────────────────────────
+        var spotPredData = [];
+        var predBaseDate = new Date('2026-06-29');
+        for (var d = 0; d < 7; d++) {
+            for (var h = 0; h < 4; h++) {
+                var pd = new Date(predBaseDate);
+                pd.setDate(pd.getDate() + d);
+                var pdStr = pd.toISOString().slice(0, 10);
+                var periodArr = ['00:00-01:00', '08:00-09:00', '12:00-13:00', '18:00-19:00'];
+                var price = 320 + Math.random() * 80;
+                var accuracy = 85 + Math.random() * 10;
+                
+                spotPredData.push({
+                    date: pdStr,
+                    period: periodArr[h],
+                    price: price.toFixed(2),
+                    accuracy: accuracy.toFixed(1),
+                    predTime: pdStr + 'T09:00',
+                    model: 'LSTM_v2',
+                    notes: ''
+                });
+            }
+        }
+        var spotPredEditIndex = -1;
+
+        function renderSpotPred(list) {
+            var data = list || spotPredData;
+            var tbody = document.getElementById('spot-pred-table-body');
+            tbody.innerHTML = '';
+            data.forEach(function(s, i) {
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + s.date + '</td>' +
+                    '<td>' + s.period + '</td>' +
+                    '<td style="text-align:right;font-weight:600">' + s.price + '</td>' +
+                    '<td style="text-align:right">' + s.accuracy + '%</td>' +
+                    '<td>' + s.predTime.replace('T', ' ') + '</td>' +
+                    '<td>' + s.model + '</td>' +
+                    '<td style="white-space:nowrap">' +
+                    '<button class="btn-config" onclick="openSpotPredModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteSpotPred(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '</td></tr>';
+            });
+            document.getElementById('spot-pred-count').textContent = '共 ' + data.length + ' 条记录';
+        }
+
+        function openSpotPredModal(index) {
+            var modal = document.getElementById('spot-pred-modal');
+            if (index === undefined || index === null || index === -1) {
+                spotPredEditIndex = -1;
+                document.getElementById('spot-pred-modal-title').textContent = '新增日前现货价格预测';
+                ['spot-pred-date','spot-pred-period','spot-pred-price','spot-pred-accuracy','spot-pred-time','spot-pred-model','spot-pred-notes'].forEach(function(id) {
+                    document.getElementById(id).value = '';
+                });
+            } else {
+                spotPredEditIndex = index;
+                document.getElementById('spot-pred-modal-title').textContent = '编辑日前现货价格预测';
+                var s = spotPredData[index];
+                document.getElementById('spot-pred-date').value = s.date;
+                document.getElementById('spot-pred-period').value = s.period;
+                document.getElementById('spot-pred-price').value = s.price;
+                document.getElementById('spot-pred-accuracy').value = s.accuracy;
+                document.getElementById('spot-pred-time').value = s.predTime;
+                document.getElementById('spot-pred-model').value = s.model;
+                document.getElementById('spot-pred-notes').value = s.notes || '';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeSpotPredModal() {
+            document.getElementById('spot-pred-modal').style.display = 'none';
+        }
+
+        function saveSpotPred() {
+            var data = {
+                date: document.getElementById('spot-pred-date').value,
+                period: document.getElementById('spot-pred-period').value,
+                price: parseFloat(document.getElementById('spot-pred-price').value) || 0,
+                accuracy: parseFloat(document.getElementById('spot-pred-accuracy').value) || 0,
+                predTime: document.getElementById('spot-pred-time').value,
+                model: document.getElementById('spot-pred-model').value,
+                notes: document.getElementById('spot-pred-notes').value
+            };
+            if (!data.date) { alert('请输入预测日期'); return; }
+            if (spotPredEditIndex === -1) {
+                spotPredData.push(data);
+            } else {
+                spotPredData[spotPredEditIndex] = data;
+            }
+            renderSpotPred();
+            closeSpotPredModal();
+        }
+
+        function deleteSpotPred(index) {
+            if (confirm('确认删除该条预测数据？')) {
+                spotPredData.splice(index, 1);
+                renderSpotPred();
+            }
+        }
+
+        function filterSpotPred() {
+            var date = document.getElementById('spot-pred-filter-date').value;
+            var period = document.getElementById('spot-pred-filter-period').value;
+            var filtered = spotPredData.filter(function(s) {
+                if (date && s.date !== date) return false;
+                if (period !== 'all' && s.period !== period) return false;
+                return true;
+            });
+            renderSpotPred(filtered);
+        }
+
+        // ─── 日前现货价格预测导入功能 ────────────────────────────────────
+        function downloadSpotPredTemplate() {
+            var headers = ['预测日期', '交易时段', '预测电价(元/MWh)', '预测精度(%)', '预测时间', '模型名称', '备注说明'];
+            var csvContent = '\uFEFF' + headers.join(',') + '\n';
+            csvContent += '2026-07-01,00:00-01:00,360.69,92.5,2026-07-01T09:00,LSTM_v2,\n';
+            
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '日前现货价格预测导入模板.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function openSpotPredImportModal() {
+            document.getElementById('spot-pred-import-modal').style.display = 'flex';
+            document.getElementById('spot-pred-import-file').value = '';
+            renderSpotPredImportFileList();
+        }
+
+        function closeSpotPredImportModal() {
+            document.getElementById('spot-pred-import-modal').style.display = 'none';
+        }
+
+        function renderSpotPredImportFileList() {
+            var tbody = document.getElementById('spot-pred-import-file-list');
+            var empty = document.getElementById('spot-pred-import-file-empty');
+            
+            if (spotPredImportFiles.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            tbody.innerHTML = '';
+            
+            spotPredImportFiles.forEach(function(f, idx) {
+                var statusText = f.status === '待解析' ? '<span class="badge badge-muted">待解析</span>' :
+                                 f.status === '已解析' ? '<span class="badge badge-success">已解析</span>' :
+                                 f.status === '已导入' ? '<span class="tag status-success">已导入</span>' :
+                                 '<span class="tag status-danger">导入失败</span>';
+                
+                var actions = '';
+                if (f.status === '待解析') {
+                    actions = '<button class="btn-default" onclick="parseSpotPredPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">解析预览</button> ' +
+                              '<button class="btn-delete" onclick="deleteSpotPredImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else if (f.status === '已解析') {
+                    actions = '<button class="btn-primary" onclick="parseSpotPredPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">确认导入</button> ' +
+                              '<button class="btn-delete" onclick="deleteSpotPredImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else {
+                    actions = '<button class="btn-default" onclick="parseSpotPredPreview(' + idx + ')" style="padding:2px 8px;font-size:12px">查看</button>';
+                }
+                
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + f.name + '</strong></td>' +
+                    '<td>' + f.uploadTime + '</td>' +
+                    '<td>' + f.uploader + '</td>' +
+                    '<td>' + (f.rowCount || '-') + '</td>' +
+                    '<td>' + statusText + '</td>' +
+                    '<td>' + actions + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function handleSpotPredImport(input) {
+            var file = input.files[0];
+            if (!file) return;
+
+            var ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                alert('仅支持 Excel (.xlsx/.xls) 和 CSV 格式文件');
+                return;
+            }
+
+            var now = new Date();
+            var fileRecord = {
+                id: Date.now(),
+                name: file.name,
+                file: file,
+                uploadTime: now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + 
+                         String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'),
+                uploader: '管理员',
+                status: '待解析',
+                rowCount: null,
+                validCount: 0,
+                invalidCount: 0,
+                errors: [],
+                parsedData: null
+            };
+
+            spotPredImportFiles.unshift(fileRecord);
+            renderSpotPredImportFileList();
+            input.value = '';
+        }
+
+        function deleteSpotPredImportFile(index) {
+            if (confirm('确认删除文件「' + spotPredImportFiles[index].name + '」？')) {
+                spotPredImportFiles.splice(index, 1);
+                renderSpotPredImportFileList();
+            }
+        }
+
+        function parseSpotPredPreview(index) {
+            var fileRecord = spotPredImportFiles[index];
+            currentSpotPredPreviewFile = fileRecord;
+            
+            document.getElementById('spot-pred-preview-filename').textContent = fileRecord.name;
+            
+            setTimeout(function() {
+                var mockData = [
+                    { date: '2026-07-08', period: '00:00-01:00', price: '355.20', accuracy: '91.8', predTime: '2026-07-08T09:00', model: 'LSTM_v2', notes: '' },
+                    { date: '', period: '08:00-09:00', price: '385.60', accuracy: '93.2', predTime: '2026-07-08T09:00', model: 'LSTM_v2', notes: '' },
+                    { date: '2026-07-08', period: '12:00-13:00', price: '372.40', accuracy: '92.5', predTime: '2026-07-08T09:00', model: 'LSTM_v2', notes: '' }
+                ];
+                
+                var errors = [];
+                mockData.forEach(function(row, i) {
+                    if (!row.date) errors.push('第' + (i + 2) + '行：预测日期不能为空');
+                });
+                
+                fileRecord.parsedData = mockData;
+                fileRecord.rowCount = mockData.length;
+                fileRecord.validCount = mockData.length - errors.length;
+                fileRecord.invalidCount = errors.length;
+                fileRecord.errors = errors;
+                fileRecord.status = '已解析';
+                
+                currentSpotPredPreviewData = mockData;
+                
+                document.getElementById('spot-pred-preview-total').textContent = mockData.length;
+                document.getElementById('spot-pred-preview-valid').textContent = fileRecord.validCount;
+                document.getElementById('spot-pred-preview-invalid').textContent = fileRecord.invalidCount;
+                
+                var headers = ['预测日期', '交易时段', '预测电价(元/MWh)', '预测精度(%)', '预测时间', '模型名称'];
+                var headerHtml = '<tr>';
+                headers.forEach(function(h) { headerHtml += '<th>' + h + '</th>'; });
+                headerHtml += '</tr>';
+                document.getElementById('spot-pred-preview-thead').innerHTML = headerHtml;
+                
+                var bodyHtml = '';
+                mockData.forEach(function(row, i) {
+                    var bgClass = !row.date ? 'style="background:#fff2f0"' : '';
+                    bodyHtml += '<tr ' + bgClass + '>' +
+                        '<td>' + (row.date || '<span style="color:var(--danger)">空</span>') + '</td>' +
+                        '<td>' + row.period + '</td>' +
+                        '<td style="text-align:right">' + row.price + '</td>' +
+                        '<td style="text-align:right">' + row.accuracy + '%</td>' +
+                        '<td>' + row.predTime.replace('T', ' ') + '</td>' +
+                        '<td>' + row.model + '</td>' +
+                        '</tr>';
+                });
+                document.getElementById('spot-pred-preview-tbody').innerHTML = bodyHtml;
+                
+                if (errors.length > 0) {
+                    var errorHtml = '<strong style="color:var(--danger)">校验错误：</strong><br>';
+                    errors.forEach(function(err) {
+                        errorHtml += '<div style="padding:4px 0;color:var(--danger);font-size:var(--text-sm)">' + err + '</div>';
+                    });
+                    document.getElementById('spot-pred-preview-errors').innerHTML = errorHtml;
+                    document.getElementById('spot-pred-preview-errors').style.display = 'block';
+                } else {
+                    document.getElementById('spot-pred-preview-errors').style.display = 'none';
+                }
+                
+                renderSpotPredImportFileList();
+                document.getElementById('spot-pred-preview-modal').style.display = 'flex';
+            }, 500);
+        }
+
+        function closeSpotPredPreviewModal() {
+            document.getElementById('spot-pred-preview-modal').style.display = 'none';
+        }
+
+        function confirmSpotPredImport() {
+            if (!currentSpotPredPreviewFile || !currentSpotPredPreviewData) return;
+            
+            var successCount = 0;
+            var failedCount = 0;
+            
+            currentSpotPredPreviewData.forEach(function(row, i) {
+                if (!row.date) {
+                    failedCount++;
+                    return;
+                }
+                
+                spotPredData.push(row);
+                successCount++;
+            });
+            
+            currentSpotPredPreviewFile.status = failedCount === 0 ? '已导入' : '部分成功';
+            renderSpotPredImportFileList();
+            closeSpotPredPreviewModal();
+            
+            if (failedCount > 0) {
+                alert('导入完成：成功 ' + successCount + ' 条，失败 ' + failedCount + ' 条');
+            } else {
+                alert('导入完成：全部 ' + successCount + ' 条数据导入成功');
+            }
+            renderSpotPred();
+        }
+
+        function switchPredictTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.style.display = 'none';
+            });
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).style.display = 'block';
+        }
+
+        document.getElementById('ml-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeMlModal();
+        });
+        document.getElementById('spot-pred-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeSpotPredModal();
+        });
+
+        renderMlPrice();
+        renderSpotPred();
+
+        window.switchPredictTab = switchPredictTab;
+        window.openMlModal = openMlModal;
+        window.closeMlModal = closeMlModal;
+        window.saveMl = saveMl;
+        window.deleteMl = deleteMl;
+        window.filterMlPrice = filterMlPrice;
+        window.downloadMlTemplate = downloadMlTemplate;
+        window.openMlImportModal = openMlImportModal;
+        window.closeMlImportModal = closeMlImportModal;
+        window.handleMlImport = handleMlImport;
+        window.parseMlPreview = parseMlPreview;
+        window.closeMlPreviewModal = closeMlPreviewModal;
+        window.confirmMlImport = confirmMlImport;
+        window.deleteMlImportFile = deleteMlImportFile;
+        window.openSpotPredModal = openSpotPredModal;
+        window.closeSpotPredModal = closeSpotPredModal;
+        window.saveSpotPred = saveSpotPred;
+        window.deleteSpotPred = deleteSpotPred;
+        window.filterSpotPred = filterSpotPred;
+        window.downloadSpotPredTemplate = downloadSpotPredTemplate;
+        window.openSpotPredImportModal = openSpotPredImportModal;
+        window.closeSpotPredImportModal = closeSpotPredImportModal;
+        window.handleSpotPredImport = handleSpotPredImport;
+        window.parseSpotPredPreview = parseSpotPredPreview;
+        window.closeSpotPredPreviewModal = closeSpotPredPreviewModal;
+        window.confirmSpotPredImport = confirmSpotPredImport;
+        window.deleteSpotPredImportFile = deleteSpotPredImportFile;
+    </script>
+</body>
+</html>

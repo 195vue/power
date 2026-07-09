@@ -51,6 +51,8 @@
             </div>
             <button class="btn-primary" onclick="filterTable()">查询</button>
             <div style="flex:1"></div>
+            <button class="btn-default" onclick="downloadStationTemplate()">下载模板</button>
+            <button class="btn-default" onclick="openImportModal()">批量导入</button>
             <button class="btn-primary" onclick="openModal()">+ 新增场站</button>
         </div>
 
@@ -82,6 +84,130 @@
             </div>
         </div>
     </main>
+
+    <!-- 批量导入弹窗 -->
+    <div class="modal-overlay" id="import-modal" style="display:none">
+        <div class="modal-panel" style="width:720px">
+            <div class="modal-header">
+                <h3>批量导入场站信息</h3>
+                <button class="modal-close" onclick="closeImportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-3);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-4)">
+                    <strong>导入流程：</strong>
+                    <div style="display:flex;gap:var(--space-4);margin-top:8px">
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px">1</span>
+                            <span style="font-size:var(--text-sm)">上传文件</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">2</span>
+                            <span style="font-size:var(--text-sm)">解析预览</span>
+                        </div>
+                        <div style="color:var(--border)">→</div>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">3</span>
+                            <span style="font-size:var(--text-sm)">确认导入</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="import-drop-area" onclick="document.getElementById('import-file').click()" style="border:2px dashed var(--border);border-radius:var(--radius);padding:var(--space-6);text-align:center;cursor:pointer;margin-bottom:var(--space-4);background:var(--bg-secondary)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto var(--space-3);color:var(--muted)">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <div style="font-size:var(--text-sm);color:var(--muted)">点击或拖拽文件到此处上传</div>
+                    <input type="file" id="import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleStationImport(this)">
+                </div>
+
+                <div style="margin-bottom:var(--space-3)">
+                    <h4 style="margin:0 0 var(--space-2);font-size:var(--text-sm);font-weight:600">已上传文件列表</h4>
+                    <table class="data-table" style="font-size:var(--text-xs)">
+                        <thead>
+                            <tr>
+                                <th style="width:200px">文件名</th>
+                                <th style="width:120px">上传时间</th>
+                                <th style="width:80px">上传人</th>
+                                <th style="width:80px">数据条数</th>
+                                <th style="width:100px">状态</th>
+                                <th style="width:120px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="import-file-list"></tbody>
+                    </table>
+                    <div id="import-file-empty" style="text-align:center;color:var(--muted);padding:var(--space-4);display:none">暂无上传文件</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="downloadStationTemplate()">下载模板</button>
+                <button class="btn-primary" onclick="document.getElementById('import-file').click()">选择文件上传</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 解析预览弹窗 -->
+    <div class="modal-overlay" id="preview-modal" style="display:none">
+        <div class="modal-panel" style="width:800px">
+            <div class="modal-header">
+                <h3 id="preview-title">数据预览</h3>
+                <button class="modal-close" onclick="closePreviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-2);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-3);font-size:var(--text-sm)">
+                    <strong>文件：</strong><span id="preview-filename"></span>
+                    <span style="margin-left:var(--space-4)"><strong>总条数：</strong><span id="preview-total"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>有效条数：</strong><span id="preview-valid"></span></span>
+                    <span style="margin-left:var(--space-4)"><strong>无效条数：</strong><span id="preview-invalid"></span></span>
+                </div>
+                <div style="max-height:350px;overflow-y:auto">
+                    <table class="data-table" id="preview-table" style="font-size:var(--text-xs)">
+                        <thead id="preview-thead"></thead>
+                        <tbody id="preview-tbody"></tbody>
+                    </table>
+                </div>
+                <div id="preview-errors" style="margin-top:var(--space-3);max-height:150px;overflow-y:auto;display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closePreviewModal()">取消</button>
+                <button class="btn-primary" onclick="confirmImportFromPreview()">确认导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入结果弹窗 -->
+    <div class="modal-overlay" id="import-result-modal" style="display:none">
+        <div class="modal-panel" style="width:560px">
+            <div class="modal-header">
+                <h3>导入结果</h3>
+                <button class="modal-close" onclick="closeImportResultModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="import-result-summary" style="margin-bottom:var(--space-3)"></div>
+                <div id="import-result-detail" style="max-height:250px;overflow-y:auto"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="downloadStationErrors()">下载错误数据</button>
+                <button class="btn-primary" onclick="closeImportResultModal()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div class="modal-overlay" id="station-detail-modal" style="display:none">
+        <div class="modal-panel" style="width:600px">
+            <div class="modal-header">
+                <h3 id="detail-title">场站详情</h3>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="detail-content"></div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeDetailModal()">关闭</button>
+            </div>
+        </div>
+    </div>
 
     <!-- 新增/编辑弹窗 -->
     <div class="modal-overlay" id="station-modal" style="display:none">
@@ -231,6 +357,7 @@
                     '<td>' + s.commissionDate + '</td>' +
                     '<td><span class="badge ' + statusClass + '">' + s.status + '</span></td>' +
                     '<td>' +
+                    '<button class="btn-default" onclick="viewStation(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">详情</button> ' +
                     '<button class="btn-config" onclick="openModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> ' +
                     '<button class="btn-delete" onclick="deleteStation(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>' +
                     '</td></tr>';
@@ -351,6 +478,362 @@
         window.saveStation = saveStation;
         window.deleteStation = deleteStation;
         window.filterTable = filterTable;
+        window.downloadStationTemplate = downloadStationTemplate;
+        window.openImportModal = openImportModal;
+        window.closeImportModal = closeImportModal;
+        window.handleStationImport = handleStationImport;
+        window.closeImportResultModal = closeImportResultModal;
+        window.downloadStationErrors = downloadStationErrors;
+        window.viewStation = viewStation;
+        window.closeDetailModal = closeDetailModal;
+
+        var importErrors = [];
+
+        function viewStation(index) {
+            var s = stationData[index];
+            document.getElementById('detail-title').textContent = s.name + ' - 详情';
+            document.getElementById('detail-content').innerHTML = `
+                <div style="padding:var(--space-4);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-4)">
+                    <div style="display:flex;align-items:center;gap:var(--space-3)">
+                        <div style="width:100px;height:100px;border-radius:var(--radius);background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;font-weight:bold">
+                            ${s.name.charAt(0)}
+                        </div>
+                        <div>
+                            <h4 style="margin:0;font-size:var(--text-lg)">${s.name}</h4>
+                            <div style="color:var(--muted);font-size:var(--text-sm)">${s.company} · ${s.stationType}</div>
+                            <div style="margin-top:8px"><span class="badge ${s.status === '正常' ? 'badge-success' : 'badge-muted'}">${s.status}</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-bottom:var(--space-3)">
+                    <div class="form-section"><label class="form-label">装机容量</label><div class="form-value">${s.capacity} MW</div></div>
+                    <div class="form-section"><label class="form-label">投产日期</label><div class="form-value">${s.commissionDate || '-'}</div></div>
+                </div>
+                <div class="form-row" style="margin-bottom:var(--space-3)">
+                    <div class="form-section"><label class="form-label">最小技术出力</label><div class="form-value">${s.minOutput} MW</div></div>
+                    <div class="form-section"><label class="form-label">启停约束</label><div class="form-value">${s.startStop} 次/日</div></div>
+                </div>
+                <div class="form-row" style="margin-bottom:var(--space-3)">
+                    <div class="form-section"><label class="form-label">爬坡率上限</label><div class="form-value">${s.rampUp} MW/min</div></div>
+                    <div class="form-section"><label class="form-label">爬坡率下限</label><div class="form-value">${s.rampDown} MW/min</div></div>
+                </div>
+                ${s.stationType === '风电场' ? `
+                <div class="form-row" style="margin-bottom:var(--space-3)">
+                    <div class="form-section"><label class="form-label">风机台数</label><div class="form-value">${s.turbineCount}</div></div>
+                    <div class="form-section"><label class="form-label">风机型号</label><div class="form-value">${s.turbineModel}</div></div>
+                </div>
+                <div class="form-row" style="margin-bottom:var(--space-3)">
+                    <div class="form-section"><label class="form-label">轮毂高度</label><div class="form-value">${s.hubHeight} m</div></div>
+                    <div class="form-section"><label class="form-label">切入风速</label><div class="form-value">${s.cutInSpeed} m/s</div></div>
+                </div>
+                <div class="form-row" style="margin-bottom:var(--space-3)">
+                    <div class="form-section"><label class="form-label">切出风速</label><div class="form-value">${s.cutOutSpeed} m/s</div></div>
+                </div>
+                ` : ''}
+                ${s.longitude ? `
+                <div class="form-row" style="margin-bottom:var(--space-3)">
+                    <div class="form-section"><label class="form-label">经度</label><div class="form-value">${s.longitude}</div></div>
+                    <div class="form-section"><label class="form-label">纬度</label><div class="form-value">${s.latitude}</div></div>
+                </div>
+                ` : ''}
+            `;
+            document.getElementById('station-detail-modal').style.display = 'flex';
+        }
+
+        function closeDetailModal() {
+            document.getElementById('station-detail-modal').style.display = 'none';
+        }
+
+        function downloadStationTemplate() {
+            var headers = ['场站名称', '所属公司', '场站类型', '装机容量(MW)', '风机台数', '风机型号', '轮毂高度(m)', '切入风速(m/s)', '切出风速(m/s)', '投产日期', '状态'];
+            var csvContent = '\uFEFF' + headers.join(',') + '\n';
+            csvContent += '桂阳月和风电场,新能源公司,风电场,50,16,SE16433/SE15530,100,3,20,2022-07-30,正常\n';
+            
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '场站信息导入模板.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        var importFiles = [];
+        var currentPreviewData = [];
+        var currentPreviewFile = null;
+
+        function openImportModal() {
+            document.getElementById('import-modal').style.display = 'flex';
+            document.getElementById('import-file').value = '';
+            renderImportFileList();
+        }
+
+        function closeImportModal() {
+            document.getElementById('import-modal').style.display = 'none';
+        }
+
+        function renderImportFileList() {
+            var tbody = document.getElementById('import-file-list');
+            var empty = document.getElementById('import-file-empty');
+            
+            if (importFiles.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            empty.style.display = 'none';
+            tbody.innerHTML = '';
+            
+            importFiles.forEach(function(f, idx) {
+                var statusClass = f.status === '待解析' ? 'badge-muted' : 
+                                  f.status === '已解析' ? 'badge-success' : 
+                                  f.status === '已导入' ? 'tag status-success' : 'tag status-danger';
+                
+                var statusText = f.status === '待解析' ? '<span class="badge badge-muted">待解析</span>' :
+                                 f.status === '已解析' ? '<span class="badge badge-success">已解析</span>' :
+                                 f.status === '已导入' ? '<span class="tag status-success">已导入</span>' :
+                                 '<span class="tag status-danger">导入失败</span>';
+                
+                var actions = '';
+                if (f.status === '待解析') {
+                    actions = '<button class="btn-default" onclick="parseFilePreview(' + idx + ')" style="padding:2px 8px;font-size:12px">解析预览</button> ' +
+                              '<button class="btn-delete" onclick="deleteImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else if (f.status === '已解析') {
+                    actions = '<button class="btn-primary" onclick="parseFilePreview(' + idx + ')" style="padding:2px 8px;font-size:12px">确认导入</button> ' +
+                              '<button class="btn-delete" onclick="deleteImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
+                } else {
+                    actions = '<button class="btn-default" onclick="parseFilePreview(' + idx + ')" style="padding:2px 8px;font-size:12px">查看</button>';
+                }
+                
+                tbody.innerHTML += '<tr>' +
+                    '<td><strong>' + f.name + '</strong></td>' +
+                    '<td>' + f.uploadTime + '</td>' +
+                    '<td>' + f.uploader + '</td>' +
+                    '<td>' + (f.rowCount || '-') + '</td>' +
+                    '<td>' + statusText + '</td>' +
+                    '<td>' + actions + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        function handleStationImport(input) {
+            var file = input.files[0];
+            if (!file) return;
+
+            var ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                alert('仅支持 Excel (.xlsx/.xls) 和 CSV 格式文件');
+                return;
+            }
+
+            var now = new Date();
+            var fileRecord = {
+                id: Date.now(),
+                name: file.name,
+                file: file,
+                uploadTime: now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + 
+                         String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'),
+                uploader: '管理员',
+                status: '待解析',
+                rowCount: null,
+                validCount: 0,
+                invalidCount: 0,
+                errors: [],
+                parsedData: null
+            };
+
+            importFiles.unshift(fileRecord);
+            renderImportFileList();
+            input.value = '';
+        }
+
+        function deleteImportFile(index) {
+            if (confirm('确认删除文件「' + importFiles[index].name + '」？')) {
+                importFiles.splice(index, 1);
+                renderImportFileList();
+            }
+        }
+
+        function parseFilePreview(index) {
+            var fileRecord = importFiles[index];
+            currentPreviewFile = fileRecord;
+            
+            document.getElementById('preview-filename').textContent = fileRecord.name;
+            
+            setTimeout(function() {
+                var mockData = [
+                    { name: '新场站1', company: '新能源公司', stationType: '风电场', capacity: 100, turbineCount: 20, turbineModel: 'V110/2000', hubHeight: 85, cutInSpeed: 3, cutOutSpeed: 25, commissionDate: '2024-01-15', status: '正常' },
+                    { name: '新场站2', company: '新能源公司', stationType: '光伏电站', capacity: 200, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', commissionDate: '2024-02-20', status: '正常' },
+                    { name: '', company: '传统能源公司', stationType: '风电场', capacity: 80, turbineCount: 15, turbineModel: 'SE15530', hubHeight: 90, cutInSpeed: 3, cutOutSpeed: 22, commissionDate: '2024-03-10', status: '正常' },
+                    { name: '新场站3', company: '独立售电公司', stationType: '储能电站', capacity: 50, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', commissionDate: '2024-04-05', status: '停运' }
+                ];
+                
+                var errors = [];
+                mockData.forEach(function(row, i) {
+                    if (!row.name) errors.push('第' + (i + 2) + '行：场站名称不能为空');
+                });
+                
+                fileRecord.parsedData = mockData;
+                fileRecord.rowCount = mockData.length;
+                fileRecord.validCount = mockData.length - errors.length;
+                fileRecord.invalidCount = errors.length;
+                fileRecord.errors = errors;
+                fileRecord.status = '已解析';
+                
+                currentPreviewData = mockData;
+                
+                document.getElementById('preview-total').textContent = mockData.length;
+                document.getElementById('preview-valid').textContent = fileRecord.validCount;
+                document.getElementById('preview-invalid').textContent = fileRecord.invalidCount;
+                
+                var headers = ['场站名称', '所属公司', '场站类型', '装机容量(MW)', '风机台数', '风机型号', '轮毂高度(m)', '切入风速(m/s)', '切出风速(m/s)', '投产日期', '状态'];
+                var headerHtml = '<tr>';
+                headers.forEach(function(h) { headerHtml += '<th>' + h + '</th>'; });
+                headerHtml += '</tr>';
+                document.getElementById('preview-thead').innerHTML = headerHtml;
+                
+                var bodyHtml = '';
+                mockData.forEach(function(row, i) {
+                    var bgClass = !row.name ? 'style="background:#fff2f0"' : '';
+                    bodyHtml += '<tr ' + bgClass + '>' +
+                        '<td>' + (row.name || '<span style="color:var(--danger)">空</span>') + '</td>' +
+                        '<td>' + row.company + '</td>' +
+                        '<td>' + row.stationType + '</td>' +
+                        '<td>' + row.capacity + '</td>' +
+                        '<td>' + row.turbineCount + '</td>' +
+                        '<td>' + row.turbineModel + '</td>' +
+                        '<td>' + row.hubHeight + '</td>' +
+                        '<td>' + row.cutInSpeed + '</td>' +
+                        '<td>' + row.cutOutSpeed + '</td>' +
+                        '<td>' + row.commissionDate + '</td>' +
+                        '<td><span class="badge ' + (row.status === '正常' ? 'badge-success' : 'badge-muted') + '">' + row.status + '</span></td>' +
+                        '</tr>';
+                });
+                document.getElementById('preview-tbody').innerHTML = bodyHtml;
+                
+                if (errors.length > 0) {
+                    var errorHtml = '<strong style="color:var(--danger)">校验错误：</strong><br>';
+                    errors.forEach(function(err) {
+                        errorHtml += '<div style="padding:4px 0;color:var(--danger);font-size:var(--text-sm)">' + err + '</div>';
+                    });
+                    document.getElementById('preview-errors').innerHTML = errorHtml;
+                    document.getElementById('preview-errors').style.display = 'block';
+                } else {
+                    document.getElementById('preview-errors').style.display = 'none';
+                }
+                
+                renderImportFileList();
+                document.getElementById('preview-modal').style.display = 'flex';
+            }, 500);
+        }
+
+        function closePreviewModal() {
+            document.getElementById('preview-modal').style.display = 'none';
+        }
+
+        function confirmImportFromPreview() {
+            if (!currentPreviewFile || !currentPreviewData) return;
+            
+            var successCount = 0;
+            var failedCount = 0;
+            importErrors = [];
+            
+            currentPreviewData.forEach(function(row, i) {
+                if (!row.name) {
+                    failedCount++;
+                    importErrors.push('第' + (i + 2) + '行：场站名称不能为空');
+                    return;
+                }
+                
+                var existingIndex = stationData.findIndex(function(s) { return s.name === row.name; });
+                if (existingIndex >= 0) {
+                    stationData[existingIndex] = row;
+                } else {
+                    stationData.push(row);
+                }
+                successCount++;
+            });
+            
+            currentPreviewFile.status = failedCount === 0 ? '已导入' : '部分成功';
+            renderImportFileList();
+            closePreviewModal();
+            showImportResult(successCount, failedCount);
+        }
+
+        function showImportResult(successCount, failedCount) {
+            var totalCount = successCount + failedCount;
+
+            var statusClass = failedCount === 0 ? 'status-success' : (successCount > 0 ? 'status-warning' : 'status-danger');
+            var statusText = failedCount === 0 ? '全部成功' : (successCount > 0 ? '部分成功' : '全部失败');
+
+            document.getElementById('import-result-summary').innerHTML = `
+                <div style="display:flex;gap:var(--space-4);padding:var(--space-3);background:var(--bg-secondary);border-radius:var(--radius)">
+                    <div>
+                        <div style="color:var(--muted);font-size:var(--text-xs)">总条数</div>
+                        <div style="font-size:var(--text-lg);font-weight:bold">${totalCount}</div>
+                    </div>
+                    <div>
+                        <div style="color:var(--muted);font-size:var(--text-xs)">成功条数</div>
+                        <div style="font-size:var(--text-lg);font-weight:bold;color:#52c41a">${successCount}</div>
+                    </div>
+                    <div>
+                        <div style="color:var(--muted);font-size:var(--text-xs)">失败条数</div>
+                        <div style="font-size:var(--text-lg);font-weight:bold;color:#ff4d4f">${failedCount}</div>
+                    </div>
+                    <div>
+                        <div style="color:var(--muted);font-size:var(--text-xs)">状态</div>
+                        <div style="font-size:var(--text-lg);font-weight:bold"><span class="tag ${statusClass}">${statusText}</span></div>
+                    </div>
+                </div>
+            `;
+
+            var detailHtml = '';
+            if (failedCount > 0) {
+                detailHtml = '<strong style="color:var(--danger)">失败详情：</strong>';
+                importErrors.forEach(function(err, idx) {
+                    detailHtml += '<div style="padding:8px 0;border-bottom:1px solid var(--border);color:var(--danger)">' + (idx + 1) + '. ' + err + '</div>';
+                });
+            } else {
+                detailHtml = '<div style="color:#52c41a;text-align:center;padding:var(--space-4)">所有数据导入成功！</div>';
+            }
+            document.getElementById('import-result-detail').innerHTML = detailHtml;
+
+            document.getElementById('import-result-modal').style.display = 'flex';
+            
+            if (successCount > 0) {
+                renderTable();
+            }
+        }
+
+        function closeImportResultModal() {
+            document.getElementById('import-result-modal').style.display = 'none';
+        }
+
+        function downloadStationErrors() {
+            if (importErrors.length === 0) {
+                alert('没有错误数据可下载');
+                return;
+            }
+
+            var csvContent = '\uFEFF错误详情\n';
+            importErrors.forEach(function(err) {
+                csvContent += err + '\n';
+            });
+
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '场站信息_导入错误.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        window.parseFilePreview = parseFilePreview;
+        window.closePreviewModal = closePreviewModal;
+        window.confirmImportFromPreview = confirmImportFromPreview;
+        window.deleteImportFile = deleteImportFile;
     </script>
 </body>
 </html>

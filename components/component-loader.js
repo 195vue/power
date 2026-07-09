@@ -47,7 +47,8 @@
             const isPredictActive = ['weather-dashboard','power-accuracy','load-forecast','price-forecast'].includes(currentPage);
             const isMediumActive = ['medium-position','medium-decision'].includes(currentPage);
             const isSpotActive = ['spot-market','price-calendar','spot-decision'].includes(currentPage);
-            const isAdminActive = ['station-mgmt','model-algo','model-mgmt','meteo-mgmt','data-interface','user-mgmt','sys-config','data-dict','audit-log'].includes(currentPage);
+            const isDataActive = ['station-mgmt','model-algo','model-mgmt','meteo-mgmt','data-interface','contract-mgmt','spot-mgmt','predict-mgmt','market-data','scada-data','settlement-data'].includes(currentPage);
+            const isSysActive = ['user-mgmt','data-dict','sys-config','audit-log','recycle-bin','import-logs'].includes(currentPage);
 
             const sidebarHTML = `
                 <nav class="menu">
@@ -110,25 +111,44 @@
                         </ul>
                     </div>
 
-                    <div class="menu-item has-submenu ${isAdminActive ? 'active' : ''}">
+                    <div class="menu-item has-submenu ${isDataActive ? 'active' : ''}">
                         <div class="menu-title">
                             <span class="menu-icon">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                             </span>
                             <span>后台数据维护</span>
-                            <span class="arrow">${isAdminActive ? '▼' : '▶'}</span>
+                            <span class="arrow">${isDataActive ? '▼' : '▶'}</span>
                         </div>
                         <ul class="submenu">
                             <li data-page="station-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/场站信息管理/index.html">场站信息管理</a></li>
                             <li data-page="model-algo"><a href="javascript:void(0)" data-src="后台数据维护/算法模型管理/index.html">算法模型管理</a></li>
                             <li data-page="model-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/模型对接管理/index.html">模型对接管理</a></li>
-                            <li data-page="meteo-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/气象数据对接/index.html">气象数据对接</a></li>
-                            <li data-page="data-interface"><a href="javascript:void(0)" data-src="后台数据维护/外部数据接口/index.html">外部数据接口</a></li>
+                            <li data-page="meteo-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/气象数据对接/index.html">气象数据对接管理</a></li>
+                            <li data-page="data-interface"><a href="javascript:void(0)" data-src="后台数据维护/外部数据接口/index.html">外部数据接口管理</a></li>
+                            <li data-page="market-data"><a href="javascript:void(0)" data-src="后台数据维护/市场交易数据管理/index.html">市场交易数据管理</a></li>
+                            <li data-page="scada-data"><a href="javascript:void(0)" data-src="后台数据维护/SCADA实时数据管理/index.html">SCADA实时数据管理</a></li>
+                            <li data-page="settlement-data"><a href="javascript:void(0)" data-src="后台数据维护/清算结算数据管理/index.html">清算结算数据管理</a></li>
+                            <li data-page="contract-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/合约管理/index.html">合约管理</a></li>
+                            <li data-page="spot-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/现货数据管理/index.html">现货数据管理</a></li>
+                            <li data-page="predict-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/预测数据管理/index.html">预测数据管理</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="menu-item has-submenu ${isSysActive ? 'active' : ''}">
+                        <div class="menu-title">
+                            <span class="menu-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </span>
+                            <span>系统管理</span>
+                            <span class="arrow">${isSysActive ? '▼' : '▶'}</span>
+                        </div>
+                        <ul class="submenu">
                             <li data-page="user-mgmt"><a href="javascript:void(0)" data-src="后台数据维护/用户管理/index.html">用户管理</a></li>
-                            <li data-page="sys-config"><a href="javascript:void(0)" data-src="后台数据维护/系统参数配置/index.html">系统参数配置</a></li>
-                            <li data-page="data-import"><a href="javascript:void(0)" data-src="后台数据维护/数据导入/index.html">数据导入</a></li>
                             <li data-page="data-dict"><a href="javascript:void(0)" data-src="后台数据维护/数据字典/index.html">数据字典</a></li>
-                            <li data-page="audit-log"><a href="javascript:void(0)" data-src="后台数据维护/操作日志/index.html">操作日志</a></li>
+                            <li data-page="sys-config"><a href="javascript:void(0)" data-src="后台数据维护/系统参数配置/index.html">系统参数配置</a></li>
+                            <li data-page="import-logs"><a href="javascript:void(0)" data-src="后台数据维护/导入任务记录/index.html">导入任务记录</a></li>
+                            <li data-page="recycle-bin"><a href="javascript:void(0)" data-src="后台数据维护/数据回收站/index.html">数据回收站</a></li>
+                            <li data-page="audit-log"><a href="javascript:void(0)" data-src="后台数据维护/操作日志/index.html">操作全局日志</a></li>
                         </ul>
                     </div>
                 </nav>

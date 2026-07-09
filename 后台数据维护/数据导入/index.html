@@ -258,6 +258,7 @@
                     <h3>场站信息数据</h3>
                     <p>场站名称、所属公司、装机容量、最小技术出力、爬坡率、启停约束等</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('station')">下载模板</button>
                     <input type="file" id="file-station" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'station')">
                     <div class="progress-bar" id="progress-station"></div>
                 </div>
@@ -271,6 +272,7 @@
                     <h3>用户数据</h3>
                     <p>用户名、姓名、角色、关联场站、手机号等</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('user')">下载模板</button>
                     <input type="file" id="file-user" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'user')">
                     <div class="progress-bar" id="progress-user"></div>
                 </div>
@@ -284,6 +286,7 @@
                     <h3>数据字典</h3>
                     <p>编码、名称、字典类型、排序号等基础编码数据</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('dict')">下载模板</button>
                     <input type="file" id="file-dict" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'dict')">
                     <div class="progress-bar" id="progress-dict"></div>
                 </div>
@@ -302,6 +305,7 @@
                     <h3>算法方案数据</h3>
                     <p>方案名称、所属模块、版本号、训练日期范围等</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('scheme')">下载模板</button>
                     <input type="file" id="file-scheme" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'scheme')">
                     <div class="progress-bar" id="progress-scheme"></div>
                 </div>
@@ -315,6 +319,7 @@
                     <h3>模型对接数据</h3>
                     <p>模型名称、模型类型、版本号、服务地址、认证密钥等</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('model')">下载模板</button>
                     <input type="file" id="file-model" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'model')">
                     <div class="progress-bar" id="progress-model"></div>
                 </div>
@@ -328,6 +333,7 @@
                     <h3>训练节点数据</h3>
                     <p>节点名称、所属公司、关联场站、训练数据范围、模型文件路径等</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('train')">下载模板</button>
                     <input type="file" id="file-train" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'train')">
                     <div class="progress-bar" id="progress-train"></div>
                 </div>
@@ -346,6 +352,7 @@
                     <h3>合约数据</h3>
                     <p>交易品类、电量占比、电价等中长期合约数据</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('contract')">下载模板</button>
                     <input type="file" id="file-contract" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'contract')">
                     <div class="progress-bar" id="progress-contract"></div>
                 </div>
@@ -359,6 +366,7 @@
                     <h3>现货出清数据</h3>
                     <p>现货出清电量、电价等交易数据</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('spot')">下载模板</button>
                     <input type="file" id="file-spot" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'spot')">
                     <div class="progress-bar" id="progress-spot"></div>
                 </div>
@@ -372,6 +380,7 @@
                     <h3>电价预测数据</h3>
                     <p>中长期电价预测、日前现货价格预测等</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('price')">下载模板</button>
                     <input type="file" id="file-price" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'price')">
                     <div class="progress-bar" id="progress-price"></div>
                 </div>
@@ -390,6 +399,7 @@
                     <h3>气象数据源配置</h3>
                     <p>数据源名称、类型、服务地址、数据字段、更新频率等</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('meteo')">下载模板</button>
                     <input type="file" id="file-meteo" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'meteo')">
                     <div class="progress-bar" id="progress-meteo"></div>
                 </div>
@@ -403,6 +413,7 @@
                     <h3>报价策略数据</h3>
                     <p>策略名称、适用模块、策略类型、电价分位数、中标概率基准等</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('quote')">下载模板</button>
                     <input type="file" id="file-quote" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'quote')">
                     <div class="progress-bar" id="progress-quote"></div>
                 </div>
@@ -416,6 +427,7 @@
                     <h3>外部数据接口配置</h3>
                     <p>接口名称、类型、地址、认证方式、同步频率等</p>
                     <div class="import-type-tag">.xlsx / .csv</div>
+                    <button class="btn-default" style="margin-top:var(--space-2);padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="event.stopPropagation();downloadTemplate('interface')">下载模板</button>
                     <input type="file" id="file-interface" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(this, 'interface')">
                     <div class="progress-bar" id="progress-interface"></div>
                 </div>
@@ -473,6 +485,23 @@
             quote: '报价策略数据',
             interface: '外部数据接口配置'
         };
+
+        function downloadTemplate(type) {
+            var headers = importTemplates[type];
+            var filename = importTypeNames[type] + '_导入模板.csv';
+            
+            var csvContent = '\uFEFF' + headers.join(',') + '\n';
+            
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showResult('success', '模板已下载：' + filename);
+        }
 
         function handleFileSelect(input, type) {
             var file = input.files[0];
@@ -609,6 +638,7 @@
         window.handleFileSelect = handleFileSelect;
         window.closePreview = closePreview;
         window.confirmImport = confirmImport;
+        window.downloadTemplate = downloadTemplate;
     </script>
 </body>
 </html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导入任务记录 - 新能源电力交易辅助决策系统</title>
+    <link rel="stylesheet" href="../../styles.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="page-header">
+            <h2 class="page-title">导入任务记录</h2>
+            <p class="page-subtitle">查看所有业务模块的导入历史记录，支持追溯导入文件和失败日志（仅查询，不提供上传入口）</p>
+        </div>
+
+        <div class="filter-bar" style="margin-bottom: var(--space-4)">
+            <div class="filter-item">
+                <label>业务模块</label>
+                <select class="filter-select" style="width:180px" id="log-filter-module">
+                    <option value="all">全部业务模块</option>
+                    <option value="station">场站信息管理</option>
+                    <option value="model">算法模型管理</option>
+                    <option value="model-dock">模型对接管理</option>
+                    <option value="meteo">气象数据对接管理</option>
+                    <option value="interface">外部数据接口管理</option>
+                    <option value="contract">合约管理</option>
+                    <option value="spot">现货数据管理</option>
+                    <option value="predict">预测数据管理</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>导入状态</label>
+                <select class="filter-select" style="width:140px" id="log-filter-status">
+                    <option value="all">全部状态</option>
+                    <option value="success">全部成功</option>
+                    <option value="partial">部分成功</option>
+                    <option value="failed">全部失败</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>导入日期</label>
+                <input type="date" class="filter-input" style="width:140px" id="log-import-date">
+            </div>
+            <div class="filter-item">
+                <label>操作人</label>
+                <input class="filter-input" placeholder="搜索操作人" style="width:120px" id="log-operator">
+            </div>
+            <button class="btn-primary" onclick="filterLogs()">查询</button>
+            <button class="btn-default" onclick="clearLogFilter()">重置</button>
+        </div>
+
+        <div class="table-section">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px">序号</th>
+                        <th style="width:150px">业务模块</th>
+                        <th>文件名</th>
+                        <th>操作人</th>
+                        <th>导入时间</th>
+                        <th style="width:100px">总条数</th>
+                        <th style="width:100px">成功条数</th>
+                        <th style="width:100px">失败条数</th>
+                        <th style="width:80px">状态</th>
+                        <th style="width:180px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="log-table-body"></tbody>
+            </table>
+            <div class="pagination">
+                <span class="info-text" id="log-count">共 0 条记录</span>
+                <div>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <span>...</span>
+                    <button class="page-btn">15</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="detail-modal" style="display:none">
+        <div class="modal-panel" style="width:720px">
+            <div class="modal-header">
+                <h3 id="detail-title">导入详情</h3>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row" style="margin-bottom: var(--space-3)">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">业务模块</label>
+                        <div class="form-value" id="detail-module"></div>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">文件名</label>
+                        <div class="form-value" id="detail-filename"></div>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-bottom: var(--space-3)">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">操作人</label>
+                        <div class="form-value" id="detail-operator"></div>
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">导入时间</label>
+                        <div class="form-value" id="detail-time"></div>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-bottom: var(--space-3)">
+                    <div class="form-section">
+                        <label class="form-label">统计信息</label>
+                        <div style="display:flex;gap:var(--space-4);margin-top:8px">
+                            <div style="padding:var(--space-2);background:var(--bg-secondary);border-radius:var(--radius)">
+                                <div style="color:var(--muted);font-size:var(--text-xs)">总条数</div>
+                                <div style="font-size:var(--text-lg);font-weight:bold" id="detail-total"></div>
+                            </div>
+                            <div style="padding:var(--space-2);background:#f6ffed;border-radius:var(--radius)">
+                                <div style="color:var(--muted);font-size:var(--text-xs)">成功条数</div>
+                                <div style="font-size:var(--text-lg);font-weight:bold;color:#52c41a" id="detail-success"></div>
+                            </div>
+                            <div style="padding:var(--space-2);background:#fff2f0;border-radius:var(--radius)">
+                                <div style="color:var(--muted);font-size:var(--text-xs)">失败条数</div>
+                                <div style="font-size:var(--text-lg);font-weight:bold;color:#ff4d4f" id="detail-failed"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-bottom: var(--space-3)">
+                    <div class="form-section">
+                        <label class="form-label">失败详情</label>
+                        <div id="detail-errors" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-3)"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="downloadErrorFile()">下载错误数据</button>
+                <button class="btn-default" onclick="closeDetailModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var importLogs = [
+            { id: 1, module: 'station', moduleName: '场站信息管理', filename: '场站信息_20260705.xlsx', operator: 'admin', time: '2026-07-05 14:30:22', total: 25, success: 25, failed: 0, status: 'success', errors: [] },
+            { id: 2, module: 'model', moduleName: '算法模型管理', filename: '算法模型_20260704.xlsx', operator: 'admin', time: '2026-07-04 09:15:08', total: 12, success: 10, failed: 2, status: 'partial', errors: ['第3行：模型名称不能为空', '第8行：训练数据范围格式错误'] },
+            { id: 3, module: 'contract', moduleName: '合约管理', filename: '合约数据_20260703.xlsx', operator: 'user01', time: '2026-07-03 16:45:33', total: 8, success: 0, failed: 8, status: 'failed', errors: ['第1行：交易品类不存在', '第2行：电价格式错误', '第3行：电量占比超出范围', '第4行：交易品类不存在', '第5行：电价格式错误', '第6行：合约编号重复', '第7行：交易品类不存在', '第8行：电量占比超出范围'] },
+            { id: 4, module: 'spot', moduleName: '现货数据管理', filename: '现货出清_20260702.xlsx', operator: 'admin', time: '2026-07-02 11:20:15', total: 96, success: 96, failed: 0, status: 'success', errors: [] },
+            { id: 5, module: 'meteo', moduleName: '气象数据对接管理', filename: '气象数据源_20260701.xlsx', operator: 'admin', time: '2026-07-01 10:00:00', total: 5, success: 4, failed: 1, status: 'partial', errors: ['第2行：服务地址格式错误'] },
+            { id: 6, module: 'model-dock', moduleName: '模型对接管理', filename: '模型对接配置_20260630.xlsx', operator: 'user02', time: '2026-06-30 15:30:45', total: 6, success: 6, failed: 0, status: 'success', errors: [] },
+            { id: 7, module: 'interface', moduleName: '外部数据接口管理', filename: '外部接口_20260628.xlsx', operator: 'admin', time: '2026-06-28 08:10:22', total: 10, success: 8, failed: 2, status: 'partial', errors: ['第5行：认证方式不支持', '第9行：接口地址不能为空'] },
+            { id: 8, module: 'predict', moduleName: '预测数据管理', filename: '电价预测_20260625.xlsx', operator: 'admin', time: '2026-06-25 14:00:00', total: 168, success: 165, failed: 3, status: 'partial', errors: ['第45行：预测日期格式错误', '第89行：电价数值超出范围', '第120行：缺失预测置信度'] }
+        ];
+
+        var currentDetailId = null;
+
+        function initLogs() {
+            renderLogTable(importLogs);
+        }
+
+        function renderLogTable(data) {
+            var tbody = document.getElementById('log-table-body');
+            tbody.innerHTML = '';
+            
+            data.forEach(function(item, index) {
+                var statusClass = item.status === 'success' ? 'status-success' : (item.status === 'partial' ? 'status-warning' : 'status-danger');
+                var statusText = item.status === 'success' ? '全部成功' : (item.status === 'partial' ? '部分成功' : '全部失败');
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.moduleName}</td>
+                        <td>${item.filename}</td>
+                        <td>${item.operator}</td>
+                        <td>${item.time}</td>
+                        <td>${item.total}</td>
+                        <td>${item.success}</td>
+                        <td>${item.failed}</td>
+                        <td><span class="tag ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn-default" onclick="openDetailModal(${item.id})">查看详情</button>
+                            ${item.failed > 0 ? '<button class="btn-danger" onclick="downloadErrorFileById(' + item.id + ')">下载错误</button>' : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('log-count').textContent = '共 ' + data.length + ' 条记录';
+        }
+
+        function filterLogs() {
+            var module = document.getElementById('log-filter-module').value;
+            var status = document.getElementById('log-filter-status').value;
+            var date = document.getElementById('log-import-date').value;
+            var operator = document.getElementById('log-operator').value.toLowerCase();
+
+            var filtered = importLogs.filter(function(item) {
+                var matchModule = module === 'all' || item.module === module;
+                var matchStatus = status === 'all' || item.status === status;
+                var matchDate = !date || item.time.startsWith(date);
+                var matchOperator = !operator || item.operator.toLowerCase().includes(operator);
+                return matchModule && matchStatus && matchDate && matchOperator;
+            });
+
+            renderLogTable(filtered);
+        }
+
+        function clearLogFilter() {
+            document.getElementById('log-filter-module').value = 'all';
+            document.getElementById('log-filter-status').value = 'all';
+            document.getElementById('log-import-date').value = '';
+            document.getElementById('log-operator').value = '';
+            filterLogs();
+        }
+
+        function openDetailModal(id) {
+            currentDetailId = id;
+            var item = importLogs.find(function(d) { return d.id === id; });
+            if (!item) return;
+
+            document.getElementById('detail-title').textContent = '导入详情 - ' + item.filename;
+            document.getElementById('detail-module').textContent = item.moduleName;
+            document.getElementById('detail-filename').textContent = item.filename;
+            document.getElementById('detail-operator').textContent = item.operator;
+            document.getElementById('detail-time').textContent = item.time;
+            document.getElementById('detail-total').textContent = item.total;
+            document.getElementById('detail-success').textContent = item.success;
+            document.getElementById('detail-failed').textContent = item.failed;
+
+            var errorHtml = '';
+            if (item.errors && item.errors.length > 0) {
+                item.errors.forEach(function(err, idx) {
+                    errorHtml += '<div style="padding:8px;border-bottom:1px solid var(--border);color:var(--danger)">' + (idx + 1) + '. ' + err + '</div>';
+                });
+            } else {
+                errorHtml = '<div style="color:var(--muted);text-align:center;padding:var(--space-4)">无失败记录</div>';
+            }
+            document.getElementById('detail-errors').innerHTML = errorHtml;
+
+            document.getElementById('detail-modal').style.display = 'flex';
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detail-modal').style.display = 'none';
+            currentDetailId = null;
+        }
+
+        function downloadErrorFile() {
+            downloadErrorFileById(currentDetailId);
+        }
+
+        function downloadErrorFileById(id) {
+            var item = importLogs.find(function(d) { return d.id === id; });
+            if (!item || item.failed === 0) return;
+
+            var csvContent = '\uFEFF';
+            item.errors.forEach(function(err) {
+                csvContent += err + '\n';
+            });
+
+            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = item.filename.replace(/\.[^.]+$/, '_错误数据.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showResult('success', '错误数据文件已下载');
+        }
+
+        function showResult(type, message) {
+            var result = document.createElement('div');
+            result.className = 'import-result ' + type;
+            result.textContent = message;
+            result.style.position = 'fixed';
+            result.style.top = '80px';
+            result.style.right = '20px';
+            result.style.zIndex = '9999';
+            result.style.padding = '12px 20px';
+            result.style.borderRadius = '4px';
+            result.style.color = '#fff';
+            result.style.backgroundColor = type === 'success' ? '#52c41a' : '#ff4d4f';
+            document.body.appendChild(result);
+            setTimeout(function() { result.remove(); }, 3000);
+        }
+
+        window.filterLogs = filterLogs;
+        window.clearLogFilter = clearLogFilter;
+        window.openDetailModal = openDetailModal;
+        window.closeDetailModal = closeDetailModal;
+        window.downloadErrorFile = downloadErrorFile;
+        window.downloadErrorFileById = downloadErrorFileById;
+
+        initLogs();
+    </script>
+</body>
+</html>
