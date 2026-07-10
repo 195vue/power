@@ -123,7 +123,10 @@ contract-period,合约周期,contract_period,WEEK,周度,4,启用
 contract-period,合约周期,contract_period,DAY,日度,5,启用
 contract-type,合约类型,contract_type,ANNUAL_BILATERAL,年度双边协商合约,1,启用
 contract-type,合约类型,contract_type,MONTHLY_AUCTION,月度集中竞价合约,2,启用
-contract-type,合约类型,contract_type,SPOT,现货合约,3,启用
+contract-type,合约类型,contract_type,MONTHLY_BILATERAL,月度双边协商合约,3,启用
+contract-type,合约类型,contract_type,QUARTERLY_BILATERAL,季度双边协商合约,4,启用
+contract-type,合约类型,contract_type,ANNUAL_AUCTION,年度集中竞价合约,5,启用
+contract-type,合约类型,contract_type,SPOT,现货合约,6,启用
 settlement-type,结算类型,settlement_type,DAY_AHEAD,日前结算,1,启用
 settlement-type,结算类型,settlement_type,REAL_TIME,实时结算,2,启用
 settlement-type,结算类型,settlement_type,DEVIATION,偏差结算,3,启用

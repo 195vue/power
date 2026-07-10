@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>算法模型管理 - 新能源电力交易辅助决策系统</title>
     <link rel="stylesheet" href="../../styles.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <main class="main-content">
@@ -33,13 +34,16 @@
                 </div>
                 <div class="filter-item">
                     <label>算法类型</label>
-                    <select class="filter-select" style="width:140px" id="scheme-filter-algo">
+                    <select class="filter-select" style="width:160px" id="scheme-filter-algo">
                         <option value="all">全部类型</option>
-                        <option>LSTM</option>
-                        <option>GRU</option>
-                        <option>XGBoost</option>
-                        <option>Transformer</option>
-                        <option>Prophet</option>
+                        <option>时序预测模型</option>
+                        <option>回归预测模型</option>
+                        <option>神经网络模型</option>
+                        <option>集成学习模型</option>
+                        <option>混合架构</option>
+                        <option>基线模型</option>
+                        <option>机器学习模型</option>
+                        <option>深度学习模型</option>
                     </select>
                 </div>
                 <div class="filter-item">
@@ -52,8 +56,8 @@
                 </div>
                 <button class="btn-primary" onclick="filterSchemes()">查询</button>
                 <div style="flex:1"></div>
-                <button class="btn-default" onclick="downloadSchemeTemplate()">下载模板</button>
-                <button class="btn-default" onclick="openSchemeImportModal()">批量导入</button>
+                <span class="info-text" style="margin-right:var(--space-3);color:var(--muted);font-size:var(--text-sm)">数据来源：系统训练生成，无需手动导入</span>
+                <button class="btn-default" onclick="exportSchemeData()">导出数据</button>
                 <button class="btn-primary" onclick="openSchemeModal()">+ 新增方案</button>
             </div>
 
@@ -61,6 +65,7 @@
                 <table class="data-table" id="scheme-table">
                     <thead>
                         <tr>
+                            <th style="width:50px"><input type="checkbox" id="scheme-select-all" onclick="toggleSchemeSelectAll()"></th>
                             <th>方案名称</th>
                             <th>所属模块</th>
                             <th>算法类型</th>
@@ -68,7 +73,7 @@
                             <th>训练日期范围</th>
                             <th>创建时间</th>
                             <th>状态</th>
-                            <th style="width:160px">操作</th>
+                            <th style="width:100px">操作</th>
                         </tr>
                     </thead>
                     <tbody id="scheme-table-body"></tbody>
@@ -136,96 +141,6 @@
         </div>
     </main>
 
-    <!-- 算法方案导入弹窗 -->
-    <div class="modal-overlay" id="scheme-import-modal" style="display:none">
-        <div class="modal-panel" style="width:720px">
-            <div class="modal-header">
-                <h3>批量导入算法方案</h3>
-                <button class="modal-close" onclick="closeSchemeImportModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div style="padding:var(--space-3);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-4)">
-                    <strong>导入流程：</strong>
-                    <div style="display:flex;gap:var(--space-4);margin-top:8px">
-                        <div style="display:flex;align-items:center;gap:8px">
-                            <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px">1</span>
-                            <span style="font-size:var(--text-sm)">上传文件</span>
-                        </div>
-                        <div style="color:var(--border)">→</div>
-                        <div style="display:flex;align-items:center;gap:8px">
-                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">2</span>
-                            <span style="font-size:var(--text-sm)">解析预览</span>
-                        </div>
-                        <div style="color:var(--border)">→</div>
-                        <div style="display:flex;align-items:center;gap:8px">
-                            <span style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--fg);display:flex;align-items:center;justify-content:center;font-size:12px">3</span>
-                            <span style="font-size:var(--text-sm)">确认导入</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="import-drop-area" onclick="document.getElementById('scheme-import-file').click()" style="border:2px dashed var(--border);border-radius:var(--radius);padding:var(--space-6);text-align:center;cursor:pointer;margin-bottom:var(--space-4);background:var(--bg-secondary)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;margin:0 auto var(--space-3);color:var(--muted)">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                    <div style="font-size:var(--text-sm);color:var(--muted)">点击或拖拽文件到此处上传</div>
-                    <input type="file" id="scheme-import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleSchemeImport(this)">
-                </div>
-                <div style="margin-bottom:var(--space-3)">
-                    <h4 style="margin:0 0 var(--space-2);font-size:var(--text-sm);font-weight:600">已上传文件列表</h4>
-                    <table class="data-table" style="font-size:var(--text-xs)">
-                        <thead>
-                            <tr>
-                                <th style="width:200px">文件名</th>
-                                <th style="width:120px">上传时间</th>
-                                <th style="width:80px">上传人</th>
-                                <th style="width:80px">数据条数</th>
-                                <th style="width:100px">状态</th>
-                                <th style="width:120px">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="scheme-import-file-list"></tbody>
-                    </table>
-                    <div id="scheme-import-file-empty" style="text-align:center;color:var(--muted);padding:var(--space-4);display:none">暂无上传文件</div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-default" onclick="downloadSchemeTemplate()">下载模板</button>
-                <button class="btn-primary" onclick="document.getElementById('scheme-import-file').click()">选择文件上传</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 算法方案解析预览弹窗 -->
-    <div class="modal-overlay" id="scheme-preview-modal" style="display:none">
-        <div class="modal-panel" style="width:800px">
-            <div class="modal-header">
-                <h3>数据预览</h3>
-                <button class="modal-close" onclick="closeSchemePreviewModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div style="padding:var(--space-2);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--space-3);font-size:var(--text-sm)">
-                    <strong>文件：</strong><span id="scheme-preview-filename"></span>
-                    <span style="margin-left:var(--space-4)"><strong>总条数：</strong><span id="scheme-preview-total"></span></span>
-                    <span style="margin-left:var(--space-4)"><strong>有效条数：</strong><span id="scheme-preview-valid"></span></span>
-                    <span style="margin-left:var(--space-4)"><strong>无效条数：</strong><span id="scheme-preview-invalid"></span></span>
-                </div>
-                <div style="max-height:350px;overflow-y:auto">
-                    <table class="data-table" style="font-size:var(--text-xs)">
-                        <thead id="scheme-preview-thead"></thead>
-                        <tbody id="scheme-preview-tbody"></tbody>
-                    </table>
-                </div>
-                <div id="scheme-preview-errors" style="margin-top:var(--space-3);max-height:150px;overflow-y:auto;display:none"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-default" onclick="closeSchemePreviewModal()">取消</button>
-                <button class="btn-primary" onclick="confirmSchemeImport()">确认导入</button>
-            </div>
-        </div>
-    </div>
-
     <!-- 算法方案弹窗 -->
     <div class="modal-overlay" id="scheme-modal" style="display:none">
         <div class="modal-panel" style="width:560px">
@@ -257,14 +172,14 @@
                     <div class="form-section" style="flex:1">
                         <label class="form-label">算法类型</label>
                         <select class="form-input" id="scheme-algo">
-                            <option>LSTM</option>
-                            <option>GRU</option>
-                            <option>XGBoost</option>
-                            <option>LightGBM</option>
-                            <option>Transformer</option>
-                            <option>Prophet</option>
-                            <option>基线模型</option>
+                            <option>时序预测模型</option>
+                            <option>回归预测模型</option>
+                            <option>神经网络模型</option>
+                            <option>集成学习模型</option>
                             <option>混合架构</option>
+                            <option>基线模型</option>
+                            <option>机器学习模型</option>
+                            <option>深度学习模型</option>
                         </select>
                     </div>
                 </div>
@@ -413,11 +328,11 @@
         // ─── 算法方案数据 ────────────────────────────────────────
         var schemeData = [
             { name: '负荷预测基线模型 v3', module: '负荷预测', algo: '基线模型', version: 'v3.1.0', trainStart: '2025-10-01', trainEnd: '2026-02-28', created: '2026-03-01 09:00', status: '已发布', metric: 'RMSE=2.3%', desc: '基于历史同期均值的基线预测方法，作为评估基准' },
-            { name: '负荷预测 LSTM 模型', module: '负荷预测', algo: 'LSTM', version: 'v2.0.0', trainStart: '2025-12-01', trainEnd: '2026-03-31', created: '2026-04-05 14:30', status: '已发布', metric: 'RMSE=1.8%', desc: '多层LSTM网络，融合气象特征和节假日因子' },
-            { name: '日前电价 GRU 模型', module: '日前电价预测', algo: 'GRU', version: 'v2.1.0', trainStart: '2025-12-01', trainEnd: '2026-03-31', created: '2026-04-05 14:30', status: '已发布', metric: 'RMSE=8.5', desc: '门控循环单元网络，96点日前电价预测' },
-            { name: '实时电价 LSTM 模型', module: '实时电价预测', algo: 'LSTM', version: 'v1.5.0', trainStart: '2025-11-01', trainEnd: '2026-02-28', created: '2026-03-10 10:15', status: '已发布', metric: 'RMSE=5.2', desc: '实时滚动预测，15分钟粒度更新' },
-            { name: '功率预测 XGBoost 模型', module: '功率预测', algo: 'XGBoost', version: 'v2.0.0', trainStart: '2025-08-01', trainEnd: '2026-01-31', created: '2026-02-15 11:20', status: '已发布', metric: 'MAE=3.2%', desc: '集成学习模型，融合NWP气象数据' },
-            { name: '负荷预测 Transformer 实验', module: '负荷预测', algo: 'Transformer', version: 'v0.9.0', trainStart: '2026-03-01', trainEnd: '2026-04-30', created: '2026-05-10 16:20', status: '草稿', metric: 'RMSE=1.5%', desc: '基于注意力机制的时序模型，实验性版本' },
+            { name: '负荷预测 LSTM 模型', module: '负荷预测', algo: '神经网络模型', version: 'v2.0.0', trainStart: '2025-12-01', trainEnd: '2026-03-31', created: '2026-04-05 14:30', status: '已发布', metric: 'RMSE=1.8%', desc: '多层LSTM网络，融合气象特征和节假日因子' },
+            { name: '日前电价 GRU 模型', module: '日前电价预测', algo: '神经网络模型', version: 'v2.1.0', trainStart: '2025-12-01', trainEnd: '2026-03-31', created: '2026-04-05 14:30', status: '已发布', metric: 'RMSE=8.5', desc: '门控循环单元网络，96点日前电价预测' },
+            { name: '实时电价 LSTM 模型', module: '实时电价预测', algo: '神经网络模型', version: 'v1.5.0', trainStart: '2025-11-01', trainEnd: '2026-02-28', created: '2026-03-10 10:15', status: '已发布', metric: 'RMSE=5.2', desc: '实时滚动预测，15分钟粒度更新' },
+            { name: '功率预测 XGBoost 模型', module: '功率预测', algo: '集成学习模型', version: 'v2.0.0', trainStart: '2025-08-01', trainEnd: '2026-01-31', created: '2026-02-15 11:20', status: '已发布', metric: 'MAE=3.2%', desc: '集成学习模型，融合NWP气象数据' },
+            { name: '负荷预测 Transformer 实验', module: '负荷预测', algo: '深度学习模型', version: 'v0.9.0', trainStart: '2026-03-01', trainEnd: '2026-04-30', created: '2026-05-10 16:20', status: '草稿', metric: 'RMSE=1.5%', desc: '基于注意力机制的时序模型，实验性版本' },
             { name: '实时电价优化模型 v2', module: '实时电价预测', algo: '混合架构', version: 'v2.0-beta', trainStart: '2026-02-01', trainEnd: '2026-05-15', created: '2026-05-20 11:00', status: '草稿', metric: '-', desc: 'LSTM+XGBoost混合架构，待验证' }
         ];
         var schemeEditIndex = -1;
@@ -427,8 +342,11 @@
             tbody.innerHTML = '';
             var list = data || schemeData;
             list.forEach(function(s, i) {
+                var index = schemeData.indexOf(s);
+                if (index === -1) index = i;
                 var cls = s.status === '已发布' ? 'badge-success' : 'badge-muted';
-                tbody.innerHTML += '<tr>' +
+                tbody.innerHTML += '<tr data-index="' + index + '">' +
+                    '<td style="text-align:center"><input type="checkbox" class="scheme-row-checkbox" onclick="toggleSchemeRowSelect(' + index + ')"></td>' +
                     '<td><strong>' + s.name + '</strong></td>' +
                     '<td>' + s.module + '</td>' +
                     '<td>' + s.algo + '</td>' +
@@ -437,8 +355,8 @@
                     '<td>' + s.created + '</td>' +
                     '<td><span class="badge ' + cls + '">' + s.status + '</span></td>' +
                     '<td>' +
-                    '<button class="btn-config" onclick="openSchemeModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> ' +
-                    '<button class="btn-delete" onclick="deleteScheme(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>' +
+                    '<button class="btn-config" onclick="openSchemeModal(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteScheme(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>' +
                     '</td></tr>';
             });
             document.getElementById('scheme-count').textContent = '共 ' + list.length + ' 条记录';
@@ -675,231 +593,78 @@
         window.saveNode = saveNode;
         window.deleteNode = deleteNode;
         window.filterNodes = filterNodes;
-        window.downloadSchemeTemplate = downloadSchemeTemplate;
-        window.openSchemeImportModal = openSchemeImportModal;
-        window.closeSchemeImportModal = closeSchemeImportModal;
-        window.handleSchemeImport = handleSchemeImport;
 
         function downloadSchemeTemplate() {
-            var headers = ['方案名称', '所属模块', '算法类型', '版本号', '训练开始日期', '训练结束日期', '状态', '评价指标', '描述'];
-            var csvContent = '\uFEFF' + headers.join(',') + '\n';
-            csvContent += '负荷预测LSTM模型,负荷预测,LSTM,v2.1.0,2025-01-01,2025-12-31,已发布,MAPE: 5.2%,基于历史负荷数据训练的LSTM模型\n';
+            var sheet1Data = [
+                ['方案名称', '所属模块', '算法类型', '版本号', '训练开始日期', '训练结束日期', '状态', '评价指标', '描述'],
+                ['负荷预测LSTM模型', '负荷预测', '神经网络模型', 'v2.1.0', '2025-01-01', '2025-12-31', '已发布', 'RMSE=1.8%', '基于历史负荷数据训练的LSTM模型'],
+                ['日前电价GRU模型', '日前电价预测', '神经网络模型', 'v2.1.0', '2025-12-01', '2026-03-31', '已发布', 'RMSE=8.5', '门控循环单元网络，96点日前电价预测'],
+                ['功率预测XGBoost模型', '功率预测', '集成学习模型', 'v2.0.0', '2025-08-01', '2026-01-31', '已发布', 'MAE=3.2%', '集成学习模型，融合NWP气象数据']
+            ];
+
+            var sheet2Data = [
+                ['字段名', '数据类型', '是否必填', '取值范围', '说明'],
+                ['方案名称', 'VARCHAR(100)', '必填', '', '算法方案唯一名称'],
+                ['所属模块', '枚举', '必填', '负荷预测/日前电价预测/实时电价预测/功率预测', '方案所属业务模块'],
+                ['算法类型', '枚举', '必填', '时序预测模型/回归预测模型/神经网络模型/集成学习模型/混合架构/基线模型/机器学习模型/深度学习模型', '算法分类，对应数据字典algorithm-type'],
+                ['版本号', 'VARCHAR(20)', '必填', '', '方案版本号，格式如:v2.1.0，默认1.0.0'],
+                ['训练开始日期', 'DATE', '必填', 'YYYY-MM-DD', '训练数据起始日期'],
+                ['训练结束日期', 'DATE', '必填', 'YYYY-MM-DD', '训练数据结束日期'],
+                ['状态', '枚举', '必填', '已发布/草稿', '方案状态'],
+                ['评价指标', 'VARCHAR(100)', '选填', '', '评估指标，如:RMSE=8.5'],
+                ['描述', 'TEXT', '选填', '', '方案功能说明、算法原理、特征工程等']
+            ];
+
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            var sheet2 = XLSX.utils.aoa_to_sheet(sheet2Data);
             
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '算法方案导入模板.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导入模板表');
+            XLSX.utils.book_append_sheet(workbook, sheet2, '字段规则说明附表');
+            
+            XLSX.writeFile(workbook, '算法方案导入专用模板.xlsx');
         }
 
-        var schemeImportFiles = [];
-        var currentSchemePreviewData = [];
-        var currentSchemePreviewFile = null;
-
-        function openSchemeImportModal() {
-            document.getElementById('scheme-import-modal').style.display = 'flex';
-            document.getElementById('scheme-import-file').value = '';
-            renderSchemeImportFileList();
-        }
-
-        function closeSchemeImportModal() {
-            document.getElementById('scheme-import-modal').style.display = 'none';
-        }
-
-        function renderSchemeImportFileList() {
-            var tbody = document.getElementById('scheme-import-file-list');
-            var empty = document.getElementById('scheme-import-file-empty');
-            
-            if (schemeImportFiles.length === 0) {
-                tbody.innerHTML = '';
-                empty.style.display = 'block';
-                return;
-            }
-            
-            empty.style.display = 'none';
-            tbody.innerHTML = '';
-            
-            schemeImportFiles.forEach(function(f, idx) {
-                var statusText = f.status === '待解析' ? '<span class="badge badge-muted">待解析</span>' :
-                                 f.status === '已解析' ? '<span class="badge badge-success">已解析</span>' :
-                                 f.status === '已导入' ? '<span class="tag status-success">已导入</span>' :
-                                 '<span class="tag status-danger">导入失败</span>';
-                
-                var actions = '';
-                if (f.status === '待解析') {
-                    actions = '<button class="btn-default" onclick="parseSchemePreview(' + idx + ')" style="padding:2px 8px;font-size:12px">解析预览</button> ' +
-                              '<button class="btn-delete" onclick="deleteSchemeImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
-                } else if (f.status === '已解析') {
-                    actions = '<button class="btn-primary" onclick="parseSchemePreview(' + idx + ')" style="padding:2px 8px;font-size:12px">确认导入</button> ' +
-                              '<button class="btn-delete" onclick="deleteSchemeImportFile(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>';
-                } else {
-                    actions = '<button class="btn-default" onclick="parseSchemePreview(' + idx + ')" style="padding:2px 8px;font-size:12px">查看</button>';
-                }
-                
-                tbody.innerHTML += '<tr>' +
-                    '<td><strong>' + f.name + '</strong></td>' +
-                    '<td>' + f.uploadTime + '</td>' +
-                    '<td>' + f.uploader + '</td>' +
-                    '<td>' + (f.rowCount || '-') + '</td>' +
-                    '<td>' + statusText + '</td>' +
-                    '<td>' + actions + '</td>' +
-                    '</tr>';
+        function toggleSchemeSelectAll() {
+            var checkbox = document.getElementById('scheme-select-all');
+            var rowCheckboxes = document.querySelectorAll('.scheme-row-checkbox');
+            rowCheckboxes.forEach(function(cb) {
+                cb.checked = checkbox.checked;
             });
         }
 
-        function handleSchemeImport(input) {
-            var file = input.files[0];
-            if (!file) return;
+        function toggleSchemeRowSelect(index) {
+            var selectAll = document.getElementById('scheme-select-all');
+            var rowCheckboxes = document.querySelectorAll('.scheme-row-checkbox');
+            var allChecked = Array.from(rowCheckboxes).every(function(cb) {
+                return cb.checked;
+            });
+            selectAll.checked = allChecked;
+        }
 
-            var ext = file.name.split('.').pop().toLowerCase();
-            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
-                alert('仅支持 Excel (.xlsx/.xls) 和 CSV 格式文件');
+        function exportSchemeData() {
+            var selectedRows = document.querySelectorAll('.scheme-row-checkbox:checked');
+            if (selectedRows.length === 0) {
+                alert('请至少选择一条记录进行导出');
                 return;
             }
-
-            var now = new Date();
-            var fileRecord = {
-                id: Date.now(),
-                name: file.name,
-                file: file,
-                uploadTime: now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + 
-                         String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'),
-                uploader: '管理员',
-                status: '待解析',
-                rowCount: null,
-                validCount: 0,
-                invalidCount: 0,
-                errors: [],
-                parsedData: null
-            };
-
-            schemeImportFiles.unshift(fileRecord);
-            renderSchemeImportFileList();
-            input.value = '';
-        }
-
-        function deleteSchemeImportFile(index) {
-            if (confirm('确认删除文件「' + schemeImportFiles[index].name + '」？')) {
-                schemeImportFiles.splice(index, 1);
-                renderSchemeImportFileList();
-            }
-        }
-
-        function parseSchemePreview(index) {
-            var fileRecord = schemeImportFiles[index];
-            currentSchemePreviewFile = fileRecord;
             
-            document.getElementById('scheme-preview-filename').textContent = fileRecord.name;
+            var headers = ['方案名称', '所属模块', '算法类型', '版本号', '训练日期范围', '创建时间', '状态', '评价指标', '描述'];
+            var sheet1Data = [headers];
             
-            setTimeout(function() {
-                var mockData = [
-                    { name: '负荷预测XGBoost模型', module: '负荷预测', algo: 'XGBoost', version: 'v3.0.0', trainStart: '2025-06-01', trainEnd: '2026-03-31', created: '', status: '已发布', metric: 'RMSE=2.1%', desc: 'XGBoost集成学习模型' },
-                    { name: '日前电价Prophet模型', module: '日前电价预测', algo: 'Prophet', version: 'v1.5.0', trainStart: '2025-08-01', trainEnd: '2026-02-28', created: '', status: '草稿', metric: 'RMSE=9.2', desc: 'Facebook Prophet时序模型' },
-                    { name: '', module: '功率预测', algo: 'LSTM', version: 'v2.0.0', trainStart: '2025-10-01', trainEnd: '2026-01-31', created: '', status: '已发布', metric: 'MAE=3.5%', desc: '' },
-                    { name: '实时电价LightGBM模型', module: '实时电价预测', algo: 'LightGBM', version: 'v2.1.0', trainStart: '2025-11-01', trainEnd: '2026-04-30', created: '', status: '草稿', metric: '-', desc: '轻量级梯度提升模型' }
-                ];
-                
-                var errors = [];
-                mockData.forEach(function(row, i) {
-                    if (!row.name) errors.push('第' + (i + 2) + '行：方案名称不能为空');
-                });
-                
-                fileRecord.parsedData = mockData;
-                fileRecord.rowCount = mockData.length;
-                fileRecord.validCount = mockData.length - errors.length;
-                fileRecord.invalidCount = errors.length;
-                fileRecord.errors = errors;
-                fileRecord.status = '已解析';
-                
-                currentSchemePreviewData = mockData;
-                
-                document.getElementById('scheme-preview-total').textContent = mockData.length;
-                document.getElementById('scheme-preview-valid').textContent = fileRecord.validCount;
-                document.getElementById('scheme-preview-invalid').textContent = fileRecord.invalidCount;
-                
-                var headers = ['方案名称', '所属模块', '算法类型', '版本号', '训练日期范围', '状态', '评价指标', '描述'];
-                var headerHtml = '<tr>';
-                headers.forEach(function(h) { headerHtml += '<th>' + h + '</th>'; });
-                headerHtml += '</tr>';
-                document.getElementById('scheme-preview-thead').innerHTML = headerHtml;
-                
-                var bodyHtml = '';
-                mockData.forEach(function(row, i) {
-                    var bgClass = !row.name ? 'style="background:#fff2f0"' : '';
-                    bodyHtml += '<tr ' + bgClass + '>' +
-                        '<td>' + (row.name || '<span style="color:var(--danger)">空</span>') + '</td>' +
-                        '<td>' + row.module + '</td>' +
-                        '<td>' + row.algo + '</td>' +
-                        '<td>' + row.version + '</td>' +
-                        '<td>' + row.trainStart + ' ~ ' + row.trainEnd + '</td>' +
-                        '<td><span class="badge ' + (row.status === '已发布' ? 'badge-success' : 'badge-muted') + '">' + row.status + '</span></td>' +
-                        '<td>' + (row.metric || '-') + '</td>' +
-                        '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (row.desc || '-') + '</td>' +
-                        '</tr>';
-                });
-                document.getElementById('scheme-preview-tbody').innerHTML = bodyHtml;
-                
-                if (errors.length > 0) {
-                    var errorHtml = '<strong style="color:var(--danger)">校验错误：</strong><br>';
-                    errors.forEach(function(err) {
-                        errorHtml += '<div style="padding:4px 0;color:var(--danger);font-size:var(--text-sm)">' + err + '</div>';
-                    });
-                    document.getElementById('scheme-preview-errors').innerHTML = errorHtml;
-                    document.getElementById('scheme-preview-errors').style.display = 'block';
-                } else {
-                    document.getElementById('scheme-preview-errors').style.display = 'none';
-                }
-                
-                renderSchemeImportFileList();
-                document.getElementById('scheme-preview-modal').style.display = 'flex';
-            }, 500);
-        }
-
-        function closeSchemePreviewModal() {
-            document.getElementById('scheme-preview-modal').style.display = 'none';
-        }
-
-        function confirmSchemeImport() {
-            if (!currentSchemePreviewFile || !currentSchemePreviewData) return;
-            
-            var successCount = 0;
-            var failedCount = 0;
-            
-            currentSchemePreviewData.forEach(function(row, i) {
-                if (!row.name) {
-                    failedCount++;
-                    return;
-                }
-                
-                var existingIndex = schemeData.findIndex(function(s) { return s.name === row.name; });
-                if (existingIndex >= 0) {
-                    row.created = schemeData[existingIndex].created;
-                    schemeData[existingIndex] = row;
-                } else {
-                    row.created = new Date().toISOString().slice(0, 16).replace('T', ' ');
-                    schemeData.push(row);
-                }
-                successCount++;
+            selectedRows.forEach(function(cb) {
+                var tr = cb.closest('tr');
+                var index = parseInt(tr.getAttribute('data-index'));
+                var s = schemeData[index];
+                sheet1Data.push([s.name, s.module, s.algo, s.version, s.trainStart + ' ~ ' + s.trainEnd, s.created, s.status, s.metric, s.desc]);
             });
             
-            currentSchemePreviewFile.status = failedCount === 0 ? '已导入' : '部分成功';
-            renderSchemeImportFileList();
-            closeSchemePreviewModal();
-            
-            if (failedCount > 0) {
-                alert('导入完成：成功 ' + successCount + ' 条，失败 ' + failedCount + ' 条');
-            } else {
-                alert('导入完成：全部 ' + successCount + ' 条数据导入成功');
-            }
-            renderSchemes();
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导出数据');
+            XLSX.writeFile(workbook, '算法方案_' + new Date().toISOString().split('T')[0] + '.xlsx');
         }
 
-        window.parseSchemePreview = parseSchemePreview;
-        window.closeSchemePreviewModal = closeSchemePreviewModal;
-        window.confirmSchemeImport = confirmSchemeImport;
-        window.deleteSchemeImportFile = deleteSchemeImportFile;
     </script>
 </body>
 </html>

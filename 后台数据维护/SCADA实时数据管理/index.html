@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCADA实时数据管理 - 新能源电力交易辅助决策系统</title>
     <link rel="stylesheet" href="../../styles.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <main class="main-content">
@@ -38,25 +39,38 @@
                     <label>机组编号</label>
                     <select class="filter-select" style="width:120px" id="scada-filter-unit">
                         <option value="all">全部机组</option>
+                        <option>汇总</option>
                         <option>1#</option>
                         <option>2#</option>
                         <option>3#</option>
                         <option>4#</option>
                         <option>5#</option>
-                        <option>汇总</option>
+                        <option>6#</option>
+                        <option>7#</option>
+                        <option>8#</option>
+                        <option>9#</option>
+                        <option>10#</option>
+                        <option>11#</option>
+                        <option>12#</option>
+                        <option>13#</option>
+                        <option>14#</option>
+                        <option>15#</option>
+                        <option>16#</option>
                     </select>
                 </div>
                 <button class="btn-primary" onclick="filterScadaData()">查询</button>
                 <div style="flex:1"></div>
                 <button class="btn-default" onclick="downloadScadaTemplate()">下载导入模板</button>
-                <button class="btn-default" onclick="openScadaImportModal()">批量导入</button>
-                <button class="btn-primary" onclick="openScadaModal()">+ 新增数据</button>
+                <button class="btn-default" onclick="exportScadaData()">导出数据</button>
+                <button class="btn-primary" onclick="openScadaImportModal()">批量导入</button>
+                <button class="btn-primary" onclick="openScadaModal()">+ 补录数据</button>
             </div>
 
             <div class="table-section" style="margin-top: var(--space-4)">
                 <table class="data-table">
                     <thead>
                         <tr>
+                            <th style="width:50px"><input type="checkbox" id="scada-select-all" onclick="toggleScadaSelectAll()"></th>
                             <th>日期</th>
                             <th>时段(15min)</th>
                             <th>场站名称</th>
@@ -66,7 +80,7 @@
                             <th>偏差(MW)</th>
                             <th>偏差率(%)</th>
                             <th>状态</th>
-                            <th style="width:140px">操作</th>
+                            <th style="width:100px">操作</th>
                         </tr>
                     </thead>
                     <tbody id="scada-table-body"></tbody>
@@ -222,6 +236,17 @@
                             <option>3#</option>
                             <option>4#</option>
                             <option>5#</option>
+                            <option>6#</option>
+                            <option>7#</option>
+                            <option>8#</option>
+                            <option>9#</option>
+                            <option>10#</option>
+                            <option>11#</option>
+                            <option>12#</option>
+                            <option>13#</option>
+                            <option>14#</option>
+                            <option>15#</option>
+                            <option>16#</option>
                         </select>
                     </div>
                 </div>
@@ -342,15 +367,23 @@
     <script>
         var scadaData = [
             { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '汇总', actual: 38.50, predict: 40.00, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '1#', actual: 2.40, predict: 2.50, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '2#', actual: 2.45, predict: 2.55, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '3#', actual: 2.38, predict: 2.48, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '4#', actual: 2.42, predict: 2.52, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '5#', actual: 2.35, predict: 2.45, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '6#', actual: 2.48, predict: 2.58, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '7#', actual: 2.41, predict: 2.51, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '8#', actual: 2.39, predict: 2.49, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '9#', actual: 2.43, predict: 2.53, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '10#', actual: 2.46, predict: 2.56, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '11#', actual: 2.37, predict: 2.47, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '12#', actual: 2.44, predict: 2.54, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '13#', actual: 2.40, predict: 2.50, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '14#', actual: 2.36, predict: 2.46, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '15#', actual: 2.42, predict: 2.52, status: '正常' },
+            { date: '2025-11-01', period: '00:00', station: '桂阳月和风电场', unit: '16#', actual: 2.41, predict: 2.51, status: '正常' },
             { date: '2025-11-01', period: '00:15', station: '桂阳月和风电场', unit: '汇总', actual: 37.80, predict: 39.50, status: '正常' },
-            { date: '2025-11-01', period: '00:30', station: '桂阳月和风电场', unit: '汇总', actual: 38.20, predict: 39.00, status: '正常' },
-            { date: '2025-11-01', period: '00:45', station: '桂阳月和风电场', unit: '汇总', actual: 37.50, predict: 38.50, status: '正常' },
-            { date: '2025-11-01', period: '01:00', station: '桂阳月和风电场', unit: '汇总', actual: 36.80, predict: 38.00, status: '正常' },
-            { date: '2025-11-01', period: '01:15', station: '桂阳月和风电场', unit: '汇总', actual: 36.20, predict: 37.50, status: '正常' },
-            { date: '2025-11-01', period: '01:30', station: '桂阳月和风电场', unit: '汇总', actual: 35.80, predict: 37.00, status: '正常' },
-            { date: '2025-11-01', period: '01:45', station: '桂阳月和风电场', unit: '汇总', actual: 35.50, predict: 36.50, status: '正常' },
-            { date: '2025-11-01', period: '02:00', station: '桂阳月和风电场', unit: '汇总', actual: 35.20, predict: 36.00, status: '正常' },
-            { date: '2025-11-01', period: '02:15', station: '桂阳月和风电场', unit: '汇总', actual: 34.80, predict: 35.50, status: '正常' },
             { date: '2025-11-01', period: '07:00', station: '桂阳月和风电场', unit: '汇总', actual: 48.50, predict: 45.00, status: '正常' },
             { date: '2025-11-01', period: '12:00', station: '桂阳月和风电场', unit: '汇总', actual: 45.20, predict: 46.80, status: '正常' },
             { date: '2025-11-01', period: '18:00', station: '桂阳月和风电场', unit: '汇总', actual: 42.80, predict: 43.50, status: '正常' },
@@ -398,7 +431,8 @@
                 var deviationRate = item.predict !== undefined && item.predict !== null && item.predict !== 0 ? 
                     ((item.actual - item.predict) / item.predict * 100).toFixed(2) : '-';
                 var statusClass = item.status === '正常' ? 'badge-success' : (item.status === '异常' ? 'badge-danger' : 'badge-muted');
-                tbody.innerHTML += '<tr>' +
+                tbody.innerHTML += '<tr data-index="' + idx + '">' +
+                    '<td style="text-align:center"><input type="checkbox" class="scada-row-checkbox" onclick="toggleScadaRowSelect(' + idx + ')"></td>' +
                     '<td>' + item.date + '</td>' +
                     '<td>' + item.period + '</td>' +
                     '<td>' + item.station + '</td>' +
@@ -434,7 +468,9 @@
                 var deviationRate = item.predict !== undefined && item.predict !== null && item.predict !== 0 ? 
                     ((item.actual - item.predict) / item.predict * 100).toFixed(2) : '-';
                 var statusClass = item.status === '正常' ? 'badge-success' : (item.status === '异常' ? 'badge-danger' : 'badge-muted');
-                tbody.innerHTML += '<tr>' +
+                var originalIdx = scadaData.indexOf(item);
+                tbody.innerHTML += '<tr data-index="' + originalIdx + '">' +
+                    '<td style="text-align:center"><input type="checkbox" class="scada-row-checkbox" onclick="toggleScadaRowSelect(' + originalIdx + ')"></td>' +
                     '<td>' + item.date + '</td>' +
                     '<td>' + item.period + '</td>' +
                     '<td>' + item.station + '</td>' +
@@ -445,8 +481,8 @@
                     '<td>' + deviationRate + '</td>' +
                     '<td><span class="badge ' + statusClass + '">' + item.status + '</span></td>' +
                     '<td>' +
-                        '<button class="btn-default" onclick="openScadaModal(' + idx + ')" style="padding:2px 8px;font-size:12px">编辑</button> ' +
-                        '<button class="btn-delete" onclick="deleteScadaData(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>' +
+                        '<button class="btn-default" onclick="openScadaModal(' + originalIdx + ')" style="padding:2px 8px;font-size:12px">编辑</button> ' +
+                        '<button class="btn-delete" onclick="deleteScadaData(' + originalIdx + ')" style="padding:2px 8px;font-size:12px">删除</button>' +
                     '</td>' +
                     '</tr>';
             });
@@ -517,17 +553,46 @@
         }
 
         function downloadScadaTemplate() {
-            var headers = ['日期', '时段(15min)', '场站名称', '机组编号', '上网功率(MW)', '预测功率(MW)', '状态'];
-            var csvContent = '\uFEFF' + headers.join(',') + '\n';
-            csvContent += '2025-11-01,00:00,桂阳月和风电场,汇总,38.50,40.00,正常\n';
+            var sheet1Data = [
+                ['日期', '时段(15min)', '场站名称', '机组编号', '上网功率(MW)', '预测功率(MW)', '状态'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '汇总', 38.50, 40.00, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '1#', 2.40, 2.50, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '2#', 2.45, 2.55, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '3#', 2.38, 2.48, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '4#', 2.42, 2.52, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '5#', 2.35, 2.45, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '6#', 2.48, 2.58, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '7#', 2.41, 2.51, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '8#', 2.39, 2.49, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '9#', 2.43, 2.53, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '10#', 2.46, 2.56, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '11#', 2.37, 2.47, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '12#', 2.44, 2.54, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '13#', 2.40, 2.50, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '14#', 2.36, 2.46, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '15#', 2.42, 2.52, '正常'],
+                ['2025-11-01', '00:00', '桂阳月和风电场', '16#', 2.41, 2.51, '正常']
+            ];
+
+            var sheet2Data = [
+                ['字段名', '数据类型', '是否必填', '取值范围', '说明'],
+                ['日期', '日期', '必填', 'YYYY-MM-DD', '格式YYYY-MM-DD'],
+                ['时段(15min)', '字符串(5)', '必填', '', '格式如:00:00/00:15/00:30/00:45'],
+                ['场站名称', '字符串(50)', '必填', '', '场站名称'],
+                ['机组编号', '字符串(10)', '必填', '', '汇总/1#/2#/.../16#'],
+                ['上网功率(MW)', '数值', '必填', '0-9999', '单位MW'],
+                ['预测功率(MW)', '数值', '选填', '0-9999', '单位MW'],
+                ['状态', '枚举', '必填', '正常/异常/缺失', '运行状态']
+            ];
+
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            var sheet2 = XLSX.utils.aoa_to_sheet(sheet2Data);
             
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '15分钟出力数据导入模板.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导入模板表');
+            XLSX.utils.book_append_sheet(workbook, sheet2, '字段规则说明附表');
+            
+            XLSX.writeFile(workbook, 'SCADA数据导入专用模板.xlsx');
         }
 
         function renderDailyTable() {
@@ -657,6 +722,47 @@
             document.body.removeChild(link);
         }
 
+        function toggleScadaSelectAll() {
+            var checkbox = document.getElementById('scada-select-all');
+            var rowCheckboxes = document.querySelectorAll('.scada-row-checkbox');
+            rowCheckboxes.forEach(function(cb) {
+                cb.checked = checkbox.checked;
+            });
+        }
+
+        function toggleScadaRowSelect(index) {
+            var checkbox = document.querySelector('.scada-row-checkbox');
+            var selectAll = document.getElementById('scada-select-all');
+            var rowCheckboxes = document.querySelectorAll('.scada-row-checkbox');
+            var allChecked = Array.from(rowCheckboxes).every(function(cb) {
+                return cb.checked;
+            });
+            selectAll.checked = allChecked;
+        }
+
+        function exportScadaData() {
+            var selectedRows = document.querySelectorAll('.scada-row-checkbox:checked');
+            if (selectedRows.length === 0) {
+                alert('请至少选择一条记录进行导出');
+                return;
+            }
+            
+            var headers = ['日期', '时段(15min)', '场站名称', '机组编号', '上网功率(MW)', '预测功率(MW)', '状态'];
+            var sheet1Data = [headers];
+            
+            selectedRows.forEach(function(cb) {
+                var tr = cb.closest('tr');
+                var index = parseInt(tr.getAttribute('data-index'));
+                var item = scadaData[index];
+                sheet1Data.push([item.date, item.period, item.station, item.unit, item.actual, item.predict, item.status]);
+            });
+            
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导出数据');
+            XLSX.writeFile(workbook, 'SCADA数据_' + new Date().toISOString().split('T')[0] + '.xlsx');
+        }
+
         function openScadaImportModal() {
             document.getElementById('scada-import-modal').style.display = 'flex';
             document.getElementById('scada-import-file').value = '';
@@ -755,9 +861,12 @@
             setTimeout(function() {
                 var mockData = [
                     { date: '2025-11-02', period: '00:00', station: '桂阳月和风电场', unit: '汇总', actual: 39.20, predict: 40.50, deviation: -1.30, deviationRate: -3.21, status: '正常' },
+                    { date: '2025-11-02', period: '00:00', station: '桂阳月和风电场', unit: '1#', actual: 2.45, predict: 2.53, deviation: -0.08, deviationRate: -3.16, status: '正常' },
+                    { date: '2025-11-02', period: '00:00', station: '桂阳月和风电场', unit: '2#', actual: 2.48, predict: 2.56, deviation: -0.08, deviationRate: -3.12, status: '正常' },
+                    { date: '', period: '00:00', station: '桂阳月和风电场', unit: '3#', actual: 2.42, predict: 2.50, deviation: -0.08, deviationRate: -3.20, status: '正常' },
                     { date: '2025-11-02', period: '00:15', station: '桂阳月和风电场', unit: '汇总', actual: 38.80, predict: 40.00, deviation: -1.20, deviationRate: -3.00, status: '正常' },
-                    { date: '', period: '00:30', station: '桂阳月和风电场', unit: '汇总', actual: 38.50, predict: 39.50, deviation: -1.00, deviationRate: -2.53, status: '正常' },
-                    { date: '2025-11-02', period: '00:45', station: '桂阳月和风电场', unit: '汇总', actual: 38.20, predict: 39.00, deviation: -0.80, deviationRate: -2.05, status: '正常' }
+                    { date: '2025-11-02', period: '00:15', station: '桂阳月和风电场', unit: '1#', actual: 2.42, predict: 2.50, deviation: -0.08, deviationRate: -3.20, status: '正常' },
+                    { date: '2025-11-02', period: '00:15', station: '桂阳月和风电场', unit: '2#', actual: 2.46, predict: 2.54, deviation: -0.08, deviationRate: -3.15, status: '正常' }
                 ];
                 
                 var errors = [];

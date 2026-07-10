@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>合约管理 - 新能源电力交易辅助决策系统</title>
     <link rel="stylesheet" href="../../styles.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <main class="main-content">
@@ -46,6 +47,7 @@
             <button class="btn-primary" onclick="filterContracts()">查询</button>
             <div style="flex:1"></div>
             <button class="btn-default" onclick="downloadContractTemplate()">下载导入模板</button>
+            <button class="btn-default" onclick="exportContractData()">导出数据</button>
             <button class="btn-default" onclick="openContractImportModal()">批量导入</button>
             <button class="btn-primary" onclick="openContractModal()">+ 新增合约</button>
         </div>
@@ -54,6 +56,7 @@
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th style="width:50px"><input type="checkbox" id="contract-select-all" onclick="toggleContractSelectAll()"></th>
                         <th>合约名称</th>
                         <th>交易品类</th>
                         <th>交易时段</th>
@@ -62,7 +65,7 @@
                         <th>年度</th>
                         <th>所属公司</th>
                         <th>关联场站</th>
-                        <th style="width:140px">操作</th>
+                        <th style="width:100px">操作</th>
                     </tr>
                 </thead>
                 <tbody id="contract-table-body"></tbody>
@@ -262,8 +265,11 @@
             var tbody = document.getElementById('contract-table-body');
             tbody.innerHTML = '';
             data.forEach(function(c, i) {
+                var index = contractData.indexOf(c);
+                if (index === -1) index = i;
                 var priceDisplay = c.price > 0 ? c.price : '按交易均价';
-                tbody.innerHTML += '<tr>' +
+                tbody.innerHTML += '<tr data-index="' + index + '">' +
+                    '<td style="text-align:center"><input type="checkbox" class="contract-row-checkbox" onclick="toggleContractRowSelect(' + index + ')"></td>' +
                     '<td><strong>' + c.name + '</strong></td>' +
                     '<td><span style="display:inline-block;padding:2px 8px;border-radius:var(--radius-pill);font-size:11px;background:color-mix(in oklab, var(--accent), transparent 90%);color:var(--accent)">' + c.type + '</span></td>' +
                     '<td>' + c.period + '</td>' +
@@ -273,8 +279,8 @@
                     '<td>' + c.company + '</td>' +
                     '<td>' + c.station + '</td>' +
                     '<td style="white-space:nowrap">' +
-                    '<button class="btn-config" onclick="openContractModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
-                    '<button class="btn-delete" onclick="deleteContract(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '<button class="btn-config" onclick="openContractModal(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteContract(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
                     '</td></tr>';
             });
             document.getElementById('contract-count').textContent = '共 ' + data.length + ' 条记录';
@@ -356,17 +362,74 @@
         }
 
         function downloadContractTemplate() {
-            var headers = ['合约名称', '交易品类', '交易时段', '电量占比(%)', '电价(元/MWh)', '年度', '所属公司', '关联场站', '备注说明'];
-            var csvContent = '\uFEFF' + headers.join(',') + '\n';
-            csvContent += '桂阳月和2025年度双边协商合约,年度双边协商合约,2025年1-12月,40,450,2025,新能源公司,桂阳月和风电场,年度固定电价合约\n';
+            var sheet1Data = [
+                ['合约名称', '交易品类', '交易时段', '电量占比(%)', '电价(元/MWh)', '年度', '所属公司', '关联场站', '备注说明'],
+                ['桂阳月和2025年度双边协商合约', '年度双边协商合约', '2025年1-12月', 40, 450, '2025', '新能源公司', '桂阳月和风电场', '年度固定电价合约'],
+                ['桂阳月和2025月度集中竞价合约', '月度集中竞价合约', '2025年1-9月', 60, 0, '2025', '新能源公司', '桂阳月和风电场', '按月度交易均价执行'],
+                ['风电场B2026年度合约', '年度双边协商合约', '2026年1-12月', 45, 430, '2026', '新能源公司', '风电场B', '2026年新签合约']
+            ];
+
+            var sheet2Data = [
+                ['字段名', '数据类型', '是否必填', '取值范围', '单位', '说明'],
+                ['合约名称', 'VARCHAR(100)', '必填', '', '-', '合约的完整名称'],
+                ['交易品类', '枚举', '必填', '年度双边协商合约/月度集中竞价合约/月度双边协商合约/季度双边协商合约/年度集中竞价合约/现货', '-', '交易品类'],
+                ['交易时段', 'VARCHAR(50)', '必填', '', '-', '格式如:2025年1-12月'],
+                ['电量占比(%)', 'DECIMAL(5,2)', '必填', '0-100', '%', '该合约电量占比'],
+                ['电价(元/MWh)', 'DECIMAL(10,2)', '选填', '0-9999', '元/MWh', '固定电价填数值，按均价执行填0'],
+                ['年度', 'INT', '必填', '2024-2030', '-', '合约所属年度'],
+                ['所属公司', 'VARCHAR(100)', '选填', '', '-', '公司名称'],
+                ['关联场站', 'VARCHAR(255)', '选填', '', '-', '关联的场站名称，多个用逗号分隔'],
+                ['备注说明', 'TEXT', '选填', '', '-', '合约说明、特殊条款等']
+            ];
+
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            var sheet2 = XLSX.utils.aoa_to_sheet(sheet2Data);
             
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '合约数据导入模板.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导入模板表');
+            XLSX.utils.book_append_sheet(workbook, sheet2, '字段规则说明附表');
+            
+            XLSX.writeFile(workbook, '合约管理导入专用模板.xlsx');
+        }
+
+        function toggleContractSelectAll() {
+            var checkbox = document.getElementById('contract-select-all');
+            var rowCheckboxes = document.querySelectorAll('.contract-row-checkbox');
+            rowCheckboxes.forEach(function(cb) {
+                cb.checked = checkbox.checked;
+            });
+        }
+
+        function toggleContractRowSelect(index) {
+            var selectAll = document.getElementById('contract-select-all');
+            var rowCheckboxes = document.querySelectorAll('.contract-row-checkbox');
+            var allChecked = Array.from(rowCheckboxes).every(function(cb) {
+                return cb.checked;
+            });
+            selectAll.checked = allChecked;
+        }
+
+        function exportContractData() {
+            var selectedRows = document.querySelectorAll('.contract-row-checkbox:checked');
+            if (selectedRows.length === 0) {
+                alert('请至少选择一条记录进行导出');
+                return;
+            }
+            
+            var headers = ['合约名称', '交易品类', '交易时段', '电量占比(%)', '电价(元/MWh)', '年度', '所属公司', '关联场站', '备注说明'];
+            var sheet1Data = [headers];
+            
+            selectedRows.forEach(function(cb) {
+                var tr = cb.closest('tr');
+                var index = parseInt(tr.getAttribute('data-index'));
+                var c = contractData[index];
+                sheet1Data.push([c.name, c.type, c.period, c.share, c.price, c.year, c.company, c.station, c.notes || '']);
+            });
+            
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导出数据');
+            XLSX.writeFile(workbook, '合约管理_' + new Date().toISOString().split('T')[0] + '.xlsx');
         }
 
         function openContractImportModal() {

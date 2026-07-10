@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>导入任务记录 - 新能源电力交易辅助决策系统</title>
     <link rel="stylesheet" href="../../styles.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <main class="main-content">
@@ -134,8 +135,52 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button class="btn-danger" onclick="openDeleteModal(currentDetailId)">删除记录</button>
                 <button class="btn-primary" onclick="downloadErrorFile()">下载错误数据</button>
                 <button class="btn-default" onclick="closeDetailModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="delete-modal" style="display:none">
+        <div class="modal-panel" style="width:500px">
+            <div class="modal-header">
+                <h3>删除导入记录</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding:var(--space-4);background:#fff7e6;border-radius:var(--radius);margin-bottom:var(--space-4)">
+                    <div style="font-weight:bold;color:#fa8c16;margin-bottom:8px">⚠️ 请确认删除方式</div>
+                    <div style="color:var(--text-secondary);font-size:var(--text-sm);line-height:1.6">
+                        删除操作不可恢复，请谨慎选择。
+                    </div>
+                </div>
+                <div style="margin-bottom:var(--space-4)">
+                    <label style="display:block;margin-bottom:var(--space-2);font-weight:bold">选择删除范围</label>
+                    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+                        <label style="display:flex;align-items:center;padding:var(--space-2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer">
+                            <input type="radio" name="delete-type" value="record" checked style="margin-right:var(--space-2)">
+                            <div>
+                                <div style="font-weight:bold">仅删除记录</div>
+                                <div style="font-size:var(--text-xs);color:var(--muted)">仅删除本次导入的任务记录，不影响已导入到系统中的业务数据</div>
+                            </div>
+                        </label>
+                        <label style="display:flex;align-items:center;padding:var(--space-2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer">
+                            <input type="radio" name="delete-type" value="all" style="margin-right:var(--space-2)">
+                            <div>
+                                <div style="font-weight:bold">删除记录及关联数据</div>
+                                <div style="font-size:var(--text-xs);color:var(--danger)">同时删除任务记录和通过本次导入成功写入的业务数据</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div id="delete-warning" style="display:none;padding:var(--space-3);background:#fff1f0;border-radius:var(--radius);color:var(--danger);font-size:var(--text-sm)">
+                    <strong>警告：</strong>此操作将删除 <span id="delete-count"></span> 条业务数据，请确保已备份或确认不再需要这些数据。
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeDeleteModal()">取消</button>
+                <button class="btn-danger" onclick="confirmDelete()">确认删除</button>
             </div>
         </div>
     </div>
@@ -153,6 +198,7 @@
         ];
 
         var currentDetailId = null;
+        var currentDeleteId = null;
 
         function initLogs() {
             renderLogTable(importLogs);
@@ -285,12 +331,54 @@
             setTimeout(function() { result.remove(); }, 3000);
         }
 
+        function openDeleteModal(id) {
+            currentDeleteId = id;
+            var item = importLogs.find(function(d) { return d.id === id; });
+            if (!item) return;
+
+            document.getElementById('delete-count').textContent = item.success;
+            
+            var radios = document.getElementsByName('delete-type');
+            radios.forEach(function(radio) {
+                radio.onchange = function() {
+                    document.getElementById('delete-warning').style.display = this.value === 'all' ? 'block' : 'none';
+                };
+            });
+            
+            document.getElementById('delete-warning').style.display = radios[1].checked ? 'block' : 'none';
+            document.getElementById('delete-modal').style.display = 'flex';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'none';
+            currentDeleteId = null;
+        }
+
+        function confirmDelete() {
+            var deleteType = document.querySelector('input[name="delete-type"]:checked').value;
+            var item = importLogs.find(function(d) { return d.id === currentDeleteId; });
+            
+            importLogs = importLogs.filter(function(d) { return d.id !== currentDeleteId; });
+            
+            closeDeleteModal();
+            closeDetailModal();
+            renderLogTable(importLogs);
+            
+            var message = deleteType === 'all' 
+                ? '已删除记录及关联的 ' + item.success + ' 条业务数据'
+                : '已删除导入记录';
+            showResult('success', message);
+        }
+
         window.filterLogs = filterLogs;
         window.clearLogFilter = clearLogFilter;
         window.openDetailModal = openDetailModal;
         window.closeDetailModal = closeDetailModal;
         window.downloadErrorFile = downloadErrorFile;
         window.downloadErrorFileById = downloadErrorFileById;
+        window.openDeleteModal = openDeleteModal;
+        window.closeDeleteModal = closeDeleteModal;
+        window.confirmDelete = confirmDelete;
 
         initLogs();
     </script>

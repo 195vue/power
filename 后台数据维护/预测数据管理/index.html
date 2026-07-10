@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>预测数据管理 - 新能源电力交易辅助决策系统</title>
     <link rel="stylesheet" href="../../styles.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <main class="main-content">
@@ -45,6 +46,7 @@
                 <button class="btn-primary" onclick="filterMlPrice()">查询</button>
                 <div style="flex:1"></div>
                 <button class="btn-default" onclick="downloadMlTemplate()">下载导入模板</button>
+                <button class="btn-default" onclick="exportMlData()">导出数据</button>
                 <button class="btn-default" onclick="openMlImportModal()">批量导入</button>
                 <button class="btn-primary" onclick="openMlModal()">+ 新增数据</button>
             </div>
@@ -53,6 +55,7 @@
                 <table class="data-table">
                     <thead>
                         <tr>
+                            <th style="width:50px"><input type="checkbox" id="ml-select-all" onclick="toggleMlSelectAll()"></th>
                             <th>预测月份</th>
                             <th>口径</th>
                             <th>预测类型</th>
@@ -61,7 +64,7 @@
                             <th>置信上限(元/MWh)</th>
                             <th>环比(%)</th>
                             <th>模型名称</th>
-                            <th style="width:140px">操作</th>
+                            <th style="width:100px">操作</th>
                         </tr>
                     </thead>
                     <tbody id="ml-table-body"></tbody>
@@ -95,6 +98,7 @@
                 <button class="btn-primary" onclick="filterSpotPred()">查询</button>
                 <div style="flex:1"></div>
                 <button class="btn-default" onclick="downloadSpotPredTemplate()">下载导入模板</button>
+                <button class="btn-default" onclick="exportSpotPredData()">导出数据</button>
                 <button class="btn-default" onclick="openSpotPredImportModal()">批量导入</button>
                 <button class="btn-primary" onclick="openSpotPredModal()">+ 新增预测</button>
             </div>
@@ -103,13 +107,14 @@
                 <table class="data-table">
                     <thead>
                         <tr>
+                            <th style="width:50px"><input type="checkbox" id="spot-pred-select-all" onclick="toggleSpotPredSelectAll()"></th>
                             <th>预测日期</th>
                             <th>交易时段</th>
                             <th>预测电价(元/MWh)</th>
                             <th>预测精度(%)</th>
                             <th>预测时间</th>
                             <th>模型名称</th>
-                            <th style="width:140px">操作</th>
+                            <th style="width:100px">操作</th>
                         </tr>
                     </thead>
                     <tbody id="spot-pred-table-body"></tbody>
@@ -497,9 +502,12 @@
             var tbody = document.getElementById('ml-table-body');
             tbody.innerHTML = '';
             data.forEach(function(m, i) {
+                var index = mlData.indexOf(m);
+                if (index === -1) index = i;
                 var typeCls = m.type === '历史实际' ? 'badge-muted' : 'badge';
                 var changeCls = m.change !== null ? (m.change >= 0 ? 'color:var(--danger)' : 'color:var(--success)') : '';
-                tbody.innerHTML += '<tr>' +
+                tbody.innerHTML += '<tr data-index="' + index + '">' +
+                    '<td style="text-align:center"><input type="checkbox" class="ml-row-checkbox" onclick="toggleMlRowSelect(' + index + ')"></td>' +
                     '<td>' + m.month + '</td>' +
                     '<td>' + m.company + '</td>' +
                     '<td><span class="badge ' + typeCls + '">' + m.type + '</span></td>' +
@@ -509,8 +517,8 @@
                     '<td style="text-align:right;' + changeCls + '">' + (m.change !== null ? m.change + '%' : '-') + '</td>' +
                     '<td>' + m.model + '</td>' +
                     '<td style="white-space:nowrap">' +
-                    '<button class="btn-config" onclick="openMlModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
-                    '<button class="btn-delete" onclick="deleteMl(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '<button class="btn-config" onclick="openMlModal(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteMl(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
                     '</td></tr>';
             });
             document.getElementById('ml-count').textContent = '共 ' + data.length + ' 条记录';
@@ -592,17 +600,73 @@
 
         // ─── 中长期电价预测导入功能 ────────────────────────────────────
         function downloadMlTemplate() {
-            var headers = ['预测月份', '口径', '预测类型', '预测电价(元/MWh)', '置信下限(元/MWh)', '置信上限(元/MWh)', '环比(%)', '模型名称', '备注说明'];
-            var csvContent = '\uFEFF' + headers.join(',') + '\n';
-            csvContent += '2026-06,全省口径,预测数据,310.72,247.74,373.70,-11.3,seasonal,汛期价格低点\n';
+            var sheet1Data = [
+                ['预测月份', '口径', '预测类型', '预测电价(元/MWh)', '置信下限(元/MWh)', '置信上限(元/MWh)', '环比(%)', '模型名称', '备注说明'],
+                ['2026-06', '全省口径', '预测数据', 310.72, 247.74, 373.70, -11.3, 'seasonal（季节分解）', '汛期价格低点'],
+                ['2026-07', '全省口径', '预测数据', 325.50, 260.00, 391.00, 4.8, 'damped（阻尼趋势）', '夏季负荷高峰']
+            ];
+
+            var sheet2Data = [
+                ['字段名', '数据类型', '是否必填', '取值范围', '说明'],
+                ['预测月份', '日期', '必填', 'YYYY-MM', '格式YYYY-MM'],
+                ['口径', '枚举', '必填', '全省口径/分区口径', '数据口径'],
+                ['预测类型', '枚举', '必填', '预测数据/实际数据', '数据类型'],
+                ['预测电价(元/MWh)', '数值', '必填', '0-9999', '单位元/MWh'],
+                ['置信下限(元/MWh)', '数值', '必填', '0-9999', '单位元/MWh'],
+                ['置信上限(元/MWh)', '数值', '必填', '0-9999', '单位元/MWh'],
+                ['环比(%)', '数值', '选填', '-100-100', '环比变化百分比'],
+                ['模型名称', '字符串(50)', '选填', '', '模型名称'],
+                ['备注说明', '字符串(500)', '选填', '', '备注信息']
+            ];
+
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            var sheet2 = XLSX.utils.aoa_to_sheet(sheet2Data);
             
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '中长期电价预测导入模板.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导入模板表');
+            XLSX.utils.book_append_sheet(workbook, sheet2, '字段规则说明附表');
+            
+            XLSX.writeFile(workbook, '中长期电价预测导入专用模板.xlsx');
+        }
+
+        function toggleMlSelectAll() {
+            var checkbox = document.getElementById('ml-select-all');
+            var rowCheckboxes = document.querySelectorAll('.ml-row-checkbox');
+            rowCheckboxes.forEach(function(cb) {
+                cb.checked = checkbox.checked;
+            });
+        }
+
+        function toggleMlRowSelect(index) {
+            var selectAll = document.getElementById('ml-select-all');
+            var rowCheckboxes = document.querySelectorAll('.ml-row-checkbox');
+            var allChecked = Array.from(rowCheckboxes).every(function(cb) {
+                return cb.checked;
+            });
+            selectAll.checked = allChecked;
+        }
+
+        function exportMlData() {
+            var selectedRows = document.querySelectorAll('.ml-row-checkbox:checked');
+            if (selectedRows.length === 0) {
+                alert('请至少选择一条记录进行导出');
+                return;
+            }
+            
+            var headers = ['预测月份', '口径', '预测类型', '预测电价(元/MWh)', '置信下限(元/MWh)', '置信上限(元/MWh)', '环比(%)', '模型名称', '备注说明'];
+            var sheet1Data = [headers];
+            
+            selectedRows.forEach(function(cb) {
+                var tr = cb.closest('tr');
+                var index = parseInt(tr.getAttribute('data-index'));
+                var item = mlData[index];
+                sheet1Data.push([item.month, item.company, item.type, item.price, item.low || '', item.high || '', item.change || '', item.model, item.notes || '']);
+            });
+            
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导出数据');
+            XLSX.writeFile(workbook, '中长期电价预测_' + new Date().toISOString().split('T')[0] + '.xlsx');
         }
 
         function openMlImportModal() {
@@ -830,7 +894,10 @@
             var tbody = document.getElementById('spot-pred-table-body');
             tbody.innerHTML = '';
             data.forEach(function(s, i) {
-                tbody.innerHTML += '<tr>' +
+                var index = spotPredData.indexOf(s);
+                if (index === -1) index = i;
+                tbody.innerHTML += '<tr data-index="' + index + '">' +
+                    '<td style="text-align:center"><input type="checkbox" class="spot-pred-row-checkbox" onclick="toggleSpotPredRowSelect(' + index + ')"></td>' +
                     '<td>' + s.date + '</td>' +
                     '<td>' + s.period + '</td>' +
                     '<td style="text-align:right;font-weight:600">' + s.price + '</td>' +
@@ -838,8 +905,8 @@
                     '<td>' + s.predTime.replace('T', ' ') + '</td>' +
                     '<td>' + s.model + '</td>' +
                     '<td style="white-space:nowrap">' +
-                    '<button class="btn-config" onclick="openSpotPredModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
-                    '<button class="btn-delete" onclick="deleteSpotPred(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '<button class="btn-config" onclick="openSpotPredModal(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteSpotPred(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
                     '</td></tr>';
             });
             document.getElementById('spot-pred-count').textContent = '共 ' + data.length + ' 条记录';
@@ -912,17 +979,71 @@
 
         // ─── 日前现货价格预测导入功能 ────────────────────────────────────
         function downloadSpotPredTemplate() {
-            var headers = ['预测日期', '交易时段', '预测电价(元/MWh)', '预测精度(%)', '预测时间', '模型名称', '备注说明'];
-            var csvContent = '\uFEFF' + headers.join(',') + '\n';
-            csvContent += '2026-07-01,00:00-01:00,360.69,92.5,2026-07-01T09:00,LSTM_v2,\n';
+            var sheet1Data = [
+                ['预测日期', '交易时段', '预测电价(元/MWh)', '预测精度(%)', '预测时间', '模型名称', '备注说明'],
+                ['2026-07-01', '00:00-01:00', 360.69, 92.5, '2026-07-01T09:00', 'LSTM_v2', ''],
+                ['2026-07-01', '01:00-02:00', 358.20, 91.8, '2026-07-01T09:00', 'LSTM_v2', '']
+            ];
+
+            var sheet2Data = [
+                ['字段名', '数据类型', '是否必填', '取值范围', '说明'],
+                ['预测日期', '日期', '必填', 'YYYY-MM-DD', '格式YYYY-MM-DD'],
+                ['交易时段', '字符串(20)', '必填', '', '格式如:00:00-01:00'],
+                ['预测电价(元/MWh)', '数值', '必填', '0-9999', '单位元/MWh'],
+                ['预测精度(%)', '数值', '选填', '0-100', '预测准确率'],
+                ['预测时间', '日期时间', '必填', '', '格式YYYY-MM-DDTHH:MM'],
+                ['模型名称', '字符串(50)', '选填', '', '模型名称'],
+                ['备注说明', '字符串(500)', '选填', '', '备注信息']
+            ];
+
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            var sheet2 = XLSX.utils.aoa_to_sheet(sheet2Data);
             
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '日前现货价格预测导入模板.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导入模板表');
+            XLSX.utils.book_append_sheet(workbook, sheet2, '字段规则说明附表');
+            
+            XLSX.writeFile(workbook, '日前现货价格预测导入专用模板.xlsx');
+        }
+
+        function toggleSpotPredSelectAll() {
+            var checkbox = document.getElementById('spot-pred-select-all');
+            var rowCheckboxes = document.querySelectorAll('.spot-pred-row-checkbox');
+            rowCheckboxes.forEach(function(cb) {
+                cb.checked = checkbox.checked;
+            });
+        }
+
+        function toggleSpotPredRowSelect(index) {
+            var selectAll = document.getElementById('spot-pred-select-all');
+            var rowCheckboxes = document.querySelectorAll('.spot-pred-row-checkbox');
+            var allChecked = Array.from(rowCheckboxes).every(function(cb) {
+                return cb.checked;
+            });
+            selectAll.checked = allChecked;
+        }
+
+        function exportSpotPredData() {
+            var selectedRows = document.querySelectorAll('.spot-pred-row-checkbox:checked');
+            if (selectedRows.length === 0) {
+                alert('请至少选择一条记录进行导出');
+                return;
+            }
+            
+            var headers = ['预测日期', '交易时段', '预测电价(元/MWh)', '预测精度(%)', '预测时间', '模型名称', '备注说明'];
+            var sheet1Data = [headers];
+            
+            selectedRows.forEach(function(cb) {
+                var tr = cb.closest('tr');
+                var index = parseInt(tr.getAttribute('data-index'));
+                var item = spotPredData[index];
+                sheet1Data.push([item.date, item.period, item.price, item.accuracy, item.predTime, item.model, item.notes || '']);
+            });
+            
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导出数据');
+            XLSX.writeFile(workbook, '日前现货价格预测_' + new Date().toISOString().split('T')[0] + '.xlsx');
         }
 
         function openSpotPredImportModal() {

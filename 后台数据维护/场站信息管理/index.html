@@ -6,6 +6,7 @@
     <title>场站信息管理 - 新能源电力交易辅助决策系统</title>
     <link rel="stylesheet" href="../../styles.css">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <main class="main-content">
@@ -52,6 +53,7 @@
             <button class="btn-primary" onclick="filterTable()">查询</button>
             <div style="flex:1"></div>
             <button class="btn-default" onclick="downloadStationTemplate()">下载模板</button>
+            <button class="btn-default" onclick="exportStationData()">导出数据</button>
             <button class="btn-default" onclick="openImportModal()">批量导入</button>
             <button class="btn-primary" onclick="openModal()">+ 新增场站</button>
         </div>
@@ -60,18 +62,23 @@
             <table class="data-table" id="station-table">
                 <thead>
                     <tr>
+                        <th style="width:50px"><input type="checkbox" id="station-select-all" onclick="toggleStationSelectAll()"></th>
                         <th>场站名称</th>
                         <th>所属公司</th>
                         <th>场站类型</th>
                         <th>装机容量(MW)</th>
                         <th>风机台数</th>
                         <th>风机型号</th>
+                        <th>额定功率(kW)</th>
+                        <th>叶片长度(m)</th>
                         <th>轮毂高度(m)</th>
+                        <th>海拔(m)</th>
                         <th>切入风速(m/s)</th>
                         <th>切出风速(m/s)</th>
+                        <th>接入方案</th>
                         <th>投产日期</th>
                         <th>状态</th>
-                        <th style="width:120px">操作</th>
+                        <th style="width:100px">操作</th>
                     </tr>
                 </thead>
                 <tbody id="station-table-body"></tbody>
@@ -271,6 +278,16 @@
                 </div>
                 <div class="form-row">
                     <div class="form-section">
+                        <label class="form-label">额定功率 (kW)</label>
+                        <input class="form-input" id="edit-rated-power" placeholder="如：3300/3000">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">叶片长度 (m)</label>
+                        <input class="form-input" id="edit-blade-length" placeholder="风电场参数">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section">
                         <label class="form-label">爬坡率上限 (MW/min)</label>
                         <input class="form-input" id="edit-ramp-up" type="number" min="0" step="0.1" placeholder="请输入爬坡率上限">
                     </div>
@@ -311,6 +328,16 @@
                 </div>
                 <div class="form-row">
                     <div class="form-section">
+                        <label class="form-label">海拔 (m)</label>
+                        <input class="form-input" id="edit-altitude" type="number" min="0" placeholder="电厂平均海拔">
+                    </div>
+                    <div class="form-section">
+                        <label class="form-label">接入方案</label>
+                        <input class="form-input" id="edit-access-scheme" placeholder="如：35kv场内集电+110kv升压送出">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section">
                         <label class="form-label">状态</label>
                         <select class="form-input" id="edit-status">
                             <option>正常</option>
@@ -328,13 +355,13 @@
 
     <script>
         var stationData = [
-            { name: '桂阳月和风电场', company: '新能源公司', stationType: '风电场', capacity: 50, turbineCount: 16, turbineModel: 'SE16433/SE15530', hubHeight: 100, cutInSpeed: 3, cutOutSpeed: 20, minOutput: 0, rampUp: 2, rampDown: 2, startStop: 0, commissionDate: '2022-07-30', status: '正常', longitude: 112.7765, latitude: 25.6030 },
-            { name: '光伏电站A', company: '新能源公司', stationType: '光伏电站', capacity: 150, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', minOutput: 0, rampUp: 5, rampDown: 5, startStop: 0, commissionDate: '2020-06-15', status: '正常', longitude: 112.9399, latitude: 28.2280 },
-            { name: '风电场B', company: '新能源公司', stationType: '风电场', capacity: 200, turbineCount: 60, turbineModel: 'V110/2000', hubHeight: 80, cutInSpeed: 3, cutOutSpeed: 25, minOutput: 10, rampUp: 8, rampDown: 6, startStop: 2, commissionDate: '2019-12-20', status: '正常', longitude: 113.0523, latitude: 28.1856 },
-            { name: '光伏电站C', company: '传统能源公司', stationType: '光伏电站', capacity: 100, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', minOutput: 0, rampUp: 4, rampDown: 4, startStop: 0, commissionDate: '2021-03-10', status: '停运', longitude: 112.8876, latitude: 28.3124 },
-            { name: '水电站D', company: '传统能源公司', stationType: '水电站', capacity: 300, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', minOutput: 50, rampUp: 12, rampDown: 10, startStop: 4, commissionDate: '2015-08-01', status: '正常', longitude: 113.1245, latitude: 28.0987 },
-            { name: '煤电厂E', company: '传统能源公司', stationType: '火电厂', capacity: 600, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', minOutput: 120, rampUp: 15, rampDown: 10, startStop: 1, commissionDate: '2018-05-20', status: '正常', longitude: 112.9876, latitude: 28.2567 },
-            { name: '储能电站F', company: '独立售电公司', stationType: '储能电站', capacity: 50, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', minOutput: 0, rampUp: 50, rampDown: 50, startStop: 10, commissionDate: '2023-01-15', status: '正常', longitude: 113.0234, latitude: 28.1987 }
+            { name: '桂阳月和风电场', company: '新能源公司', stationType: '风电场', capacity: 50, turbineCount: 16, turbineModel: 'SE16433/SE15530', ratedPower: '3300/3000', bladeLength: '80.5/76', hubHeight: 100, altitude: 1150, cutInSpeed: 3, cutOutSpeed: 20, accessScheme: '35kv场内集电+110kv升压送出', minOutput: 0, rampUp: 2, rampDown: 2, startStop: 0, commissionDate: '2022-07-30', status: '正常', longitude: 112.7765, latitude: 25.6030 },
+            { name: '光伏电站A', company: '新能源公司', stationType: '光伏电站', capacity: 150, turbineCount: '-', turbineModel: '-', ratedPower: '-', bladeLength: '-', hubHeight: '-', altitude: 500, cutInSpeed: '-', cutOutSpeed: '-', accessScheme: '10kv并网', minOutput: 0, rampUp: 5, rampDown: 5, startStop: 0, commissionDate: '2020-06-15', status: '正常', longitude: 112.9399, latitude: 28.2280 },
+            { name: '风电场B', company: '新能源公司', stationType: '风电场', capacity: 200, turbineCount: 60, turbineModel: 'V110/2000', ratedPower: '2000', bladeLength: '55', hubHeight: 80, altitude: 800, cutInSpeed: 3, cutOutSpeed: 25, accessScheme: '35kv场内集电+220kv升压送出', minOutput: 10, rampUp: 8, rampDown: 6, startStop: 2, commissionDate: '2019-12-20', status: '正常', longitude: 113.0523, latitude: 28.1856 },
+            { name: '光伏电站C', company: '传统能源公司', stationType: '光伏电站', capacity: 100, turbineCount: '-', turbineModel: '-', ratedPower: '-', bladeLength: '-', hubHeight: '-', altitude: 450, cutInSpeed: '-', cutOutSpeed: '-', accessScheme: '10kv并网', minOutput: 0, rampUp: 4, rampDown: 4, startStop: 0, commissionDate: '2021-03-10', status: '停运', longitude: 112.8876, latitude: 28.3124 },
+            { name: '水电站D', company: '传统能源公司', stationType: '水电站', capacity: 300, turbineCount: '-', turbineModel: '-', ratedPower: '-', bladeLength: '-', hubHeight: '-', altitude: 300, cutInSpeed: '-', cutOutSpeed: '-', accessScheme: '110kv升压送出', minOutput: 50, rampUp: 12, rampDown: 10, startStop: 4, commissionDate: '2015-08-01', status: '正常', longitude: 113.1245, latitude: 28.0987 },
+            { name: '煤电厂E', company: '传统能源公司', stationType: '火电厂', capacity: 600, turbineCount: '-', turbineModel: '-', ratedPower: '-', bladeLength: '-', hubHeight: '-', altitude: 150, cutInSpeed: '-', cutOutSpeed: '-', accessScheme: '220kv升压送出', minOutput: 120, rampUp: 15, rampDown: 10, startStop: 1, commissionDate: '2018-05-20', status: '正常', longitude: 112.9876, latitude: 28.2567 },
+            { name: '储能电站F', company: '独立售电公司', stationType: '储能电站', capacity: 50, turbineCount: '-', turbineModel: '-', ratedPower: '-', bladeLength: '-', hubHeight: '-', altitude: 200, cutInSpeed: '-', cutOutSpeed: '-', accessScheme: '10kv并网', minOutput: 0, rampUp: 50, rampDown: 50, startStop: 10, commissionDate: '2023-01-15', status: '正常', longitude: 113.0234, latitude: 28.1987 }
         ];
         var editIndex = -1;
 
@@ -343,23 +370,30 @@
             tbody.innerHTML = '';
             var list = data || stationData;
             list.forEach(function(s, i) {
+                var index = stationData.indexOf(s);
+                if (index === -1) index = i;
                 var statusClass = s.status === '正常' ? 'badge-success' : 'badge-muted';
-                tbody.innerHTML += '<tr>' +
+                tbody.innerHTML += '<tr data-index="' + index + '">' +
+                    '<td style="text-align:center"><input type="checkbox" class="station-row-checkbox" onclick="toggleStationRowSelect(' + index + ')"></td>' +
                     '<td><strong>' + s.name + '</strong></td>' +
                     '<td>' + s.company + '</td>' +
                     '<td>' + s.stationType + '</td>' +
                     '<td>' + s.capacity + '</td>' +
                     '<td>' + s.turbineCount + '</td>' +
                     '<td>' + s.turbineModel + '</td>' +
+                    '<td>' + s.ratedPower + '</td>' +
+                    '<td>' + s.bladeLength + '</td>' +
                     '<td>' + s.hubHeight + '</td>' +
+                    '<td>' + s.altitude + '</td>' +
                     '<td>' + s.cutInSpeed + '</td>' +
                     '<td>' + s.cutOutSpeed + '</td>' +
+                    '<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + s.accessScheme + '">' + s.accessScheme + '</td>' +
                     '<td>' + s.commissionDate + '</td>' +
                     '<td><span class="badge ' + statusClass + '">' + s.status + '</span></td>' +
                     '<td>' +
-                    '<button class="btn-default" onclick="viewStation(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">详情</button> ' +
-                    '<button class="btn-config" onclick="openModal(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> ' +
-                    '<button class="btn-delete" onclick="deleteStation(' + i + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>' +
+                    '<button class="btn-default" onclick="viewStation(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">详情</button> ' +
+                    '<button class="btn-config" onclick="openModal(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteStation(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)">删除</button>' +
                     '</td></tr>';
             });
             document.getElementById('station-count').textContent = list.length;
@@ -381,9 +415,13 @@
                 document.getElementById('edit-commission-date').value = '';
                 document.getElementById('edit-turbine-count').value = '';
                 document.getElementById('edit-turbine-model').value = '';
+                document.getElementById('edit-rated-power').value = '';
+                document.getElementById('edit-blade-length').value = '';
                 document.getElementById('edit-hub-height').value = '';
+                document.getElementById('edit-altitude').value = '';
                 document.getElementById('edit-cut-in-speed').value = '';
                 document.getElementById('edit-cut-out-speed').value = '';
+                document.getElementById('edit-access-scheme').value = '';
                 document.getElementById('edit-status').value = '正常';
                 document.getElementById('edit-longitude').value = '';
                 document.getElementById('edit-latitude').value = '';
@@ -402,9 +440,13 @@
                 document.getElementById('edit-commission-date').value = s.commissionDate || '';
                 document.getElementById('edit-turbine-count').value = s.turbineCount || '';
                 document.getElementById('edit-turbine-model').value = s.turbineModel || '';
+                document.getElementById('edit-rated-power').value = s.ratedPower || '';
+                document.getElementById('edit-blade-length').value = s.bladeLength || '';
                 document.getElementById('edit-hub-height').value = s.hubHeight || '';
+                document.getElementById('edit-altitude').value = s.altitude || '';
                 document.getElementById('edit-cut-in-speed').value = s.cutInSpeed || '';
                 document.getElementById('edit-cut-out-speed').value = s.cutOutSpeed || '';
+                document.getElementById('edit-access-scheme').value = s.accessScheme || '';
                 document.getElementById('edit-status').value = s.status;
                 document.getElementById('edit-longitude').value = s.longitude || '';
                 document.getElementById('edit-latitude').value = s.latitude || '';
@@ -424,9 +466,13 @@
                 capacity: parseFloat(document.getElementById('edit-capacity').value) || 0,
                 turbineCount: parseInt(document.getElementById('edit-turbine-count').value) || '-',
                 turbineModel: document.getElementById('edit-turbine-model').value || '-',
+                ratedPower: document.getElementById('edit-rated-power').value || '-',
+                bladeLength: document.getElementById('edit-blade-length').value || '-',
                 hubHeight: parseFloat(document.getElementById('edit-hub-height').value) || '-',
+                altitude: parseInt(document.getElementById('edit-altitude').value) || '-',
                 cutInSpeed: parseFloat(document.getElementById('edit-cut-in-speed').value) || '-',
                 cutOutSpeed: parseFloat(document.getElementById('edit-cut-out-speed').value) || '-',
+                accessScheme: document.getElementById('edit-access-scheme').value || '-',
                 minOutput: parseFloat(document.getElementById('edit-min-output').value) || 0,
                 rampUp: parseFloat(document.getElementById('edit-ramp-up').value) || 0,
                 rampDown: parseFloat(document.getElementById('edit-ramp-down').value) || 0,
@@ -523,11 +569,21 @@
                     <div class="form-section"><label class="form-label">风机型号</label><div class="form-value">${s.turbineModel}</div></div>
                 </div>
                 <div class="form-row" style="margin-bottom:var(--space-3)">
-                    <div class="form-section"><label class="form-label">轮毂高度</label><div class="form-value">${s.hubHeight} m</div></div>
-                    <div class="form-section"><label class="form-label">切入风速</label><div class="form-value">${s.cutInSpeed} m/s</div></div>
+                    <div class="form-section"><label class="form-label">额定功率</label><div class="form-value">${s.ratedPower} kW</div></div>
+                    <div class="form-section"><label class="form-label">叶片长度</label><div class="form-value">${s.bladeLength} m</div></div>
                 </div>
                 <div class="form-row" style="margin-bottom:var(--space-3)">
+                    <div class="form-section"><label class="form-label">轮毂高度</label><div class="form-value">${s.hubHeight} m</div></div>
+                    <div class="form-section"><label class="form-label">海拔</label><div class="form-value">${s.altitude} m</div></div>
+                </div>
+                <div class="form-row" style="margin-bottom:var(--space-3)">
+                    <div class="form-section"><label class="form-label">切入风速</label><div class="form-value">${s.cutInSpeed} m/s</div></div>
                     <div class="form-section"><label class="form-label">切出风速</label><div class="form-value">${s.cutOutSpeed} m/s</div></div>
+                </div>
+                ` : ''}
+                ${s.altitude && s.stationType !== '风电场' ? `
+                <div class="form-row" style="margin-bottom:var(--space-3)">
+                    <div class="form-section"><label class="form-label">海拔</label><div class="form-value">${s.altitude} m</div></div>
                 </div>
                 ` : ''}
                 ${s.longitude ? `
@@ -545,17 +601,86 @@
         }
 
         function downloadStationTemplate() {
-            var headers = ['场站名称', '所属公司', '场站类型', '装机容量(MW)', '风机台数', '风机型号', '轮毂高度(m)', '切入风速(m/s)', '切出风速(m/s)', '投产日期', '状态'];
-            var csvContent = '\uFEFF' + headers.join(',') + '\n';
-            csvContent += '桂阳月和风电场,新能源公司,风电场,50,16,SE16433/SE15530,100,3,20,2022-07-30,正常\n';
+            var sheet1Data = [
+                ['场站名称', '所属公司', '场站类型', '装机容量(MW)', '最小技术出力(MW)', '爬坡率上限(MW/min)', '爬坡率下限(MW/min)', '启停约束(次/日)', '风机台数', '风机型号', '额定功率(kW)', '叶片长度(m)', '轮毂高度(m)', '海拔(m)', '切入风速(m/s)', '切出风速(m/s)', '经度', '纬度', '接入方案', '投产日期', '状态'],
+                ['桂阳月和风电场', '新能源公司', '风电场', 50, 0, 2, 2, 0, 16, 'SE16433/SE15530', '3300/3000', '80.5/76', 100, 1150, 3, 20, 112.7765, 25.6030, '35kv场内集电+110kv升压送出', '2022-07-30', '正常'],
+                ['光伏电站A', '新能源公司', '光伏电站', 150, 0, 5, 5, 0, '-', '-', '-', '-', '-', 500, '-', '-', 112.9399, 28.2280, '10kv并网', '2020-06-15', '正常'],
+                ['水电站D', '传统能源公司', '水电站', 300, 50, 12, 10, 4, '-', '-', '-', '-', '-', 300, '-', '-', 113.1245, 28.0987, '110kv升压送出', '2015-08-01', '正常']
+            ];
+
+            var sheet2Data = [
+                ['字段名', '数据类型', '是否必填', '取值范围', '单位', '说明'],
+                ['场站名称', 'VARCHAR(100)', '必填', '', '-', '场站唯一标识名称'],
+                ['所属公司', 'VARCHAR(100)', '必填', '', '-', '场站归属公司名称'],
+                ['场站类型', '枚举', '必填', '光伏电站/风电场/水电站/火电厂/储能电站/生物质垃圾发电站', '-', '场站类型'],
+                ['装机容量(MW)', 'DECIMAL(10,2)', '必填', '0-9999', 'MW', '场站总装机容量'],
+                ['最小技术出力(MW)', 'DECIMAL(10,2)', '必填', '0-9999', 'MW', '机组最小稳定出力'],
+                ['爬坡率上限(MW/min)', 'DECIMAL(8,2)', '必填', '0-999', 'MW/min', '单位时间最大升功率'],
+                ['爬坡率下限(MW/min)', 'DECIMAL(8,2)', '必填', '0-999', 'MW/min', '单位时间最大降功率'],
+                ['启停约束(次/日)', 'INT', '必填', '0-99', '次/日', '每日允许启停次数上限，0表示无限制'],
+                ['风机台数', 'INT', '选填', '0-999', '台', '风电场参数，非风电场填-'],
+                ['风机型号', 'VARCHAR(50)', '选填', '', '-', '风机型号，多型号用/分隔，非风电场填-'],
+                ['额定功率(kW)', 'VARCHAR(50)', '选填', '', 'kW', '额定功率，多型号用/分隔，非风电场填-'],
+                ['叶片长度(m)', 'VARCHAR(30)', '选填', '', 'm', '叶片长度，多型号用/分隔，非风电场填-'],
+                ['轮毂高度(m)', 'DECIMAL(6,1)', '选填', '0-999', 'm', '轮毂高度，非风电场填-'],
+                ['海拔(m)', 'INT', '选填', '0-9999', 'm', '电厂平均海拔'],
+                ['切入风速(m/s)', 'DECIMAL(4,1)', '选填', '0-50', 'm/s', '风电场参数，非风电场填-'],
+                ['切出风速(m/s)', 'DECIMAL(4,1)', '选填', '0-50', 'm/s', '风电场参数，非风电场填-'],
+                ['经度', 'DECIMAL(10,6)', '选填', '-180~180', '-', '场站经度坐标'],
+                ['纬度', 'DECIMAL(10,6)', '选填', '-90~90', '-', '场站纬度坐标'],
+                ['接入方案', 'VARCHAR(100)', '选填', '', '-', '接入电网方案描述'],
+                ['投产日期', 'DATE', '选填', 'YYYY-MM-DD', '-', '格式YYYY-MM-DD'],
+                ['状态', '枚举', '必填', '正常/停运', '-', '场站运行状态']
+            ];
+
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            var sheet2 = XLSX.utils.aoa_to_sheet(sheet2Data);
             
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '场站信息导入模板.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导入模板表');
+            XLSX.utils.book_append_sheet(workbook, sheet2, '字段规则说明附表');
+            
+            XLSX.writeFile(workbook, '场站信息导入专用模板.xlsx');
+        }
+
+        function toggleStationSelectAll() {
+            var checkbox = document.getElementById('station-select-all');
+            var rowCheckboxes = document.querySelectorAll('.station-row-checkbox');
+            rowCheckboxes.forEach(function(cb) {
+                cb.checked = checkbox.checked;
+            });
+        }
+
+        function toggleStationRowSelect(index) {
+            var selectAll = document.getElementById('station-select-all');
+            var rowCheckboxes = document.querySelectorAll('.station-row-checkbox');
+            var allChecked = Array.from(rowCheckboxes).every(function(cb) {
+                return cb.checked;
+            });
+            selectAll.checked = allChecked;
+        }
+
+        function exportStationData() {
+            var selectedRows = document.querySelectorAll('.station-row-checkbox:checked');
+            if (selectedRows.length === 0) {
+                alert('请至少选择一条记录进行导出');
+                return;
+            }
+            
+            var headers = ['场站名称', '所属公司', '场站类型', '装机容量(MW)', '最小技术出力(MW)', '爬坡率上限(MW/min)', '爬坡率下限(MW/min)', '启停约束(次/日)', '风机台数', '风机型号', '额定功率(kW)', '叶片长度(m)', '轮毂高度(m)', '海拔(m)', '切入风速(m/s)', '切出风速(m/s)', '经度', '纬度', '接入方案', '投产日期', '状态'];
+            var sheet1Data = [headers];
+            
+            selectedRows.forEach(function(cb) {
+                var tr = cb.closest('tr');
+                var index = parseInt(tr.getAttribute('data-index'));
+                var s = stationData[index];
+                sheet1Data.push([s.name, s.company, s.stationType, s.capacity, s.minOutput, s.rampUp, s.rampDown, s.startStop, s.turbineCount, s.turbineModel, s.ratedPower, s.bladeLength, s.hubHeight, s.altitude, s.cutInSpeed, s.cutOutSpeed, s.longitude || '-', s.latitude || '-', s.accessScheme, s.commissionDate, s.status]);
+            });
+            
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导出数据');
+            XLSX.writeFile(workbook, '场站信息_' + new Date().toISOString().split('T')[0] + '.xlsx');
         }
 
         var importFiles = [];
@@ -663,10 +788,10 @@
             
             setTimeout(function() {
                 var mockData = [
-                    { name: '新场站1', company: '新能源公司', stationType: '风电场', capacity: 100, turbineCount: 20, turbineModel: 'V110/2000', hubHeight: 85, cutInSpeed: 3, cutOutSpeed: 25, commissionDate: '2024-01-15', status: '正常' },
-                    { name: '新场站2', company: '新能源公司', stationType: '光伏电站', capacity: 200, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', commissionDate: '2024-02-20', status: '正常' },
-                    { name: '', company: '传统能源公司', stationType: '风电场', capacity: 80, turbineCount: 15, turbineModel: 'SE15530', hubHeight: 90, cutInSpeed: 3, cutOutSpeed: 22, commissionDate: '2024-03-10', status: '正常' },
-                    { name: '新场站3', company: '独立售电公司', stationType: '储能电站', capacity: 50, turbineCount: '-', turbineModel: '-', hubHeight: '-', cutInSpeed: '-', cutOutSpeed: '-', commissionDate: '2024-04-05', status: '停运' }
+                    { name: '新场站1', company: '新能源公司', stationType: '风电场', capacity: 100, turbineCount: 20, turbineModel: 'V110/2000', ratedPower: '2000', bladeLength: '55', hubHeight: 85, altitude: 800, cutInSpeed: 3, cutOutSpeed: 25, accessScheme: '35kv场内集电+220kv升压送出', commissionDate: '2024-01-15', status: '正常' },
+                    { name: '新场站2', company: '新能源公司', stationType: '光伏电站', capacity: 200, turbineCount: '-', turbineModel: '-', ratedPower: '-', bladeLength: '-', hubHeight: '-', altitude: 500, cutInSpeed: '-', cutOutSpeed: '-', accessScheme: '10kv并网', commissionDate: '2024-02-20', status: '正常' },
+                    { name: '', company: '传统能源公司', stationType: '风电场', capacity: 80, turbineCount: 15, turbineModel: 'SE15530', ratedPower: '3000', bladeLength: '76', hubHeight: 90, altitude: 900, cutInSpeed: 3, cutOutSpeed: 22, accessScheme: '35kv场内集电+110kv升压送出', commissionDate: '2024-03-10', status: '正常' },
+                    { name: '新场站3', company: '独立售电公司', stationType: '储能电站', capacity: 50, turbineCount: '-', turbineModel: '-', ratedPower: '-', bladeLength: '-', hubHeight: '-', altitude: 200, cutInSpeed: '-', cutOutSpeed: '-', accessScheme: '10kv并网', commissionDate: '2024-04-05', status: '停运' }
                 ];
                 
                 var errors = [];
@@ -687,7 +812,7 @@
                 document.getElementById('preview-valid').textContent = fileRecord.validCount;
                 document.getElementById('preview-invalid').textContent = fileRecord.invalidCount;
                 
-                var headers = ['场站名称', '所属公司', '场站类型', '装机容量(MW)', '风机台数', '风机型号', '轮毂高度(m)', '切入风速(m/s)', '切出风速(m/s)', '投产日期', '状态'];
+                var headers = ['场站名称', '所属公司', '场站类型', '装机容量(MW)', '风机台数', '风机型号', '额定功率(kW)', '叶片长度(m)', '轮毂高度(m)', '海拔(m)', '切入风速(m/s)', '切出风速(m/s)', '接入方案', '投产日期', '状态'];
                 var headerHtml = '<tr>';
                 headers.forEach(function(h) { headerHtml += '<th>' + h + '</th>'; });
                 headerHtml += '</tr>';
@@ -703,9 +828,13 @@
                         '<td>' + row.capacity + '</td>' +
                         '<td>' + row.turbineCount + '</td>' +
                         '<td>' + row.turbineModel + '</td>' +
+                        '<td>' + row.ratedPower + '</td>' +
+                        '<td>' + row.bladeLength + '</td>' +
                         '<td>' + row.hubHeight + '</td>' +
+                        '<td>' + row.altitude + '</td>' +
                         '<td>' + row.cutInSpeed + '</td>' +
                         '<td>' + row.cutOutSpeed + '</td>' +
+                        '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + row.accessScheme + '</td>' +
                         '<td>' + row.commissionDate + '</td>' +
                         '<td><span class="badge ' + (row.status === '正常' ? 'badge-success' : 'badge-muted') + '">' + row.status + '</span></td>' +
                         '</tr>';

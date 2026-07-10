@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数据导入 - 新能源电力交易辅助决策系统</title>
     <link rel="stylesheet" href="../../styles.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <style>
         .import-section {
             background: var(--card-bg);
@@ -471,6 +472,21 @@
             interface: ['接口名称', '接口类型', '接口地址', '认证方式', '同步频率', '数据格式', '超时时间(秒)', '数据说明']
         };
 
+        var importFieldRules = {
+            station: ['场站名称,字符串(50),必填', '所属公司,字符串(50),必填', '装机容量(MW),数值(0-9999),必填', '最小技术出力(MW),数值(0-9999),选填', '爬坡率上限(MW/min),数值(0-999),选填', '爬坡率下限(MW/min),数值(0-999),选填', '启停约束(次/日),整数(0-99),选填', '风机台数,整数(0-999),必填', '风机型号,字符串(50),必填', '轮毂高度(m),数值(0-999),必填', '切入风速(m/s),数值(0-50),必填', '切出风速(m/s),数值(0-50),必填', '投产日期,日期(YYYY-MM-DD),必填', '状态,枚举(正常/停运/检修),必填'],
+            user: ['用户名,字符串(50),必填', '姓名,字符串(50),必填', '角色,字符串(50),必填', '关联场站,字符串(50),选填', '手机号,字符串(20),选填', '邮箱,字符串(100),选填', '状态,枚举(启用/停用),必填'],
+            dict: ['编码,字符串(50),必填', '名称,字符串(100),必填', '字典类型,字符串(50),必填', '排序号,整数(0-999),选填', '状态,枚举(启用/停用),必填'],
+            scheme: ['方案名称,字符串(100),必填', '所属模块,字符串(50),必填', '版本号,字符串(20),必填', '训练日期范围,字符串(50),必填', '创建时间,日期时间,必填', '状态,枚举(训练中/已发布/已下架),必填'],
+            model: ['模型名称,字符串(100),必填', '模型类型,字符串(50),必填', '版本号,字符串(20),必填', '服务地址,字符串(200),必填', '运行状态,枚举(运行中/停止/异常),必填', '认证密钥,字符串(100),选填', '超时时间(秒),整数(0-999),选填', '重试次数,整数(0-99),选填', '模型描述,字符串(500),选填', '输入数据源,字符串(100),选填', '预测时间粒度(分钟),整数(0-999),选填', '预测时长(小时),整数(0-999),选填', '模型精度阈值,数值(0-100),选填'],
+            train: ['节点名称,字符串(100),必填', '所属公司,字符串(50),选填', '关联场站,字符串(50),选填', '训练数据范围,字符串(50),必填', '训练时间,日期时间,必填', '模型文件路径,字符串(200),选填', '备注,字符串(500),选填'],
+            contract: ['交易品类,字符串(50),必填', '电量占比(%),数值(0-100),必填', '电价(元/MWh),数值(0-9999),必填'],
+            spot: ['交易日期,日期(YYYY-MM-DD),必填', '交易时段,字符串(10),必填', '出清电量(MWh),数值(0-999999),必填', '出清电价(元/MWh),数值(0-9999),必填'],
+            price: ['预测日期,日期(YYYY-MM-DD),必填', '预测类型,字符串(50),必填', '交易时段,字符串(20),必填', '预测电价(元/MWh),数值(0-9999),必填', '预测精度(%),数值(0-100),选填'],
+            meteo: ['数据源名称,字符串(100),必填', '数据源类型,字符串(50),必填', '服务地址,字符串(200),必填', '数据字段,字符串(200),选填', '更新频率,字符串(20),选填', '认证方式,字符串(50),选填', '数据格式,字符串(20),选填'],
+            quote: ['策略名称,字符串(100),必填', '适用模块,字符串(50),必填', '策略类型,字符串(50),必填', '电价分位数,数值(0-1),选填', '中标概率基准(%),数值(0-100),选填', '价格上浮比例(%),数值(0-100),选填', '价格下浮比例(%),数值(0-100),选填', '适用场景说明,字符串(500),选填'],
+            interface: ['接口名称,字符串(100),必填', '接口类型,字符串(50),必填', '接口地址,字符串(200),必填', '认证方式,字符串(50),选填', '同步频率,字符串(20),选填', '数据格式,字符串(20),选填', '超时时间(秒),整数(0-999),选填', '数据说明,字符串(500),选填']
+        };
+
         var importTypeNames = {
             station: '场站信息数据',
             user: '用户数据',
@@ -488,17 +504,25 @@
 
         function downloadTemplate(type) {
             var headers = importTemplates[type];
-            var filename = importTypeNames[type] + '_导入模板.csv';
+            var rules = importFieldRules[type] || [];
+            var filename = importTypeNames[type] + '_导入专用模板.xlsx';
             
-            var csvContent = '\uFEFF' + headers.join(',') + '\n';
+            var sheet1Data = [headers];
             
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            var sheet2Data = [['字段名', '数据类型', '是否必填', '取值范围', '说明']];
+            rules.forEach(function(rule) {
+                var parts = rule.split(',');
+                sheet2Data.push([parts[0], parts[1] || '', parts[2] || '', '', '']);
+            });
+            
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            var sheet2 = XLSX.utils.aoa_to_sheet(sheet2Data);
+            
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导入模板表');
+            XLSX.utils.book_append_sheet(workbook, sheet2, '字段规则说明附表');
+            
+            XLSX.writeFile(workbook, filename);
             
             showResult('success', '模板已下载：' + filename);
         }

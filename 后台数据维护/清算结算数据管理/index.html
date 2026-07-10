@@ -3,155 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>清算结算数据管理 - 新能源电力交易辅助决策系统</title>
+    <title>结算单管理 - 新能源电力交易辅助决策系统</title>
     <link rel="stylesheet" href="../../styles.css">
 </head>
 <body>
     <main class="main-content">
         <div class="page-header">
-            <h2 class="page-title">清算结算数据管理</h2>
-            <p class="page-subtitle">管理交易结算单、清算电量与电价数据，支撑收益分析与结算核对</p>
+            <h2 class="page-title">结算单管理</h2>
+            <p class="page-subtitle">管理交易结算单数据，支撑收益分析与结算核对</p>
         </div>
 
-        <div class="tab-bar">
-            <button class="tab-btn active" onclick="switchSettlementTab('settlement')">结算单管理</button>
-            <button class="tab-btn" onclick="switchSettlementTab('clearing')">清算数据</button>
-            <button class="tab-btn" onclick="switchSettlementTab('revenue')">收益分析</button>
+        <div class="filter-bar">
+            <div class="filter-item">
+                <label>结算月份</label>
+                <input class="filter-select" type="month" id="settlement-filter-month" style="width:140px">
+            </div>
+            <div class="filter-item">
+                <label>结算类型</label>
+                <select class="filter-select" style="width:140px" id="settlement-filter-type">
+                    <option value="all">全部类型</option>
+                    <option>日前结算</option>
+                    <option>实时结算</option>
+                    <option>中长期结算</option>
+                    <option>偏差结算</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>结算状态</label>
+                <select class="filter-select" style="width:120px" id="settlement-filter-status">
+                    <option value="all">全部状态</option>
+                    <option>待确认</option>
+                    <option>已确认</option>
+                    <option>已结算</option>
+                    <option>已对账</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="filterSettlement()">查询</button>
+            <div style="flex:1"></div>
+            <span class="info-text" style="margin-right:var(--space-3);color:var(--muted);font-size:var(--text-sm)">数据来源：省电力交易中心API对接 + 手动导入</span>
+            <button class="btn-default" onclick="downloadSettlementTemplate()">下载模板</button>
+            <button class="btn-secondary" onclick="openSettlementImportModal()">导入数据</button>
+            <button class="btn-default" onclick="exportSettlementData()">导出数据</button>
+            <button class="btn-primary" onclick="openSettlementModal()">+ 新增结算单</button>
         </div>
 
-        <div id="tab-settlement" class="tab-content" style="display:block">
-            <div class="filter-bar">
-                <div class="filter-item">
-                    <label>结算月份</label>
-                    <input class="filter-select" type="month" id="settlement-filter-month" style="width:140px">
+        <div class="table-section" style="margin-top: var(--space-4)">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:50px"><input type="checkbox" id="settlement-select-all" onclick="toggleSettlementSelectAll()"></th>
+                        <th>结算月份</th>
+                        <th>结算单号</th>
+                        <th>结算类型</th>
+                        <th>交易电量(MWh)</th>
+                        <th>结算电价(元/MWh)</th>
+                        <th>结算金额(万元)</th>
+                        <th>场站名称</th>
+                        <th>结算状态</th>
+                        <th style="width:100px">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="settlement-table-body"></tbody>
+            </table>
+            <div class="pagination">
+                <span class="info-text" id="settlement-count">共 0 条记录</span>
+                <div>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
                 </div>
-                <div class="filter-item">
-                    <label>结算类型</label>
-                    <select class="filter-select" style="width:140px" id="settlement-filter-type">
-                        <option value="all">全部类型</option>
-                        <option>日前结算</option>
-                        <option>实时结算</option>
-                        <option>中长期结算</option>
-                        <option>偏差结算</option>
-                    </select>
-                </div>
-                <div class="filter-item">
-                    <label>结算状态</label>
-                    <select class="filter-select" style="width:120px" id="settlement-filter-status">
-                        <option value="all">全部状态</option>
-                        <option>待确认</option>
-                        <option>已确认</option>
-                        <option>已结算</option>
-                        <option>已对账</option>
-                    </select>
-                </div>
-                <button class="btn-primary" onclick="filterSettlement()">查询</button>
-                <div style="flex:1"></div>
-                <span class="info-text" style="margin-right:var(--space-3);color:var(--muted);font-size:var(--text-sm)">数据来源：省电力交易中心API对接</span>
-                <button class="btn-primary" onclick="openSettlementModal()">+ 新增结算单</button>
-            </div>
-
-            <div class="table-section" style="margin-top: var(--space-4)">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>结算月份</th>
-                            <th>结算单号</th>
-                            <th>结算类型</th>
-                            <th>交易电量(MWh)</th>
-                            <th>结算电价(元/MWh)</th>
-                            <th>结算金额(万元)</th>
-                            <th>场站名称</th>
-                            <th>结算状态</th>
-                            <th style="width:140px">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="settlement-table-body"></tbody>
-                </table>
-                <div class="pagination">
-                    <span class="info-text" id="settlement-count">共 0 条记录</span>
-                    <div>
-                        <button class="page-btn active">1</button>
-                        <button class="page-btn">2</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-clearing" class="tab-content" style="display:none">
-            <div class="filter-bar">
-                <div class="filter-item">
-                    <label>日期</label>
-                    <input class="filter-select" type="date" id="clearing-filter-date" style="width:140px">
-                </div>
-                <div class="filter-item">
-                    <label>交易类型</label>
-                    <select class="filter-select" style="width:140px" id="clearing-filter-type">
-                        <option value="all">全部类型</option>
-                        <option>日前交易</option>
-                        <option>实时交易</option>
-                        <option>中长期交易</option>
-                    </select>
-                </div>
-                <button class="btn-primary" onclick="filterClearing()">查询</button>
-                <div style="flex:1"></div>
-                <button class="btn-default" onclick="exportClearingData()">导出数据</button>
-            </div>
-            <div class="table-section" style="margin-top: var(--space-4)">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>日期</th>
-                            <th>交易时段</th>
-                            <th>交易类型</th>
-                            <th>场站名称</th>
-                            <th>出清电量(MWh)</th>
-                            <th>出清电价(元/MWh)</th>
-                            <th>清算电量(MWh)</th>
-                            <th>清算电价(元/MWh)</th>
-                            <th>清算金额(元)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="clearing-table-body"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="tab-revenue" class="tab-content" style="display:none">
-            <div class="filter-bar">
-                <div class="filter-item">
-                    <label>月份</label>
-                    <input class="filter-select" type="month" id="revenue-filter-month" style="width:140px">
-                </div>
-                <div class="filter-item">
-                    <label>场站名称</label>
-                    <select class="filter-select" style="width:160px" id="revenue-filter-station">
-                        <option value="all">全部场站</option>
-                        <option>桂阳月和风电场</option>
-                        <option>光伏电站A</option>
-                    </select>
-                </div>
-                <button class="btn-primary" onclick="filterRevenue()">查询</button>
-                <div style="flex:1"></div>
-                <button class="btn-default" onclick="exportRevenueData()">导出数据</button>
-            </div>
-            <div class="table-section" style="margin-top: var(--space-4)">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>月份</th>
-                            <th>场站名称</th>
-                            <th>中长期收益(万元)</th>
-                            <th>现货收益(万元)</th>
-                            <th>偏差考核(万元)</th>
-                            <th>总收益(万元)</th>
-                            <th>单位电价(元/MWh)</th>
-                            <th>同比(%)</th>
-                            <th>环比(%)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="revenue-table-body"></tbody>
-                </table>
             </div>
         </div>
     </main>
@@ -229,6 +148,37 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="settlement-import-modal" style="display:none">
+        <div class="modal-panel" style="width:720px">
+            <div class="modal-header">
+                <h3>导入结算单数据</h3>
+                <button class="modal-close" onclick="closeSettlementImportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-area" onclick="document.getElementById('settlement-import-file').click()">
+                    <input type="file" id="settlement-import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleSettlementFileSelect()">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">点击选择Excel文件</div>
+                    <div class="upload-hint">支持 .xlsx / .xls / .csv 格式，单个文件不超过10MB</div>
+                </div>
+                <div id="settlement-import-progress" style="display:none;margin-top:var(--space-4)">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="settlement-import-progress-fill" style="width:0%"></div>
+                    </div>
+                    <span class="progress-text" id="settlement-import-progress-text">0%</span>
+                </div>
+                <div id="settlement-import-result" style="display:none;margin-top:var(--space-4)">
+                    <div id="settlement-import-result-success" class="result-success" style="display:none"></div>
+                    <div id="settlement-import-result-error" class="result-error" style="display:none"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-default" onclick="closeSettlementImportModal()">关闭</button>
+                <button class="btn-primary" id="settlement-import-submit-btn" onclick="confirmSettlementImport()" disabled>确认导入</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         var settlementData = [
             { month: '2025-10', no: 'JS202510001', type: '中长期结算', station: '桂阳月和风电场', volume: 22000, price: 435.20, amount: 957.44, status: '已对账', note: '' },
@@ -243,35 +193,7 @@
             { month: '2025-12', no: 'JS202512001', type: '中长期结算', station: '桂阳月和风电场', volume: 24500, price: 442.80, amount: 1084.86, status: '待确认', note: '' }
         ];
 
-        var clearingData = [
-            { date: '2025-11-01', period: '00:00', type: '日前交易', station: '桂阳月和风电场', clearVolume: 38.50, clearPrice: 360.70, settleVolume: 38.50, settlePrice: 360.70, amount: 13886.95 },
-            { date: '2025-11-01', period: '00:15', type: '日前交易', station: '桂阳月和风电场', clearVolume: 37.80, clearPrice: 360.70, settleVolume: 37.80, settlePrice: 360.70, amount: 13634.46 },
-            { date: '2025-11-01', period: '07:00', type: '日前交易', station: '桂阳月和风电场', clearVolume: 48.50, clearPrice: 397.91, settleVolume: 48.50, settlePrice: 397.91, amount: 19308.64 },
-            { date: '2025-11-01', period: '12:00', type: '日前交易', station: '桂阳月和风电场', clearVolume: 45.20, clearPrice: 425.50, settleVolume: 45.20, settlePrice: 425.50, amount: 19232.60 },
-            { date: '2025-11-01', period: '18:00', type: '日前交易', station: '桂阳月和风电场', clearVolume: 42.80, clearPrice: 412.80, settleVolume: 42.80, settlePrice: 412.80, amount: 17667.84 },
-            { date: '2025-11-01', period: '23:00', type: '日前交易', station: '桂阳月和风电场', clearVolume: 39.20, clearPrice: 375.60, settleVolume: 39.20, settlePrice: 375.60, amount: 14723.52 },
-            { date: '2025-11-01', period: '00:00', type: '实时交易', station: '桂阳月和风电场', clearVolume: 0.50, clearPrice: 350.00, settleVolume: 0.50, settlePrice: 350.00, amount: 175.00 },
-            { date: '2025-11-01', period: '12:00', type: '实时交易', station: '桂阳月和风电场', clearVolume: 1.20, clearPrice: 450.00, settleVolume: 1.20, settlePrice: 450.00, amount: 540.00 }
-        ];
-
-        var revenueData = [
-            { month: '2025-10', station: '桂阳月和风电场', mlRevenue: 957.44, spotRevenue: 93.91, deviation: -5.25, total: 1046.10, unitPrice: 435.88, yoy: 12.50, mom: 3.80 },
-            { month: '2025-11', station: '桂阳月和风电场', mlRevenue: 1048.39, spotRevenue: 113.74, deviation: -2.88, total: 1159.25, unitPrice: 442.02, yoy: 15.20, mom: 10.82 },
-            { month: '2025-10', station: '光伏电站A', mlRevenue: 2892.40, spotRevenue: 315.60, deviation: -18.50, total: 3189.50, unitPrice: 430.20, yoy: 8.80, mom: -2.50 },
-            { month: '2025-11', station: '光伏电站A', mlRevenue: 2995.92, spotRevenue: 352.80, deviation: -12.30, total: 3336.42, unitPrice: 435.50, yoy: 11.20, mom: 4.61 }
-        ];
-
         var editingSettlementIndex = -1;
-
-        function switchSettlementTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
-            document.querySelectorAll('.tab-content').forEach(function(content) { content.style.display = 'none'; });
-            event.target.classList.add('active');
-            document.getElementById('tab-' + tab).style.display = 'block';
-            if (tab === 'settlement') renderSettlementTable();
-            else if (tab === 'clearing') renderClearingTable();
-            else renderRevenueTable();
-        }
 
         function renderSettlementTable() {
             var tbody = document.getElementById('settlement-table-body');
@@ -280,7 +202,8 @@
                 var statusClass = item.status === '待确认' ? 'badge-muted' : 
                                   item.status === '已确认' ? 'badge-warning' : 
                                   item.status === '已结算' ? 'badge-success' : 'badge-primary';
-                tbody.innerHTML += '<tr>' +
+                tbody.innerHTML += '<tr data-index="' + idx + '">' +
+                    '<td style="text-align:center"><input type="checkbox" class="settlement-row-checkbox" onclick="toggleSettlementRowSelect(' + idx + ')"></td>' +
                     '<td>' + item.month + '</td>' +
                     '<td>' + item.no + '</td>' +
                     '<td>' + item.type + '</td>' +
@@ -311,10 +234,12 @@
             var tbody = document.getElementById('settlement-table-body');
             tbody.innerHTML = '';
             filtered.forEach(function(item, idx) {
+                var originalIdx = settlementData.indexOf(item);
                 var statusClass = item.status === '待确认' ? 'badge-muted' : 
                                   item.status === '已确认' ? 'badge-warning' : 
                                   item.status === '已结算' ? 'badge-success' : 'badge-primary';
-                tbody.innerHTML += '<tr>' +
+                tbody.innerHTML += '<tr data-index="' + originalIdx + '">' +
+                    '<td style="text-align:center"><input type="checkbox" class="settlement-row-checkbox" onclick="toggleSettlementRowSelect(' + originalIdx + ')"></td>' +
                     '<td>' + item.month + '</td>' +
                     '<td>' + item.no + '</td>' +
                     '<td>' + item.type + '</td>' +
@@ -324,8 +249,8 @@
                     '<td>' + item.station + '</td>' +
                     '<td><span class="badge ' + statusClass + '">' + item.status + '</span></td>' +
                     '<td>' +
-                        '<button class="btn-default" onclick="openSettlementModal(' + idx + ')" style="padding:2px 8px;font-size:12px">编辑</button> ' +
-                        '<button class="btn-delete" onclick="deleteSettlement(' + idx + ')" style="padding:2px 8px;font-size:12px">删除</button>' +
+                        '<button class="btn-default" onclick="openSettlementModal(' + originalIdx + ')" style="padding:2px 8px;font-size:12px">编辑</button> ' +
+                        '<button class="btn-delete" onclick="deleteSettlement(' + originalIdx + ')" style="padding:2px 8px;font-size:12px">删除</button>' +
                     '</td>' +
                     '</tr>';
             });
@@ -406,138 +331,145 @@
             }
         }
 
-        function renderClearingTable() {
-            var tbody = document.getElementById('clearing-table-body');
-            tbody.innerHTML = '';
-            clearingData.forEach(function(item) {
-                tbody.innerHTML += '<tr>' +
-                    '<td>' + item.date + '</td>' +
-                    '<td>' + item.period + '</td>' +
-                    '<td>' + item.type + '</td>' +
-                    '<td>' + item.station + '</td>' +
-                    '<td>' + item.clearVolume + '</td>' +
-                    '<td>' + item.clearPrice + '</td>' +
-                    '<td>' + item.settleVolume + '</td>' +
-                    '<td>' + item.settlePrice + '</td>' +
-                    '<td>' + item.amount.toFixed(2) + '</td>' +
-                    '</tr>';
+        function toggleSettlementSelectAll() {
+            var checkbox = document.getElementById('settlement-select-all');
+            var rowCheckboxes = document.querySelectorAll('.settlement-row-checkbox');
+            rowCheckboxes.forEach(function(cb) {
+                cb.checked = checkbox.checked;
             });
         }
 
-        function filterClearing() {
-            var date = document.getElementById('clearing-filter-date').value;
-            var type = document.getElementById('clearing-filter-type').value;
-            var filtered = clearingData.filter(function(item) {
-                var matchDate = !date || item.date === date;
-                var matchType = type === 'all' || item.type === type;
-                return matchDate && matchType;
+        function toggleSettlementRowSelect(index) {
+            var selectAll = document.getElementById('settlement-select-all');
+            var rowCheckboxes = document.querySelectorAll('.settlement-row-checkbox');
+            var allChecked = Array.from(rowCheckboxes).every(function(cb) {
+                return cb.checked;
             });
-            var tbody = document.getElementById('clearing-table-body');
-            tbody.innerHTML = '';
-            filtered.forEach(function(item) {
-                tbody.innerHTML += '<tr>' +
-                    '<td>' + item.date + '</td>' +
-                    '<td>' + item.period + '</td>' +
-                    '<td>' + item.type + '</td>' +
-                    '<td>' + item.station + '</td>' +
-                    '<td>' + item.clearVolume + '</td>' +
-                    '<td>' + item.clearPrice + '</td>' +
-                    '<td>' + item.settleVolume + '</td>' +
-                    '<td>' + item.settlePrice + '</td>' +
-                    '<td>' + item.amount.toFixed(2) + '</td>' +
-                    '</tr>';
-            });
+            selectAll.checked = allChecked;
         }
 
-        function exportClearingData() {
-            var headers = ['日期', '交易时段', '交易类型', '场站名称', '出清电量(MWh)', '出清电价(元/MWh)', '清算电量(MWh)', '清算电价(元/MWh)', '清算金额(元)'];
-            var csvContent = '\uFEFF' + headers.join(',') + '\n';
-            clearingData.forEach(function(item) {
-                csvContent += item.date + ',' + item.period + ',' + item.type + ',' + item.station + ',' +
-                    item.clearVolume + ',' + item.clearPrice + ',' + item.settleVolume + ',' + 
-                    item.settlePrice + ',' + item.amount.toFixed(2) + '\n';
+        function exportSettlementData() {
+            var selectedRows = document.querySelectorAll('.settlement-row-checkbox:checked');
+            if (selectedRows.length === 0) {
+                alert('请至少选择一条记录进行导出');
+                return;
+            }
+            
+            var headers = ['结算月份', '结算单号', '结算类型', '交易电量(MWh)', '结算电价(元/MWh)', '结算金额(万元)', '场站名称', '结算状态'];
+            var sheet1Data = [headers];
+            
+            selectedRows.forEach(function(cb) {
+                var tr = cb.closest('tr');
+                var index = parseInt(tr.getAttribute('data-index'));
+                var item = settlementData[index];
+                sheet1Data.push([item.month, item.no, item.type, item.volume, item.price, item.amount, item.station, item.status]);
             });
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '清算数据.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导出数据');
+            XLSX.writeFile(workbook, '结算数据_' + new Date().toISOString().split('T')[0] + '.xlsx');
         }
 
-        function renderRevenueTable() {
-            var tbody = document.getElementById('revenue-table-body');
-            tbody.innerHTML = '';
-            revenueData.forEach(function(item) {
-                tbody.innerHTML += '<tr>' +
-                    '<td>' + item.month + '</td>' +
-                    '<td>' + item.station + '</td>' +
-                    '<td>' + item.mlRevenue + '</td>' +
-                    '<td>' + item.spotRevenue + '</td>' +
-                    '<td>' + item.deviation + '</td>' +
-                    '<td>' + item.total + '</td>' +
-                    '<td>' + item.unitPrice + '</td>' +
-                    '<td>' + item.yoy + '</td>' +
-                    '<td>' + item.mom + '</td>' +
-                    '</tr>';
-            });
+        function downloadSettlementTemplate() {
+            var sheet1Data = [
+                ['结算月份', '结算单号', '结算类型', '交易电量(MWh)', '结算电价(元/MWh)', '结算金额(万元)', '场站名称', '结算状态', '备注说明'],
+                ['2025-11', '', '中长期结算', '23800', '440.50', '1048.39', '桂阳月和风电场', '已结算', ''],
+                ['2025-11', '', '日前结算', '2580', '397.91', '102.66', '桂阳月和风电场', '已结算', '']
+            ];
+            
+            var sheet2Data = [
+                ['字段名称', '数据类型', '长度限制', '是否必填', '取值范围', '枚举值/示例', '备注说明'],
+                ['结算月份', 'DATE', '7', '是', 'YYYY-MM', '', '格式如2025-11'],
+                ['结算单号', 'VARCHAR', '50', '否', '', '', '为空时系统自动生成'],
+                ['结算类型', 'VARCHAR', '20', '是', '', '日前结算/实时结算/中长期结算/偏差结算', ''],
+                ['交易电量(MWh)', 'DECIMAL', '12,2', '是', '0-9999999', '', ''],
+                ['结算电价(元/MWh)', 'DECIMAL', '10,2', '是', '0-9999', '', ''],
+                ['结算金额(万元)', 'DECIMAL', '12,2', '是', '0-999999', '', '结算金额=交易电量×结算电价÷10000'],
+                ['场站名称', 'VARCHAR', '50', '是', '', '', '必须为系统已存在的场站'],
+                ['结算状态', 'VARCHAR', '20', '否', '', '待确认/已确认/已结算/已对账', '默认待确认'],
+                ['备注说明', 'TEXT', '-', '否', '', '', '']
+            ];
+            
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            var sheet2 = XLSX.utils.aoa_to_sheet(sheet2Data);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导入模板');
+            XLSX.utils.book_append_sheet(workbook, sheet2, '字段说明');
+            XLSX.writeFile(workbook, '结算单导入模板_v1.0.xlsx');
         }
 
-        function filterRevenue() {
-            var month = document.getElementById('revenue-filter-month').value;
-            var station = document.getElementById('revenue-filter-station').value;
-            var filtered = revenueData.filter(function(item) {
-                var matchMonth = !month || item.month === month;
-                var matchStation = station === 'all' || item.station === station;
-                return matchMonth && matchStation;
-            });
-            var tbody = document.getElementById('revenue-table-body');
-            tbody.innerHTML = '';
-            filtered.forEach(function(item) {
-                tbody.innerHTML += '<tr>' +
-                    '<td>' + item.month + '</td>' +
-                    '<td>' + item.station + '</td>' +
-                    '<td>' + item.mlRevenue + '</td>' +
-                    '<td>' + item.spotRevenue + '</td>' +
-                    '<td>' + item.deviation + '</td>' +
-                    '<td>' + item.total + '</td>' +
-                    '<td>' + item.unitPrice + '</td>' +
-                    '<td>' + item.yoy + '</td>' +
-                    '<td>' + item.mom + '</td>' +
-                    '</tr>';
-            });
+        function openSettlementImportModal() {
+            document.getElementById('settlement-import-modal').style.display = 'flex';
+            document.getElementById('settlement-import-file').value = '';
+            document.getElementById('settlement-import-progress').style.display = 'none';
+            document.getElementById('settlement-import-result').style.display = 'none';
+            document.getElementById('settlement-import-submit-btn').disabled = true;
         }
 
-        function exportRevenueData() {
-            var headers = ['月份', '场站名称', '中长期收益(万元)', '现货收益(万元)', '偏差考核(万元)', '总收益(万元)', '单位电价(元/MWh)', '同比(%)', '环比(%)'];
-            var csvContent = '\uFEFF' + headers.join(',') + '\n';
-            revenueData.forEach(function(item) {
-                csvContent += item.month + ',' + item.station + ',' + item.mlRevenue + ',' + 
-                    item.spotRevenue + ',' + item.deviation + ',' + item.total + ',' + 
-                    item.unitPrice + ',' + item.yoy + ',' + item.mom + '\n';
-            });
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '收益分析数据.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function closeSettlementImportModal() {
+            document.getElementById('settlement-import-modal').style.display = 'none';
+        }
+
+        function handleSettlementFileSelect() {
+            var file = document.getElementById('settlement-import-file').files[0];
+            if (!file) return;
+            
+            document.getElementById('settlement-import-progress').style.display = 'block';
+            document.getElementById('settlement-import-result').style.display = 'none';
+            document.getElementById('settlement-import-submit-btn').disabled = true;
+            
+            var progress = 0;
+            var interval = setInterval(function() {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    document.getElementById('settlement-import-progress-fill').style.width = '100%';
+                    document.getElementById('settlement-import-progress-text').textContent = '100%';
+                    setTimeout(function() {
+                        document.getElementById('settlement-import-progress').style.display = 'none';
+                        document.getElementById('settlement-import-result').style.display = 'block';
+                        document.getElementById('settlement-import-result-success').style.display = 'block';
+                        document.getElementById('settlement-import-result-success').innerHTML = '<strong>✓ 文件解析成功</strong><br>共解析2条数据，0条错误';
+                        document.getElementById('settlement-import-submit-btn').disabled = false;
+                    }, 500);
+                } else {
+                    document.getElementById('settlement-import-progress-fill').style.width = progress + '%';
+                    document.getElementById('settlement-import-progress-text').textContent = Math.round(progress) + '%';
+                }
+            }, 200);
+        }
+
+        function confirmSettlementImport() {
+            var newItems = [
+                { month: '2025-12', no: 'JS202512002', type: '日前结算', station: '桂阳月和风电场', volume: 2680, price: 402.50, amount: 107.87, status: '待确认', note: '导入数据' },
+                { month: '2025-12', no: 'JS202512003', type: '实时结算', station: '桂阳月和风电场', volume: 268, price: 430.00, amount: 11.52, status: '待确认', note: '导入数据' }
+            ];
+            
+            settlementData = settlementData.concat(newItems);
+            renderSettlementTable();
+            closeSettlementImportModal();
+            
+            var toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = '导入成功！共导入2条数据';
+            toast.style.display = 'block';
+            document.querySelector('.main-content').insertBefore(toast, document.querySelector('.filter-bar'));
+            setTimeout(function() { toast.remove(); }, 3000);
         }
 
         renderSettlementTable();
 
-        window.switchSettlementTab = switchSettlementTab;
         window.filterSettlement = filterSettlement;
         window.openSettlementModal = openSettlementModal;
         window.closeSettlementModal = closeSettlementModal;
         window.saveSettlement = saveSettlement;
         window.deleteSettlement = deleteSettlement;
-        window.filterClearing = filterClearing;
-        window.exportClearingData = exportClearingData;
-        window.filterRevenue = filterRevenue;
-        window.exportRevenueData = exportRevenueData;
+        window.exportSettlementData = exportSettlementData;
+        window.downloadSettlementTemplate = downloadSettlementTemplate;
+        window.openSettlementImportModal = openSettlementImportModal;
+        window.closeSettlementImportModal = closeSettlementImportModal;
     </script>
 </body>
 </html>

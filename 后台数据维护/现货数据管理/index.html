@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>现货数据管理 - 新能源电力交易辅助决策系统</title>
     <link rel="stylesheet" href="../../styles.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <main class="main-content">
@@ -32,24 +33,29 @@
                 <label>电源类型</label>
                 <select class="filter-select" style="width:120px" id="spot-filter-type">
                     <option value="all">全部类型</option>
-                    <option>总电量</option>
-                    <option>火电</option>
-                    <option>风电</option>
                     <option>光伏</option>
-                    <option>储能</option>
+                    <option>风电</option>
+                    <option>水电</option>
+                    <option>燃煤火电</option>
+                    <option>燃气火电</option>
+                    <option>独立储能</option>
+                    <option>生物质垃圾</option>
+                    <option>其他</option>
                 </select>
             </div>
             <button class="btn-primary" onclick="filterSpots()">查询</button>
             <div style="flex:1"></div>
             <button class="btn-default" onclick="downloadSpotTemplate()">下载导入模板</button>
-            <button class="btn-default" onclick="openSpotImportModal()">批量导入</button>
-            <button class="btn-primary" onclick="openSpotModal()">+ 新增数据</button>
+            <button class="btn-default" onclick="exportSpotData()">导出数据</button>
+            <button class="btn-primary" onclick="openSpotImportModal()">批量导入</button>
+            <button class="btn-primary" onclick="openSpotModal()">+ 补录数据</button>
         </div>
 
         <div class="table-section" style="margin-top: var(--space-4)">
             <table class="data-table">
                 <thead>
                         <tr>
+                            <th style="width:50px"><input type="checkbox" id="spot-select-all" onclick="toggleSpotSelectAll()"></th>
                             <th>交易日期</th>
                             <th>交易时段</th>
                             <th>节点名称</th>
@@ -57,8 +63,10 @@
                             <th>实时出清电价(元/MWh)</th>
                             <th>日前出清电量(MWh)</th>
                             <th>实时出清电量(MWh)</th>
+                            <th>日前出清台数</th>
+                            <th>实时出清台数</th>
                             <th>电源类型</th>
-                            <th style="width:140px">操作</th>
+                            <th style="width:100px">操作</th>
                         </tr>
                     </thead>
                 <tbody id="spot-table-body"></tbody>
@@ -195,11 +203,14 @@
                     <div class="form-section" style="flex:1">
                         <label class="form-label">电源类型</label>
                         <select class="form-input" id="spot-type">
-                            <option>总电量</option>
-                            <option>火电</option>
-                            <option>风电</option>
                             <option>光伏</option>
-                            <option>储能</option>
+                            <option>风电</option>
+                            <option>水电</option>
+                            <option>燃煤火电</option>
+                            <option>燃气火电</option>
+                            <option>独立储能</option>
+                            <option>生物质垃圾</option>
+                            <option>其他</option>
                         </select>
                     </div>
                 </div>
@@ -221,6 +232,16 @@
                     <div class="form-section" style="flex:1">
                         <label class="form-label">实时出清电量(MWh)</label>
                         <input class="form-input" id="spot-real-volume" type="number" step="0.01" placeholder="如：23718">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">日前出清台数</label>
+                        <input class="form-input" id="spot-day-units" type="number" min="0" placeholder="如：46">
+                    </div>
+                    <div class="form-section" style="flex:1">
+                        <label class="form-label">实时出清台数</label>
+                        <input class="form-input" id="spot-real-units" type="number" min="0" placeholder="如：47">
                     </div>
                 </div>
                 <div class="form-section">
@@ -260,7 +281,9 @@
                     realPrice: (basePrice + Math.random() * 20 - 10).toFixed(3),
                     dayVolume: baseVolume.toFixed(2),
                     realVolume: (baseVolume + Math.random() * 500 - 250).toFixed(2),
-                    type: '总电量',
+                    dayUnits: Math.floor(baseVolume / 500),
+                    realUnits: Math.floor((baseVolume + Math.random() * 500 - 250) / 500),
+                    type: '燃煤火电',
                     notes: ''
                 });
                 
@@ -272,6 +295,8 @@
                     realPrice: (basePrice + Math.random() * 30).toFixed(3),
                     dayVolume: (baseVolume * 0.25).toFixed(2),
                     realVolume: (baseVolume * 0.25).toFixed(2),
+                    dayUnits: Math.floor(baseVolume * 0.25 / 200),
+                    realUnits: Math.floor(baseVolume * 0.25 / 200),
                     type: '风电',
                     notes: ''
                 });
@@ -284,6 +309,8 @@
                     realPrice: (basePrice + Math.random() * 30).toFixed(3),
                     dayVolume: (baseVolume * 0.2).toFixed(2),
                     realVolume: (baseVolume * 0.2).toFixed(2),
+                    dayUnits: Math.floor(baseVolume * 0.2 / 100),
+                    realUnits: Math.floor(baseVolume * 0.2 / 100),
                     type: '光伏',
                     notes: ''
                 });
@@ -297,7 +324,9 @@
             tbody.innerHTML = '';
             var displayData = data.slice(0, 20);
             displayData.forEach(function(s, i) {
-                tbody.innerHTML += '<tr>' +
+                var index = data.indexOf(s);
+                tbody.innerHTML += '<tr data-index="' + index + '">' +
+                    '<td style="text-align:center"><input type="checkbox" class="spot-row-checkbox" onclick="toggleSpotRowSelect(' + index + ')"></td>' +
                     '<td>' + s.date + '</td>' +
                     '<td>' + s.period + '</td>' +
                     '<td>' + s.node + '</td>' +
@@ -305,10 +334,12 @@
                     '<td style="text-align:right">' + s.realPrice + '</td>' +
                     '<td style="text-align:right">' + s.dayVolume + '</td>' +
                     '<td style="text-align:right">' + s.realVolume + '</td>' +
+                    '<td style="text-align:right">' + (s.dayUnits || '-') + '</td>' +
+                    '<td style="text-align:right">' + (s.realUnits || '-') + '</td>' +
                     '<td><span style="display:inline-block;padding:2px 8px;border-radius:var(--radius-pill);font-size:11px;background:color-mix(in oklab, var(--accent), transparent 90%);color:var(--accent)">' + s.type + '</span></td>' +
                     '<td style="white-space:nowrap">' +
-                    '<button class="btn-config" onclick="openSpotModal(' + (data.indexOf(s)) + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
-                    '<button class="btn-delete" onclick="deleteSpot(' + (data.indexOf(s)) + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
+                    '<button class="btn-config" onclick="openSpotModal(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">编辑</button> ' +
+                    '<button class="btn-delete" onclick="deleteSpot(' + index + ')" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)">删除</button>' +
                     '</td></tr>';
             });
             document.getElementById('spot-count').textContent = '共 ' + data.length + ' 条记录';
@@ -319,11 +350,11 @@
             if (index === undefined || index === null || index === -1) {
                 spotEditIndex = -1;
                 document.getElementById('spot-modal-title').textContent = '新增现货数据';
-                ['spot-date','spot-period','spot-day-price','spot-real-price','spot-day-volume','spot-real-volume','spot-notes'].forEach(function(id) {
+                ['spot-date','spot-period','spot-day-price','spot-real-price','spot-day-volume','spot-real-volume','spot-day-units','spot-real-units','spot-notes'].forEach(function(id) {
                     document.getElementById(id).value = '';
                 });
                 document.getElementById('spot-node').value = '湖南省均价';
-                document.getElementById('spot-type').value = '总电量';
+                document.getElementById('spot-type').value = '燃煤火电';
             } else {
                 spotEditIndex = index;
                 document.getElementById('spot-modal-title').textContent = '编辑现货数据';
@@ -336,6 +367,8 @@
                 document.getElementById('spot-real-price').value = s.realPrice;
                 document.getElementById('spot-day-volume').value = s.dayVolume;
                 document.getElementById('spot-real-volume').value = s.realVolume;
+                document.getElementById('spot-day-units').value = s.dayUnits || '';
+                document.getElementById('spot-real-units').value = s.realUnits || '';
                 document.getElementById('spot-notes').value = s.notes || '';
             }
             modal.style.display = 'flex';
@@ -355,6 +388,8 @@
                 realPrice: parseFloat(document.getElementById('spot-real-price').value) || 0,
                 dayVolume: parseFloat(document.getElementById('spot-day-volume').value) || 0,
                 realVolume: parseFloat(document.getElementById('spot-real-volume').value) || 0,
+                dayUnits: parseInt(document.getElementById('spot-day-units').value) || 0,
+                realUnits: parseInt(document.getElementById('spot-real-units').value) || 0,
                 notes: document.getElementById('spot-notes').value
             };
             if (!data.date) { alert('请输入交易日期'); return; }
@@ -389,17 +424,76 @@
         }
 
         function downloadSpotTemplate() {
-            var headers = ['交易日期', '交易时段', '节点名称', '日前出清电价(元/MWh)', '实时出清电价(元/MWh)', '日前出清电量(MWh)', '实时出清电量(MWh)', '电源类型'];
-            var csvContent = '\uFEFF' + headers.join(',') + '\n';
-            csvContent += '2025-11-01,00:15:00,湖南省均价,360.695,372.549,23213,23718,总电量\n';
+            var sheet1Data = [
+                ['交易日期', '交易时段', '节点名称', '日前出清电价(元/MWh)', '实时出清电价(元/MWh)', '日前出清电量(MWh)', '实时出清电量(MWh)', '日前出清台数', '实时出清台数', '电源类型'],
+                ['2025-11-01', '00:15:00', '湖南省均价', 360.695, 372.549, 23213, 23718, 46, 47, '燃煤火电'],
+                ['2025-11-01', '00:15:00', '坡窑山', 362.800, 375.200, 5700, 5800, 28, 29, '风电'],
+                ['2025-11-01', '00:15:00', '邱家湖', 358.600, 370.800, 4560, 4600, 23, 23, '光伏']
+            ];
+
+            var sheet2Data = [
+                ['字段名', '数据类型', '是否必填', '取值范围', '说明'],
+                ['交易日期', '日期', '必填', 'YYYY-MM-DD', '格式YYYY-MM-DD'],
+                ['交易时段', '字符串(10)', '必填', '', '格式如:00:15:00'],
+                ['节点名称', '字符串(50)', '必填', '', '如:湖南省均价/坡窑山/邱家湖'],
+                ['日前出清电价(元/MWh)', '数值', '必填', '0-9999', '单位元/MWh'],
+                ['实时出清电价(元/MWh)', '数值', '必填', '0-9999', '单位元/MWh'],
+                ['日前出清电量(MWh)', '数值', '必填', '0-999999', '单位MWh'],
+                ['实时出清电量(MWh)', '数值', '必填', '0-999999', '单位MWh'],
+                ['日前出清台数', '整数', '选填', '0-999', '出清机组台数'],
+                ['实时出清台数', '整数', '选填', '0-999', '出清机组台数'],
+                ['电源类型', '枚举', '必填', '光伏/风电/水电/燃煤火电/燃气火电/独立储能/生物质垃圾/其他', '电源类型，对应数据字典power-type']
+            ];
+
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            var sheet2 = XLSX.utils.aoa_to_sheet(sheet2Data);
             
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '现货数据导入模板.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导入模板表');
+            XLSX.utils.book_append_sheet(workbook, sheet2, '字段规则说明附表');
+            
+            XLSX.writeFile(workbook, '现货数据导入专用模板.xlsx');
+        }
+
+        function toggleSpotSelectAll() {
+            var checkbox = document.getElementById('spot-select-all');
+            var rowCheckboxes = document.querySelectorAll('.spot-row-checkbox');
+            rowCheckboxes.forEach(function(cb) {
+                cb.checked = checkbox.checked;
+            });
+        }
+
+        function toggleSpotRowSelect(index) {
+            var checkbox = document.querySelector('.spot-row-checkbox');
+            var selectAll = document.getElementById('spot-select-all');
+            var rowCheckboxes = document.querySelectorAll('.spot-row-checkbox');
+            var allChecked = Array.from(rowCheckboxes).every(function(cb) {
+                return cb.checked;
+            });
+            selectAll.checked = allChecked;
+        }
+
+        function exportSpotData() {
+            var selectedRows = document.querySelectorAll('.spot-row-checkbox:checked');
+            if (selectedRows.length === 0) {
+                alert('请至少选择一条记录进行导出');
+                return;
+            }
+            
+            var headers = ['交易日期', '交易时段', '节点名称', '日前出清电价(元/MWh)', '实时出清电价(元/MWh)', '日前出清电量(MWh)', '实时出清电量(MWh)', '日前出清台数', '实时出清台数', '电源类型'];
+            var sheet1Data = [headers];
+            
+            selectedRows.forEach(function(cb) {
+                var tr = cb.closest('tr');
+                var index = parseInt(tr.getAttribute('data-index'));
+                var s = spotData[index];
+                sheet1Data.push([s.date, s.period, s.node, s.dayPrice, s.realPrice, s.dayVolume, s.realVolume, s.dayUnits || '', s.realUnits || '', s.type]);
+            });
+            
+            var workbook = XLSX.utils.book_new();
+            var sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+            XLSX.utils.book_append_sheet(workbook, sheet1, '导出数据');
+            XLSX.writeFile(workbook, '现货数据_' + new Date().toISOString().split('T')[0] + '.xlsx');
         }
 
         function openSpotImportModal() {
@@ -499,9 +593,9 @@
             
             setTimeout(function() {
                 var mockData = [
-                    { date: '2025-11-04', period: '00:15:00', node: '湖南省均价', dayPrice: '355.200', realPrice: '368.450', dayVolume: '22800.00', realVolume: '23100.00', type: '总电量' },
-                    { date: '', period: '03:15:00', node: '坡窑山', dayPrice: '362.800', realPrice: '375.200', dayVolume: '5700.00', realVolume: '5800.00', type: '风电' },
-                    { date: '2025-11-04', period: '06:15:00', node: '邱家湖', dayPrice: '358.600', realPrice: '370.800', dayVolume: '4560.00', realVolume: '4600.00', type: '光伏' }
+                    { date: '2025-11-04', period: '00:15:00', node: '湖南省均价', dayPrice: '355.200', realPrice: '368.450', dayVolume: '22800.00', realVolume: '23100.00', dayUnits: '45', realUnits: '46', type: '燃煤火电' },
+                    { date: '', period: '03:15:00', node: '坡窑山', dayPrice: '362.800', realPrice: '375.200', dayVolume: '5700.00', realVolume: '5800.00', dayUnits: '28', realUnits: '29', type: '风电' },
+                    { date: '2025-11-04', period: '06:15:00', node: '邱家湖', dayPrice: '358.600', realPrice: '370.800', dayVolume: '4560.00', realVolume: '4600.00', dayUnits: '23', realUnits: '23', type: '光伏' }
                 ];
                 
                 var errors = [];
@@ -522,7 +616,7 @@
                 document.getElementById('spot-preview-valid').textContent = fileRecord.validCount;
                 document.getElementById('spot-preview-invalid').textContent = fileRecord.invalidCount;
                 
-                var headers = ['交易日期', '交易时段', '节点名称', '日前出清电价(元/MWh)', '实时出清电价(元/MWh)', '日前出清电量(MWh)', '实时出清电量(MWh)', '电源类型'];
+                var headers = ['交易日期', '交易时段', '节点名称', '日前出清电价(元/MWh)', '实时出清电价(元/MWh)', '日前出清电量(MWh)', '实时出清电量(MWh)', '日前出清台数', '实时出清台数', '电源类型'];
                 var headerHtml = '<tr>';
                 headers.forEach(function(h) { headerHtml += '<th>' + h + '</th>'; });
                 headerHtml += '</tr>';
@@ -539,6 +633,8 @@
                         '<td style="text-align:right">' + row.realPrice + '</td>' +
                         '<td style="text-align:right">' + row.dayVolume + '</td>' +
                         '<td style="text-align:right">' + row.realVolume + '</td>' +
+                        '<td style="text-align:right">' + (row.dayUnits || '-') + '</td>' +
+                        '<td style="text-align:right">' + (row.realUnits || '-') + '</td>' +
                         '<td>' + row.type + '</td>' +
                         '</tr>';
                 });
