@@ -48,6 +48,7 @@ function setTodayDate() {
     if (dateInput && !dateInput.value) {
         dateInput.value = todayStr;
     }
+    dateInput.max = todayStr;
 }
 
 function updateSectionTitles(dateStr) {
@@ -316,7 +317,7 @@ function initCharts() {
 }
 
 function fillTables() {
-    const dateStr = document.getElementById('forecast-date').value || '2026-05-26';
+    const dateStr = document.getElementById('query-date').value || '2026-05-26';
     
     const dayAheadPrice96 = [286.5, 284.4, 282.4, 280.3, 278.2, 276.6, 275, 273.4, 271.8, 271.2, 270.6, 269.9, 269.3, 270.4, 271.4, 272.4, 273.5, 276.6, 279.6, 282.6, 285.7, 292.4, 299, 305.7, 312.4, 324, 335.6, 347.3, 358.9, 369.8, 380.8, 391.7, 402.6, 409, 415.4, 421.9, 428.3, 430.2, 432, 433.8, 435.7, 434, 432.4, 430.8, 429.1, 425.6, 422.2, 418.8, 415.3, 413.6, 412, 410.3, 408.6, 409.6, 410.7, 411.8, 412.8, 415, 417.2, 419.3, 421.5, 425.7, 429.8, 434, 438.2, 441.8, 445.4, 449.1, 452.7, 457.7, 462.8, 467.8, 472.8, 470.9, 469, 467.2, 465.3, 457.8, 450.2, 442.7, 435.2, 426, 416.8, 407.7, 398.5, 388.4, 378.4, 368.4, 358.3, 347.9, 337.6, 327.2, 316.8, 309.2, 301.6, 294.1];
     const dayAheadDev96 = [2.3, 2.3, 2.4, 2.4, 2.5, 2.6, 2.6, 2.7, 2.7, 2.7, 2.7, 2.6, 2.6, 2.6, 2.5, 2.4, 2.4, 2.4, 2.3, 2.2, 2.2, 2.2, 2.2, 2.1, 2.1, 2, 2, 2, 1.9, 1.9, 1.8, 1.8, 1.8, 1.8, 1.8, 1.7, 1.7, 1.7, 1.6, 1.6, 1.6, 1.6, 1.6, 1.7, 1.7, 1.7, 1.8, 1.8, 1.8, 1.8, 1.8, 1.8, 1.8, 1.8, 1.8, 1.7, 1.7, 1.7, 1.7, 1.7, 1.7, 1.7, 1.6, 1.6, 1.6, 1.6, 1.6, 1.5, 1.5, 1.5, 1.4, 1.4, 1.4, 1.4, 1.4, 1.4, 1.4, 1.4, 1.4, 1.5, 1.5, 1.6, 1.6, 1.6, 1.7, 1.8, 1.8, 1.8, 1.9, 2, 2, 2, 2.1, 2.2, 2.2, 2.2];
@@ -352,8 +353,14 @@ function fillTables() {
         weekForecastTableBody.appendChild(tr);
     });
 
+    fillMediumLongTermTable('all');
+}
+
+function fillMediumLongTermTable(selectedMonth) {
     const mediumLongTermTableBody = document.getElementById('medium-long-term-table-body');
     if (!mediumLongTermTableBody) return;
+    
+    mediumLongTermTableBody.innerHTML = '';
     
     const mediumData = [
         { month: '2026-07', high: 425.6, low: 315.2, avg: 370.4, volatility: 12.5 },
@@ -369,7 +376,10 @@ function fillTables() {
         { month: '2027-05', high: 405.8, low: 308.5, avg: 357.2, volatility: 10.2 },
         { month: '2027-06', high: 418.3, low: 318.9, avg: 368.6, volatility: 11.0 }
     ];
-    mediumData.forEach(row => {
+    
+    const filteredData = selectedMonth === 'all' ? mediumData : mediumData.filter(d => d.month === selectedMonth);
+    
+    filteredData.forEach(row => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${row.month}</td><td>${row.high.toFixed(2)}</td><td>${row.low.toFixed(2)}</td><td>${row.avg.toFixed(2)}</td><td>${row.volatility.toFixed(2)}</td>`;
         mediumLongTermTableBody.appendChild(tr);
@@ -384,42 +394,21 @@ window.resizeReviewCharts = function() {
 
 function initPriceForecast() {
     const queryBtn = document.getElementById('query-btn');
-    const dayBtn = document.getElementById('btn-day-ahead');
+    const monthSelect = document.getElementById('month-select');
     
-    if (!queryBtn || !dayBtn) {
+    if (!queryBtn) {
         setTimeout(initPriceForecast, 50);
         return;
     }
     
     setTodayDate();
     queryBtn.addEventListener('click', handleQuery);
-
-    dayBtn.addEventListener('click', function() {
-        const btn = this;
-        const scheme = document.getElementById('day-ahead-scheme').value;
-        
-        if (scheme === '请选择算法方案') {
-            showToast('请先选择算法方案', 'error');
-            return;
-        }
-        
-        btn.disabled = true;
-        btn.textContent = '预测中...';
-        
-        setTimeout(() => {
-            btn.textContent = '日前预测';
-            btn.disabled = false;
-            const dateStr = document.getElementById('forecast-date').value;
-            updateSectionTitles(dateStr);
-            if (!chartsInited) {
-                showSections();
-                initCharts();
-                fillTables();
-                chartsInited = true;
-            }
-            showToast('日前预测完成', 'success');
-        }, 1500);
-    });
+    
+    if (monthSelect) {
+        monthSelect.addEventListener('change', function() {
+            fillMediumLongTermTable(this.value);
+        });
+    }
     
     handleQuery();
 }

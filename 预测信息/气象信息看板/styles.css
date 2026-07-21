@@ -324,7 +324,7 @@
     margin-bottom: 20px;
 }
 
-.map-section, .station-section {
+.map-section, .stats-section {
     background: var(--surface);
     padding: 16px;
     border-radius: 4px;

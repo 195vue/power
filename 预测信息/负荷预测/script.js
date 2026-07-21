@@ -29,13 +29,15 @@ var industryCoeff = {
 // 全省+全社会用电量的实际负荷 (原始 24h 数据)
 var actualProvince = [205,165,185,160,145,195,295,405,395,420,400,280,265,310,250,280,265,410,420,415,425,275,265,260];
 
-// 96个15分钟时间点 (带日期)
+// 96个15分钟时间点
 var timeSlots = [];
-var timeSlotsWithDate = [];
 for (var i = 0; i < 96; i++) {
     var h = Math.floor(i / 4), m = (i % 4) * 15;
     timeSlots.push(String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'));
 }
+
+// 有预测数据的历史日期列表 (用于蓝色背景标识)
+var availableDates = ['2026-05-25', '2026-05-24', '2026-05-23', '2026-05-22', '2026-05-21'];
 
 // ===== 工具函数 =====
 
@@ -48,7 +50,6 @@ function interpolateTo96(arr) {
     return r;
 }
 
-// 生成24h预测数据 (city, category)
 function generateForecast(city, cat) {
     var pk = cityPeak[city] || 450;
     var co = industryCoeff[cat] || industryCoeff['全社会用电量'];
@@ -57,34 +58,14 @@ function generateForecast(city, cat) {
     return r;
 }
 
-// 计算总用电量 (MWh) - 曲线下方面积积分
-function calculateTotalConsumption(data, queryDate) {
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-    var query = new Date(queryDate);
-    query.setHours(0, 0, 0, 0);
-    
-    if (query > today) {
-        return '--';
-    }
-    
+function calculateTotalConsumption(data) {
     var total = 0;
-    var count = data.length;
-    
-    if (query.getTime() === today.getTime()) {
-        var now = new Date();
-        var currentIndex = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15);
-        count = Math.min(currentIndex + 1, 96);
-    }
-    
-    for (var i = 0; i < count; i++) {
+    for (var i = 0; i < data.length; i++) {
         total += data[i] * 0.25;
     }
-    
     return total.toFixed(2);
 }
 
-// 判断日期类型
 function getDateType(queryDate) {
     var today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -96,7 +77,6 @@ function getDateType(queryDate) {
     return 'future';
 }
 
-// 显示提示消息
 function showToast(message, type) {
     var toast = document.getElementById('toast-message');
     toast.textContent = message;
@@ -107,68 +87,60 @@ function showToast(message, type) {
     }, 3000);
 }
 
-// ===== ECharts 初始化 =====
-var chart = null;
-
-function initChart() {
-    var chartEl = document.getElementById('load-forecast-chart');
-    if (!chartEl) {
-        setTimeout(initChart, 50);
-        return;
-    }
-    chart = echarts.init(chartEl);
+// 检查日期是否有预测数据
+function hasForecastData(dateStr) {
+    return availableDates.indexOf(dateStr) !== -1;
 }
 
-initChart();
+// 更新日期选择框样式
+function updateDateInputStyle(input) {
+    if (hasForecastData(input.value)) {
+        input.style.background = '#dbeafe';
+        input.style.borderColor = '#3b82f6';
+    } else {
+        input.style.background = '';
+        input.style.borderColor = '';
+    }
+}
+
+// ===== ECharts 初始化 =====
+var chart = null;
+var historyChart = null;
+
+function initCharts() {
+    var chartEl = document.getElementById('load-forecast-chart');
+    var historyChartEl = document.getElementById('history-load-chart');
+    
+    if (chartEl) chart = echarts.init(chartEl);
+    if (historyChartEl) historyChart = echarts.init(historyChartEl);
+}
+
+initCharts();
 
 // ===== 渲染主函数 =====
-function render(queryDateOverride) {
+function render() {
     if (!chart) return;
     
     var city = document.getElementById('filter-city').value;
     var cat = document.getElementById('filter-cat').value;
-    var date = queryDateOverride || document.getElementById('filter-query-date').value || '2026-05-26';
     
-    // 生成带日期的时间槽
-    timeSlotsWithDate = [];
-    for (var i = 0; i < 96; i++) {
-        var h = Math.floor(i / 4), m = (i % 4) * 15;
-        timeSlotsWithDate.push(date + ' ' + String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'));
-    }
-    
-    var series = [];
-    var dateType = getDateType(date);
-    var isDefault = (city === '全省' && cat === '全社会用电量');
-    
-    // 更新副标题
     document.querySelector('.page-subtitle').textContent = city + ' ' + cat + '负荷预测分析';
-    
-    // 更新图表状态
     document.getElementById('chart-status').textContent = '数据已加载';
     
-    // 实际负荷 - 根据日期类型显示
+    var series = [];
+    var isDefault = (city === '全省' && cat === '全社会用电量');
+    
     var actual96 = interpolateTo96(actualProvince);
-    if (isDefault && dateType !== 'future') {
-        var actualData = actual96;
-        
-        if (dateType === 'today') {
-            var now = new Date();
-            var currentIndex = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15);
-            actualData = actual96.map(function(v, i) {
-                return i <= currentIndex ? v : null;
-            });
-        }
-        
+    if (isDefault) {
         series.push({
             id: 'actual', name: '实际负荷', type: 'line', smooth: true,
-            data: actualData,
+            data: actual96,
             symbol: 'circle', symbolSize: 4,
             itemStyle: { color: '#17a34a' },
             lineStyle: { width: 2, color: '#17a34a' }
         });
     }
     
-    // 主预测曲线
     var fc = generateForecast(city, cat);
     var fc96 = interpolateTo96(fc);
     series.push({
@@ -180,7 +152,6 @@ function render(queryDateOverride) {
         lineStyle: { width: 2.5, color: '#2f6feb' }
     });
     
-    // 主曲线上下界 (95%置信区间)
     var up96 = fc96.map(function(v) { return v * 1.08; });
     var lo96 = fc96.map(function(v) { return v * 0.92; });
     series.push({
@@ -201,17 +172,11 @@ function render(queryDateOverride) {
             trigger: 'axis',
             formatter: function(params) {
                 var result = '<div style="font-weight:bold;margin-bottom:8px;">' + params[0].axisValue + '</div>';
-                var actualVal = null, forecastVal = null, upperVal = null, lowerVal = null;
                 
                 params.forEach(function(item) {
                     var val = item.value;
                     if (val === null || val === undefined) val = '--';
                     else val = val.toFixed(2);
-                    
-                    if (item.seriesName === '实际负荷') actualVal = val;
-                    if (item.seriesName === '负荷预测') forecastVal = val;
-                    if (item.seriesName === '负荷预测上限') upperVal = val;
-                    if (item.seriesName === '负荷预测下限') lowerVal = val;
                     
                     result += '<div style="display:flex;justify-content:space-between;gap:20px;">' +
                         '<span>' + item.marker + item.seriesName + '</span>' +
@@ -219,8 +184,14 @@ function render(queryDateOverride) {
                         '</div>';
                 });
                 
-                if (upperVal !== null && lowerVal !== null && upperVal !== '--' && lowerVal !== '--') {
-                    var bandWidth = (parseFloat(upperVal) - parseFloat(lowerVal)).toFixed(2);
+                var upperVal = null, lowerVal = null;
+                params.forEach(function(item) {
+                    if (item.seriesName === '负荷预测上限') upperVal = item.value;
+                    if (item.seriesName === '负荷预测下限') lowerVal = item.value;
+                });
+                
+                if (upperVal !== null && lowerVal !== null) {
+                    var bandWidth = (upperVal - lowerVal).toFixed(2);
                     result += '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee;">' +
                         '<span>置信带宽度：</span>' +
                         '<span style="font-weight:bold;">' + bandWidth + ' MW</span>' +
@@ -244,23 +215,102 @@ function render(queryDateOverride) {
         series: series
     }, { replaceMerge: ['series'] });
     
-    // 更新总用电量
-    var total = calculateTotalConsumption(isDefault ? actual96 : fc96, date);
+    var total = calculateTotalConsumption(isDefault ? actual96 : fc96);
     document.getElementById('summary-label').textContent = '总用电量';
     document.getElementById('summary-value').textContent = total + ' MWh';
     
-    // 更新表格
-    updateTable(fc96, actual96, date);
+    updateTable('load-forecast-table-body', fc96, actual96, isDefault);
+}
+
+// ===== 渲染历史负荷预测图表 =====
+function renderHistoryChart() {
+    if (!historyChart) return;
+    
+    var city = document.getElementById('filter-city').value;
+    var cat = document.getElementById('filter-cat').value;
+    var date = document.getElementById('history-date').value;
+    
+    var series = [];
+    var isDefault = (city === '全省' && cat === '全社会用电量');
+    
+    var actual96 = interpolateTo96(actualProvince);
+    if (isDefault) {
+        series.push({
+            id: 'history-actual', name: '实际负荷', type: 'line', smooth: true,
+            data: actual96,
+            symbol: 'circle', symbolSize: 4,
+            itemStyle: { color: '#17a34a' },
+            lineStyle: { width: 2, color: '#17a34a' }
+        });
+    }
+    
+    var fc = generateForecast(city, cat);
+    var fc96 = interpolateTo96(fc);
+    series.push({
+        id: 'history-forecast', name: '负荷预测',
+        type: 'line', smooth: true,
+        data: fc96,
+        symbol: 'circle', symbolSize: 4,
+        itemStyle: { color: '#2f6feb' },
+        lineStyle: { width: 2.5, color: '#2f6feb' }
+    });
+    
+    var up96 = fc96.map(function(v) { return v * 1.08; });
+    var lo96 = fc96.map(function(v) { return v * 0.92; });
+    series.push({
+        id: 'history-upper', name: '负荷预测上限', type: 'line', smooth: true,
+        data: up96, symbol: 'none',
+        itemStyle: { color: '#dc2626' },
+        lineStyle: { width: 1, type: 'dashed', color: '#dc2626' }
+    });
+    series.push({
+        id: 'history-lower', name: '负荷预测下限', type: 'line', smooth: true,
+        data: lo96, symbol: 'none',
+        itemStyle: { color: '#eab308' },
+        lineStyle: { width: 1, type: 'dashed', color: '#eab308' }
+    });
+    
+    historyChart.setOption({
+        tooltip: { 
+            trigger: 'axis',
+            formatter: function(params) {
+                var result = '<div style="font-weight:bold;margin-bottom:8px;">' + params[0].axisValue + '</div>';
+                
+                params.forEach(function(item) {
+                    var val = item.value;
+                    if (val === null || val === undefined) val = '--';
+                    else val = val.toFixed(2);
+                    
+                    result += '<div style="display:flex;justify-content:space-between;gap:20px;">' +
+                        '<span>' + item.marker + item.seriesName + '</span>' +
+                        '<span style="font-weight:bold;">' + val + ' MW</span>' +
+                        '</div>';
+                });
+                
+                return result;
+            }
+        },
+        legend: { top: 0, right: 0, textStyle: { fontSize: 12 } },
+        grid: { left: '50', right: '30', bottom: '80', top: '30' },
+        xAxis: {
+            type: 'category', boundaryGap: false,
+            data: timeSlots,
+            axisLabel: { interval: 3, color: '#999', fontSize: 11 }
+        },
+        yAxis: {
+            type: 'value', min: 0,
+            axisLabel: { color: '#999', fontSize: 11, formatter: '{value} MW' }
+        },
+        series: series
+    }, { replaceMerge: ['series'] });
+    
+    updateTable('history-load-table-body', fc96, actual96, isDefault);
 }
 
 // ===== 数据表格 =====
-function updateTable(forecast96, actual96, date) {
-    var tbody = document.getElementById('load-forecast-table-body');
+function updateTable(tbodyId, forecast96, actual96, isDefault) {
+    var tbody = document.getElementById(tbodyId);
     if (!tbody) return;
-    
-    var dateType = getDateType(date);
-    var isDefault = (document.getElementById('filter-city').value === '全省' && 
-                     document.getElementById('filter-cat').value === '全社会用电量');
     
     var html = '';
     for (var i = 0; i < 96; i++) {
@@ -271,28 +321,16 @@ function updateTable(forecast96, actual96, date) {
         var actualVal = '--';
         var devRate = '--';
         
-        if (isDefault && dateType !== 'future') {
-            if (dateType === 'today') {
-                var now = new Date();
-                var currentIndex = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15);
-                if (i <= currentIndex) {
-                    actualVal = actual96[i].toFixed(2);
-                    var actual = parseFloat(actualVal);
-                    if (actual !== 0) {
-                        devRate = ((forecast96[i] - actual) / actual * 100).toFixed(2);
-                    }
-                }
-            } else {
-                actualVal = actual96[i].toFixed(2);
-                var actual = parseFloat(actualVal);
-                if (actual !== 0) {
-                    devRate = ((forecast96[i] - actual) / actual * 100).toFixed(2);
-                }
+        if (isDefault) {
+            actualVal = actual96[i].toFixed(2);
+            var actual = parseFloat(actualVal);
+            if (actual !== 0) {
+                devRate = ((forecast96[i] - actual) / actual * 100).toFixed(2);
             }
         }
         
         html += '<tr>' +
-            '<td>' + timeSlotsWithDate[i] + '</td>' +
+            '<td>' + timeSlots[i] + '</td>' +
             '<td>' + load + '</td>' +
             '<td>' + actualVal + '</td>' +
             '<td>[' + lower + ', ' + upper + ']</td>' +
@@ -305,47 +343,45 @@ function updateTable(forecast96, actual96, date) {
 
 // ===== 事件绑定 =====
 
-// 负荷预测按钮
 document.getElementById('btn-forecast').addEventListener('click', function() {
     var btn = this;
-    var forecastDate = document.getElementById('filter-date').value;
-    
-    if (!forecastDate) {
-        showToast('请先选择预测日期', 'error');
-        return;
-    }
-    
     btn.disabled = true;
     btn.textContent = '预测中...';
     
     setTimeout(function() {
-        // 同步查询日期为预测日期
-        document.getElementById('filter-query-date').value = forecastDate;
-        
-        // 触发渲染
-        render(forecastDate);
-        
+        render();
         btn.textContent = '负荷预测';
         btn.disabled = false;
-        
         showToast('预测完成', 'success');
     }, 1500);
 });
 
-// 查询按钮 — 重新加载当前视图
-document.getElementById('btn-query').addEventListener('click', function() {
-    render();
+document.getElementById('btn-history-query').addEventListener('click', function() {
+    var dateInput = document.getElementById('history-date');
+    if (!dateInput.value) {
+        showToast('请先选择查询日期', 'error');
+        return;
+    }
+    updateDateInputStyle(dateInput);
+    renderHistoryChart();
+    showToast('查询完成', 'success');
+});
+
+document.getElementById('history-date').addEventListener('change', function() {
+    updateDateInputStyle(this);
 });
 
 // 响应式
 window.resizeReviewCharts = function() {
     if (chart) chart.resize();
+    if (historyChart) historyChart.resize();
 };
 
 // ===== 初始渲染 =====
 function initRender() {
     if (document.getElementById('load-forecast-chart')) {
         render();
+        updateDateInputStyle(document.getElementById('history-date'));
     } else {
         setTimeout(initRender, 50);
     }

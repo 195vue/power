@@ -21,23 +21,7 @@
             <div class="filter-bar">
                 <div class="filter-item">
                     <label>日期</label>
-                    <input type="date" class="filter-input" value="2026-05-26">
-                </div>
-                <div class="filter-item">
-                    <label>公司</label>
-                    <select class="filter-select">
-                        <option value="current" selected>当前公司</option>
-                        <option value="company-a">公司A</option>
-                        <option value="company-b">公司B</option>
-                    </select>
-                </div>
-                <div class="filter-item">
-                    <label>策略</label>
-                    <select class="filter-select">
-                        <option value="default" selected>常规日滚动策略</option>
-                        <option value="strategy-a">保守策略</option>
-                        <option value="strategy-b">激进策略</option>
-                    </select>
+                    <input type="date" class="filter-input" id="decision-date" value="2026-05-26">
                 </div>
                 <button class="btn-primary" onclick="queryData()">查询</button>
                 <button class="btn-save" id="saveBtn" >保存策略</button>

@@ -97,7 +97,9 @@ contractCompletionChart.setOption({
             label: {
                 show: true,
                 position: 'center',
-                formatter: '合约电量',
+                formatter: function(params) {
+                    return '合约电量\n' + params.value + '%';
+                },
                 fontSize: 13,
                 fontWeight: 600,
                 color: '#333'
@@ -118,7 +120,9 @@ contractCompletionChart.setOption({
             label: {
                 show: true,
                 position: 'center',
-                formatter: '收益',
+                formatter: function(params) {
+                    return '收益\n' + params.value + '%';
+                },
                 fontSize: 13,
                 fontWeight: 600,
                 color: '#333'

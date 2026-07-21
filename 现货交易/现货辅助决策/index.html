@@ -19,23 +19,24 @@
         <div class="top-filter-bar">
             <div class="filter-controls">
                 <div class="filter-item">
-                    <label>载入历史方案</label>
-                    <select class="filter-select" id="strategy-select">
-                        <option>20251024 - 2025-10-24</option>
-                        <option>20251023 - 2025-10-23</option>
-                        <option>20251022 - 2025-10-22</option>
-                        <option>20251021 - 2025-10-21</option>
-                        <option>20251020 - 2025-10-20</option>
-                        <option>20251019 - 2025-10-19</option>
-                        <option>20251018 - 2025-10-18</option>
-                        <option>20251017 - 2025-10-17</option>
-                        <option>20251016 - 2025-10-16</option>
-                        <option>20251015 - 2025-10-15</option>
-                    </select>
+                    <label>报价日期</label>
+                    <input type="date" class="filter-input" value="2026-05-26" id="quote-date">
                 </div>
                 <div class="filter-item">
-                    <label>报价日期</label>
-                    <input type="date" class="filter-input" value="2026-05-26">
+                    <label>历史方案</label>
+                    <select class="filter-select" id="strategy-select">
+                        <option value="">请选择历史方案</option>
+                        <option value="20251024">20251024 - 2025-10-24</option>
+                        <option value="20251023">20251023 - 2025-10-23</option>
+                        <option value="20251022">20251022 - 2025-10-22</option>
+                        <option value="20251021">20251021 - 2025-10-21</option>
+                        <option value="20251020">20251020 - 2025-10-20</option>
+                        <option value="20251019">20251019 - 2025-10-19</option>
+                        <option value="20251018">20251018 - 2025-10-18</option>
+                        <option value="20251017">20251017 - 2025-10-17</option>
+                        <option value="20251016">20251016 - 2025-10-16</option>
+                        <option value="20251015">20251015 - 2025-10-15</option>
+                    </select>
                 </div>
                 <div class="filter-item">
                     <label>测算方案</label>
@@ -61,7 +62,6 @@
                     </select>
                 </div>
                 <button class="btn-primary" id="save-strategy-btn">保存策略</button>
-                <button class="btn-config" onclick="showConfigModal()">场站参数配置</button>
             </div>
         </div>
 
@@ -77,30 +77,13 @@
                 </div>
             </div>
 
-            <!-- 右上：预期收益曲线 + 批量调整 -->
+            <!-- 右上：预期收益曲线 -->
             <div class="quadrant-card" style="--qt-color: #17a34a;">
                 <div class="quadrant-header">
                     <span class="quadrant-title">预期收益曲线</span>
                 </div>
-                <div class="quadrant-body chart-fit revenue-col">
+                <div class="quadrant-body chart-fit">
                     <div id="revenue-chart" class="chart-container-large"></div>
-                    <div class="batch-adjust-area">
-                        <div class="batch-row">
-                            <span class="batch-label">批量申报出力</span>
-                            <span class="batch-sub">倍率</span>
-                            <input type="number" class="batch-input" id="output-multiplier" value="1.0" step="0.1" min="0">
-                            <span class="batch-sub">偏移</span>
-                            <input type="number" class="batch-input" id="output-offset" value="0" step="1">
-                        </div>
-                        <div class="batch-row">
-                            <span class="batch-label">批量申报电价</span>
-                            <span class="batch-sub">倍率</span>
-                            <input type="number" class="batch-input" id="price-multiplier" value="1.0" step="0.1" min="0">
-                            <span class="batch-sub">偏移</span>
-                            <input type="number" class="batch-input" id="price-offset" value="0" step="1">
-                        </div>
-                        <button class="btn-primary batch-apply-btn" id="batch-apply">批量调整</button>
-                    </div>
                 </div>
             </div>
 
@@ -110,13 +93,26 @@
                     <span class="quadrant-title">申报方案编辑</span>
                 </div>
                 <div class="quadrant-body scroll-fit">
+                    <div class="batch-adjust-area">
+                        <div class="batch-row">
+                            <span class="batch-label">批量申报出力</span>
+                            <span class="batch-sub">倍率</span>
+                            <input type="number" class="batch-input" id="output-multiplier" value="1.0" step="0.1" min="0">
+                        </div>
+                        <div class="batch-row">
+                            <span class="batch-label">批量申报电价</span>
+                            <span class="batch-sub">倍率</span>
+                            <input type="number" class="batch-input" id="price-multiplier" value="1.0" step="0.1" min="0">
+                        </div>
+                        <button class="btn-primary batch-apply-btn" id="batch-apply">批量调整</button>
+                    </div>
                     <table class="declaration-table">
                         <thead>
                             <tr>
                                 <th>时段（96点）</th>
-                                <th>申报出力</th>
-                                <th>申报电价</th>
-                                <th>预测电价</th>
+                                <th>申报出力(MW)</th>
+                                <th>申报电价(元/MWh)</th>
+                                <th>预测电价(元/MWh)</th>
                             </tr>
                         </thead>
                         <tbody id="declaration-table-body"></tbody>
@@ -132,9 +128,9 @@
                 <div class="quadrant-body">
                     <div class="summary-grid">
                         <div class="summary-item">
-                            <span class="summary-label">总申报出力</span>
-                            <span class="summary-value" id="sum-output">—</span>
-                            <span class="summary-unit">MW</span>
+                            <span class="summary-label">总申报电量</span>
+                            <span class="summary-value" id="sum-energy">—</span>
+                            <span class="summary-unit">MWh</span>
                         </div>
                         <div class="summary-item">
                             <span class="summary-label">平均申报电价</span>
@@ -147,8 +143,33 @@
                             <span class="summary-unit">元</span>
                         </div>
                         <div class="summary-item">
-                            <span class="summary-label">均价差</span>
-                            <span class="summary-value" id="price-diff">—</span>
+                            <span class="summary-label">出力最大值</span>
+                            <span class="summary-value" id="max-output">—</span>
+                            <span class="summary-unit">MW</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">出力最小值</span>
+                            <span class="summary-value" id="min-output">—</span>
+                            <span class="summary-unit">MW</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">出力平均值</span>
+                            <span class="summary-value" id="avg-output">—</span>
+                            <span class="summary-unit">MW</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">电价最大值</span>
+                            <span class="summary-value" id="max-price">—</span>
+                            <span class="summary-unit">元/MWh</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">电价最小值</span>
+                            <span class="summary-value" id="min-price">—</span>
+                            <span class="summary-unit">元/MWh</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">电价平均值</span>
+                            <span class="summary-value" id="avg-price-val">—</span>
                             <span class="summary-unit">元/MWh</span>
                         </div>
                     </div>
@@ -157,110 +178,7 @@
         </div>
     </main>
 
-    <!-- 场站参数配置弹窗 -->
-    <div class="modal-overlay" id="config-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title">场站参数配置</span>
-                <button class="modal-close" onclick="closeConfigModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="param-grid">
-                    <div class="param-item">
-                        <label>装机容量（MW）</label>
-                        <input type="number" class="param-input" id="param-capacity" value="200" step="1">
-                    </div>
-                    <div class="param-item">
-                        <label>最小技术出力（MW）</label>
-                        <input type="number" class="param-input" id="param-min-output" value="0" step="1">
-                    </div>
-                    <div class="param-item">
-                        <label>爬坡率上限（MW/min）</label>
-                        <input type="number" class="param-input" id="param-ramp-up" value="10" step="0.1">
-                    </div>
-                    <div class="param-item">
-                        <label>爬坡率下限（MW/min）</label>
-                        <input type="number" class="param-input" id="param-ramp-down" value="-10" step="0.1">
-                    </div>
-                    <div class="param-item" style="grid-column: span 2;">
-                        <label>启停约束（次/日）</label>
-                        <input type="number" class="param-input" id="param-start-stop" value="0" step="1">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeConfigModal()">取消</button>
-                <button class="btn-primary" onclick="closeConfigModal(); alert('场站参数保存成功！')">保存</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    function showConfigModal() {
-        var modal = document.createElement('div');
-        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;';
-        
-        var content = document.createElement('div');
-        content.style.cssText = 'background:#fff;border-radius:8px;width:480px;max-width:90%;box-shadow:0 10px 30px rgba(0,0,0,0.2);';
-        
-        content.innerHTML = `
-            <div style="padding:16px 20px;border-bottom:1px solid #e8e8e8;display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:16px;font-weight:600;color:#333;">场站参数配置</span>
-                <button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;font-size:24px;color:#999;cursor:pointer;">×</button>
-            </div>
-            <div style="padding:20px;">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                    <div>
-                        <label style="font-size:13px;color:#666;">装机容量（MW）</label>
-                        <input type="number" id="param-capacity" value="200" step="1" style="padding:10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;width:100%;box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label style="font-size:13px;color:#666;">最小技术出力（MW）</label>
-                        <input type="number" id="param-min-output" value="0" step="1" style="padding:10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;width:100%;box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label style="font-size:13px;color:#666;">爬坡率上限（MW/min）</label>
-                        <input type="number" id="param-ramp-up" value="10" step="0.1" style="padding:10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;width:100%;box-sizing:border-box;">
-                    </div>
-                    <div>
-                        <label style="font-size:13px;color:#666;">爬坡率下限（MW/min）</label>
-                        <input type="number" id="param-ramp-down" value="-10" step="0.1" style="padding:10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;width:100%;box-sizing:border-box;">
-                    </div>
-                    <div style="grid-column:span 2;">
-                        <label style="font-size:13px;color:#666;">启停约束（次/日）</label>
-                        <input type="number" id="param-start-stop" value="0" step="1" style="padding:10px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;width:100%;box-sizing:border-box;">
-                    </div>
-                </div>
-            </div>
-            <div style="padding:14px 20px;border-top:1px solid #e8e8e8;display:flex;justify-content:flex-end;gap:12px;">
-                <button onclick="this.closest('.modal-overlay').remove()" style="padding:8px 16px;border:1px solid #d9d9d9;border-radius:4px;font-size:14px;cursor:pointer;background:#fff;color:#333;">取消</button>
-                <button onclick="saveConfig(this)" style="padding:8px 16px;border:none;border-radius:4px;font-size:14px;cursor:pointer;background:#1890ff;color:#fff;">保存</button>
-            </div>
-        `;
-        
-        modal.className = 'modal-overlay';
-        modal.appendChild(content);
-        document.body.appendChild(modal);
-        
-        modal.onclick = function(e) {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        };
-    }
     
-    function saveConfig(btn) {
-        var modal = btn.closest('.modal-overlay');
-        // var capacity = document.getElementById('param-capacity').value;
-        // var minOutput = document.getElementById('param-min-output').value;
-        // var rampUp = document.getElementById('param-ramp-up').value;
-        // var rampDown = document.getElementById('param-ramp-down').value;
-        // var startStop = document.getElementById('param-start-stop').value;
-        
-        modal.remove();
-        alert('场站参数保存成功！');
-    }
-    </script>
     <script src="script.js"></script>
 </body>
 </html>

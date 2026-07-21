@@ -1,46 +1,14 @@
-// 全局函数定义
-function updateDateInput() {
-    const period = document.getElementById('data-period').value;
-    const dateLabelDay = document.getElementById('date-label-day');
-    const dateInputDay = document.getElementById('date-input-day');
-    const dateLabelMonth = document.getElementById('date-label-month');
-    const dateInputMonth = document.getElementById('date-input-month');
-
-    if (period === 'day') {
-        dateLabelDay.style.display = 'block';
-        dateInputDay.style.display = 'block';
-        dateLabelMonth.style.display = 'none';
-        dateInputMonth.style.display = 'none';
-    } else if (period === 'month') {
-        dateLabelDay.style.display = 'none';
-        dateInputDay.style.display = 'none';
-        dateLabelMonth.style.display = 'block';
-        dateInputMonth.style.display = 'block';
-    }
-    
-    // 切换周期后自动刷新数据
-    refreshData();
+function refreshData() {
+    const dateValue = document.getElementById('date-input-month').value;
+    console.log('刷新数据 - 月份:', dateValue);
+    updateChartTimeLabels(dateValue);
 }
 
-function refreshData() {
-    const period = document.getElementById('data-period').value;
-    let dateValue;
-    
-    if (period === 'day') {
-        dateValue = document.getElementById('date-input-day').value;
-    } else if (period === 'month') {
-        dateValue = document.getElementById('date-input-month').value;
-    }
-    
-    console.log('刷新数据 - 周期:', period, ', 日期:', dateValue);
-    
-    // 这里可以根据周期和日期刷新图表数据
-    // 模拟数据刷新
-    if (period === 'day') {
-        console.log('加载日维度数据');
-    } else if (period === 'month') {
-        console.log('加载月维度数据');
-    }
+function updateChartTimeLabels(dateValue) {
+    const monthStr = dateValue ? dateValue.replace('-', '年') + '月' : '2026年05月';
+    document.querySelectorAll('.chart-time-label').forEach(el => {
+        el.textContent = monthStr;
+    });
 }
 
 // 湖南省电源装机结构 - 环形图
@@ -159,7 +127,7 @@ supplyDemandChart.setOption({
     },
     yAxis: {
         type: 'value',
-        name: '',
+        name: '功率 (MW)',
         min: 0,
         max: 300,
         interval: 100,
@@ -277,60 +245,7 @@ marketPriceChart.setOption({
     ]
 });
 
-// 出力预测偏差率 - 折线图
-const forecastDeviationChart = echarts.init(document.getElementById('forecast-deviation-chart'));
-forecastDeviationChart.setOption({
-    tooltip: {
-        trigger: 'axis',
-        formatter: function(params) {
-            return params[0].name + '<br/>' +
-                   params[0].seriesName + ': ' + params[0].value + '%';
-        }
-    },
-    grid: {
-        left: '30',
-        right: '12',
-        bottom: '40',
-        top: '40'
-    },
-    xAxis: {
-        type: 'category',
-        boundaryGap: false,
-        data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00']
-    },
-    yAxis: {
-        type: 'value',
-        name: '偏差率 (%)',
-        min: 0,
-        max: 5,
-        interval: 1,
-        axisLabel: {
-            formatter: '{value}%'
-        }
-    },
-    series: [
-        {
-            name: '偏差率',
-            type: 'line',
-            smooth: true,
-            data: [2.1, 1.8, 1.5, 2.5, 3.2, 3.5, 2.8],
-            symbol: 'circle',
-            symbolSize: 6,
-            itemStyle: {
-                color: '#5470c6'
-            },
-            lineStyle: {
-                width: 2
-            },
-            areaStyle: {
-                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: 'rgba(84, 112, 198, 0.3)' },
-                    { offset: 1, color: 'rgba(84, 112, 198, 0.05)' }
-                ])
-            }
-        }
-    ]
-});
+
 
 // 全省出清电量统计 - 柱状图
 const clearingVolumeChart = echarts.init(document.getElementById('clearing-volume-chart'));
@@ -360,7 +275,7 @@ clearingVolumeChart.setOption({
     },
     yAxis: {
         type: 'value',
-        name: '',
+        name: '电量 (MWh)',
         max: 1500000,
         min: 0,
         interval: 300000,
@@ -392,6 +307,5 @@ window.addEventListener('resize', () => {
     priceComparisonChart.resize();
     supplyDemandChart.resize();
     marketPriceChart.resize();
-    forecastDeviationChart.resize();
     clearingVolumeChart.resize();
 });

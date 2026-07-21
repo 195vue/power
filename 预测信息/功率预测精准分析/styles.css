@@ -134,12 +134,21 @@
     color: var(--muted);
 }
 
-/* 误差指标卡片 */
+/* 误差指标卡片区域 */
+.error-metrics-section {
+    background: var(--surface);
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--elev-ring);
+}
+
 .error-metrics {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 0;
 }
 
 .error-metric {
@@ -195,6 +204,53 @@
 @media (max-width: 480px) {
     .error-metrics {
         grid-template-columns: 1fr;
+    }
+}
+
+/* 底部图表容器 */
+.bottom-charts-container {
+    background: var(--surface);
+    padding: 20px;
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--elev-ring);
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg);
+    margin-bottom: 16px;
+}
+
+.bottom-charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.bottom-charts-row .chart-card {
+    margin-bottom: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+/* 误差筛选下拉框 */
+.error-filter-select {
+    font-size: 11px;
+    padding: 4px 8px;
+    min-width: 100px;
+}
+
+@media (max-width: 920px) {
+    .bottom-charts-row {
+        grid-template-columns: 1fr;
+    }
+    .bottom-charts-row .chart-card {
+        margin-bottom: 16px;
     }
 }
 

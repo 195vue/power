@@ -19,26 +19,6 @@
         <!-- 筛选栏 -->
         <div class="filter-bar">
             <div class="filter-item">
-                <label>训练节点</label>
-                <select class="filter-select"><option>全部</option><option>节点A</option><option>节点B</option><option>节点C</option></select>
-            </div>
-            <!-- <div class="filter-item">
-                <label>算法方案</label>
-                <select class="filter-select" id="day-ahead-scheme">
-                    <option>请选择算法方案</option>
-                    <option>LSTM时序模型</option>
-                    <option>XGBoost回归</option>
-                    <option>LightGBM预测</option>
-                    <option>Transformer模型</option>
-                    <option>Prophet时序</option>
-                </select>
-            </div> -->
-            <div class="filter-item">
-                <label>预测日期</label>
-                <input type="date" class="filter-input" id="forecast-date" value="2026-05-26">
-            </div>
-            <button class="btn-primary" id="btn-day-ahead">日前预测</button>
-            <div class="filter-item">
                 <label>查询日期</label>
                 <input type="date" class="filter-input" id="query-date">
             </div>
@@ -93,7 +73,24 @@
 
         <!-- 结果区三：中长期电价预测 -->
         <div class="result-section" id="section-medium-long-term">
-            <h3 class="section-title" id="title-medium-long-term">中长期电价预测（2026-06-29 起）单111位：元/MWh</h3>
+            <div class="section-header">
+                <h3 class="section-title" id="title-medium-long-term">中长期电价预测（2026-06-29 起）单位：元/MWh</h3>
+                <div class="section-filter">
+                    <div class="filter-item">
+                        <label>月份</label>
+                        <select class="filter-select" id="month-select">
+                            <option value="all">全部</option>
+                            <option value="2026-06">2026年06月</option>
+                            <option value="2026-07">2026年07月</option>
+                            <option value="2026-08">2026年08月</option>
+                            <option value="2026-09">2026年09月</option>
+                            <option value="2026-10">2026年10月</option>
+                            <option value="2026-11">2026年11月</option>
+                            <option value="2026-12">2026年12月</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             <div class="chart-card">
                 <div id="medium-long-term-chart" class="chart-container"></div>
             </div>

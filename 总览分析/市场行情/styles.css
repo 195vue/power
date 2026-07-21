@@ -134,6 +134,13 @@
     font-family: var(--font-display);
 }
 
+.chart-time-label {
+    font-size: var(--text-sm);
+    color: var(--meta);
+    margin-left: 8px;
+    font-weight: normal;
+}
+
 .chart-subtitle {
     font-size: var(--text-md);
     color: var(--muted);

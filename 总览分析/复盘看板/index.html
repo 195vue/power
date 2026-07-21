@@ -165,11 +165,11 @@
             </div>
             <div class="charts-row">
                 <div class="chart-card">
-                    <h3 class="chart-title">当日交易电量曲线</h3>
+                    <h3 class="chart-title" id="volume-chart-title">当日电量曲线（2026年05月26日）</h3>
                     <div id="volume-chart" class="chart-container"></div>
                 </div>
                 <div class="chart-card">
-                    <h3 class="chart-title">当日交易电价曲线</h3>
+                    <h3 class="chart-title" id="price-chart-title">当日电价曲线（2026年05月26日）</h3>
                     <div id="price-chart" class="chart-container"></div>
                 </div>
             </div>
@@ -208,6 +208,11 @@
 
         function updateCharts(date) {
             var data = generateChartData(date);
+            
+            var dateObj = new Date(date);
+            var dateStr = dateObj.getFullYear() + '年' + String(dateObj.getMonth() + 1).padStart(2, '0') + '月' + String(dateObj.getDate()).padStart(2, '0') + '日';
+            document.getElementById('volume-chart-title').textContent = '当日电量曲线（' + dateStr + '）';
+            document.getElementById('price-chart-title').textContent = '当日电价曲线（' + dateStr + '）';
             
             if (window.volumeChart) {
                 window.volumeChart.setOption({

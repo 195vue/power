@@ -137,17 +137,15 @@ revenueChart.setOption({
 // ─── 批量调整 ───
 document.getElementById('batch-apply').addEventListener('click', function() {
     const om = parseFloat(document.getElementById('output-multiplier').value) || 1;
-    const oo = parseFloat(document.getElementById('output-offset').value) || 0;
     const pm = parseFloat(document.getElementById('price-multiplier').value) || 1;
-    const po = parseFloat(document.getElementById('price-offset').value) || 0;
 
     const rows = document.querySelectorAll('#declaration-table-body tr');
     rows.forEach((tr, i) => {
         const inputs = tr.querySelectorAll('.cell-input');
         if (inputs.length >= 2) {
-            const newOutput = Math.round((OUTPUT_96[i] * om + oo) * 10) / 10;
+            const newOutput = Math.round((OUTPUT_96[i] * om) * 10) / 10;
             inputs[0].value = Math.max(0, newOutput);
-            const newPrice = Math.round((PRICE_96[i] * pm + po) * 10) / 10;
+            const newPrice = Math.round((PRICE_96[i] * pm) * 10) / 10;
             inputs[1].value = Math.max(0, newPrice);
         }
     });
@@ -157,42 +155,39 @@ document.getElementById('batch-apply').addEventListener('click', function() {
 // ─── 更新汇总卡 ───
 function updateSummary() {
     const rows = document.querySelectorAll('#declaration-table-body tr');
-    let totalOutput = 0, totalPriceSum = 0, totalRevenue = 0;
+    let totalEnergy = 0, totalPriceSum = 0, totalRevenue = 0;
+    let maxOutput = -Infinity, minOutput = Infinity;
+    let maxPrice = -Infinity, minPrice = Infinity;
+    let outputSum = 0, priceSum = 0;
 
     rows.forEach((tr, i) => {
         const inputs = tr.querySelectorAll('.cell-input');
         const out = parseFloat(inputs[0].value) || 0;
         const price = parseFloat(inputs[1].value) || 0;
-        totalOutput += out;
+        totalEnergy += out * 0.25;
         totalPriceSum += price;
-        totalRevenue += out * price;
+        totalRevenue += out * price * 0.25;
+        maxOutput = Math.max(maxOutput, out);
+        minOutput = Math.min(minOutput, out);
+        maxPrice = Math.max(maxPrice, price);
+        minPrice = Math.min(minPrice, price);
+        outputSum += out;
+        priceSum += price;
     });
 
-    const avgPrice = rows.length > 0 ? totalPriceSum / rows.length : 0;
-    const baseAvg = PRICE_96.reduce((a, b) => a + b, 0) / PRICE_96.length;
-    const diff = avgPrice - baseAvg;
+    const count = rows.length || 1;
+    const avgPrice = priceSum / count;
+    const avgOutput = outputSum / count;
 
-    document.getElementById('sum-output').textContent = totalOutput.toFixed(1);
+    document.getElementById('sum-energy').textContent = totalEnergy.toFixed(1);
     document.getElementById('avg-price').textContent = avgPrice.toFixed(2);
     document.getElementById('total-revenue').textContent = totalRevenue.toFixed(0);
-    document.getElementById('price-diff').textContent = (diff >= 0 ? '+' : '') + diff.toFixed(2);
-}
-
-// ─── 场站参数配置弹窗 ───
-function openConfigModal() {
-    console.log('11111111111');
-    
-    var modal = document.getElementById('config-modal');
-    if (modal) {
-        modal.style.display = 'flex';
-    }
-}
-
-function closeConfigModal() {
-    var modal = document.getElementById('config-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    document.getElementById('max-output').textContent = maxOutput.toFixed(1);
+    document.getElementById('min-output').textContent = minOutput.toFixed(1);
+    document.getElementById('avg-output').textContent = avgOutput.toFixed(1);
+    document.getElementById('max-price').textContent = maxPrice.toFixed(2);
+    document.getElementById('min-price').textContent = minPrice.toFixed(2);
+    document.getElementById('avg-price-val').textContent = avgPrice.toFixed(2);
 }
 
 // ─── 单元格手动编辑后更新汇总 ───
@@ -202,10 +197,29 @@ document.addEventListener('input', function(e) {
     }
 });
 
-// ─── 策略选择 ───
+// ─── 策略选择联动 ───
+const historyStrategies = {
+    '20251024': { calcMethod: 'day-ahead', station: '电场A（默认）', strategy: 'neutral' },
+    '20251023': { calcMethod: 'real-time', station: '电场B', strategy: 'conservative' },
+    '20251022': { calcMethod: 'day-ahead', station: '电场A（默认）', strategy: 'aggressive' },
+    '20251021': { calcMethod: 'real-time', station: '电场C', strategy: 'neutral' },
+    '20251020': { calcMethod: 'day-ahead', station: '电场A（默认）', strategy: 'neutral' },
+    '20251019': { calcMethod: 'real-time', station: '电场B', strategy: 'conservative' },
+    '20251018': { calcMethod: 'day-ahead', station: '电场C', strategy: 'aggressive' },
+    '20251017': { calcMethod: 'real-time', station: '电场A（默认）', strategy: 'neutral' },
+    '20251016': { calcMethod: 'day-ahead', station: '电场B', strategy: 'neutral' },
+    '20251015': { calcMethod: 'real-time', station: '电场A（默认）', strategy: 'conservative' }
+};
+
 document.getElementById('strategy-select').addEventListener('change', function() {
-    // 实际项目这里应加载对应历史方案的 chart/table 数据
-    console.log('已载入方案:', this.value);
+    const selected = this.value;
+    if (selected && historyStrategies[selected]) {
+        const config = historyStrategies[selected];
+        document.getElementById('calc-method').value = config.calcMethod;
+        document.getElementById('station-select').value = config.station;
+        document.getElementById('quote-strategy').value = config.strategy;
+        console.log('已载入方案:', selected, '配置已自动回填');
+    }
 });
 
 // ─── 响应式 ───

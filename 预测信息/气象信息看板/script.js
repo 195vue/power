@@ -303,12 +303,12 @@ function startInit() {
         });
     }
 
-    // 气象要素趋势
+    // 全省气象要素预测 - 精简为实时风速、风速预测
     var weatherTrend = echarts.init(document.getElementById('weather-trend-chart'));
     var provinceWeatherOption = {
         tooltip: { trigger: 'axis' },
         legend: {
-            data: ['实时风速', '风速预测', '实时辐照', '辐照预测'],
+            data: ['实时风速', '风速预测'],
             top: 0,
             itemWidth: 14,
             itemHeight: 14,
@@ -321,24 +321,13 @@ function startInit() {
             data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
             axisLabel: { color: '#999', fontSize: 11 }
         },
-        yAxis: [
-            {
-                type: 'value',
-                name: '风速(m/s)',
-                min: 0,
-                max: 8,
-                position: 'left',
-                axisLabel: { color: '#999', fontSize: 11 }
-            },
-            {
-                type: 'value',
-                name: '辐照(W/m²)',
-                min: 0,
-                max: 1000,
-                position: 'right',
-                axisLabel: { color: '#999', fontSize: 11 }
-            }
-        ],
+        yAxis: {
+            type: 'value',
+            name: '风速(m/s)',
+            min: 0,
+            max: 8,
+            axisLabel: { color: '#999', fontSize: 11 }
+        },
         series: [
             {
                 name: '实时风速',
@@ -359,39 +348,20 @@ function startInit() {
                 symbol: 'circle',
                 symbolSize: 6,
                 lineStyle: { width: 2, type: 'dashed' }
-            },
-            {
-                name: '实时辐照',
-                type: 'line',
-                yAxisIndex: 1,
-                smooth: true,
-                data: PROVINCE_WEATHER_IRR_RT.slice(),
-                itemStyle: { color: '#dc2626' },
-                symbol: 'circle',
-                symbolSize: 6,
-                lineStyle: { width: 2 }
-            },
-            {
-                name: '辐照预测',
-                type: 'line',
-                yAxisIndex: 1,
-                smooth: true,
-                data: PROVINCE_WEATHER_IRR_FC.slice(),
-                itemStyle: { color: '#eab308' },
-                symbol: 'circle',
-                symbolSize: 6,
-                lineStyle: { width: 2, type: 'dashed' }
             }
         ]
     };
     weatherTrend.setOption(provinceWeatherOption);
 
-    // 新能源出力预测
+    // 新能源出力预测 - 精简为实时功率、预测功率
     var powerForecast = echarts.init(document.getElementById('power-forecast-chart'));
+    var totalPowerRT = PROVINCE_POWER_WIND_RT.map(function(v, i) { return v + PROVINCE_POWER_SOLAR_RT[i]; });
+    var totalPowerFC = PROVINCE_POWER_WIND_FC.map(function(v, i) { return v + PROVINCE_POWER_SOLAR_FC[i]; });
+    
     var provincePowerOption = {
         tooltip: { trigger: 'axis' },
         legend: {
-            data: ['风电预测', '风电实时', '光伏预测', '光伏实时'],
+            data: ['实时功率', '预测功率'],
             top: 0,
             itemWidth: 14,
             itemHeight: 14,
@@ -413,54 +383,30 @@ function startInit() {
         },
         series: [
             {
-                name: '风电预测',
+                name: '实时功率',
                 type: 'line',
                 smooth: true,
-                data: PROVINCE_POWER_WIND_FC.slice(),
+                data: totalPowerRT,
                 itemStyle: { color: '#2f6feb' },
                 symbol: 'circle',
                 symbolSize: 6,
                 lineStyle: { width: 2 }
             },
             {
-                name: '风电实时',
+                name: '预测功率',
                 type: 'line',
                 smooth: true,
-                data: PROVINCE_POWER_WIND_RT.slice(),
+                data: totalPowerFC,
                 itemStyle: { color: '#17a34a' },
                 symbol: 'circle',
                 symbolSize: 6,
-                lineStyle: { width: 2 }
-            },
-            {
-                name: '光伏预测',
-                type: 'line',
-                smooth: true,
-                data: PROVINCE_POWER_SOLAR_FC.slice(),
-                itemStyle: { color: '#faad14' },
-                symbol: 'circle',
-                symbolSize: 6,
-                lineStyle: { width: 2 }
-            },
-            {
-                name: '光伏实时',
-                type: 'line',
-                smooth: true,
-                data: PROVINCE_POWER_SOLAR_RT.slice(),
-                itemStyle: { color: '#dc2626' },
-                symbol: 'circle',
-                symbolSize: 6,
-                lineStyle: { width: 2 }
+                lineStyle: { width: 2, type: 'dashed' }
             }
         ]
     };
     powerForecast.setOption(provincePowerOption);
 
-    // 初始渲染右侧面板
-        renderStationOverview('湖南省', null, null);
-        renderMonthlyForecast('湖南省');
-
-        // ── 气象数据源选择器事件 ────────────────────────────────────────
+    // ── 气象数据源选择器事件 ────────────────────────────────────────
         document.getElementById('data-source-select').addEventListener('change', function() {
             document.getElementById('current-source').textContent = this.options[this.selectedIndex].text;
         });
@@ -649,16 +595,7 @@ function startInit() {
         });
     }
 
-    // 地图省份切换事件
-    document.getElementById('map-province-select').addEventListener('change', function() {
-        var province = this.value;
-        if (drillLevel === 'city' || selectedSite) {
-            backToProvince();
-        }
-        renderStationOverview(province, null, null);
-        renderMonthlyForecast(province);
-        switchMapProvince(province);
-    });
+    
 
     function generateCityData(cityName) {
         if (currentProvince !== '湖南省') {
@@ -949,33 +886,6 @@ function startInit() {
         try { powerForecast.resize(); } catch(e) {}
     });
 
-    // 场站选择联动逻辑 - 统一由场站筛选栏控制
-    var siteMap = {
-        'site1': {name: '长沙风电场', city: '长沙市', coords: [112.82, 28.38], type: '风电', capacity: 48},
-        'site2': {name: '株洲光伏站', city: '株洲市', coords: [113.50, 26.55], type: '光伏', capacity: 28},
-        'site3': {name: '湘潭风电场', city: '湘潭市', coords: [112.30, 27.73], type: '风电', capacity: 33},
-        'site4': {name: '衡阳光伏站', city: '衡阳市', coords: [112.40, 26.95], type: '光伏', capacity: 32}
-    };
-
-    function handleSiteSelect(siteId) {
-        if (!siteId) {
-            // 选择"全部场站"时清除选中
-            clearStationSelection();
-            return;
-        }
-
-        if (siteMap[siteId]) {
-            selectSite(siteMap[siteId]);
-        }
-    }
-
-    // 场站筛选栏 - 统一控制日月季度年度电量、新能源出力预测、全省气象要素
-    var siteSelectMain = document.getElementById('site-select-main');
-    if (siteSelectMain) {
-        siteSelectMain.addEventListener('change', function() {
-            handleSiteSelect(this.value);
-        });
-    }
-});
+    });
 
 

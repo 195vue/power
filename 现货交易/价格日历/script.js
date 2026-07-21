@@ -249,21 +249,18 @@ function initPriceCalendar() {
                     var bgColor = '#ffffff';
                     
                     if (dayData.prices) {
-                        priceHtml = '<div class="price-info"><div>日前价格: ' + dayData.prices.dayAhead.toFixed(1) + '</div><div>实时价格: ' + dayData.prices.realTime.toFixed(1) + '</div></div>';
+                        priceHtml = '<div class="price-info"><div>日前价格: ' + dayData.prices.dayAhead.toFixed(1) + ' 元/MWh</div></div>';
                         
-                        // 设置悬浮提示
                         tooltipContent = '日前均价: ' + dayData.prices.dayAhead.toFixed(1) + ' 元/MWh\n' +
-                                        '实时均价: ' + dayData.prices.realTime.toFixed(1) + ' 元/MWh\n' +
                                         '日内最高价: ' + dayData.prices.high.toFixed(1) + ' 元/MWh\n' +
                                         '日内最低价: ' + dayData.prices.low.toFixed(1) + ' 元/MWh\n' +
                                         '峰谷价差: ' + dayData.prices.peakValleySpread.toFixed(1) + ' 元/MWh';
                         
-                        // 热力着色
                         if (enableHeatMap) {
                             bgColor = getHeatColor(dayData.prices.dayAhead, quantiles);
                         }
                     } else {
-                        priceHtml = '<div class="price-info"><div>日前价格: --</div><div>实时价格: --</div></div>';
+                        priceHtml = '<div class="price-info"><div>日前价格: --</div></div>';
                     }
 
                     cell.className = 'current-month';

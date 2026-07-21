@@ -61,10 +61,10 @@
         "company": "新能源公司",
         "stationType": "风电场",
         "capacity": 50.00,
-        "minOutput": 0.00,
-        "rampUp": 2.00,
-        "rampDown": 2.00,
-        "startStop": 0,
+        "min_tech_output_mw": 0.00,
+        "ramp_up_rate": 2.00,
+        "ramp_down_rate": 2.00,
+        "start_stop_limit": 0,
         "turbineCount": 16,
         "turbineModel": "SE16433/SE15530",
         "ratedPower": "3300/3000",
@@ -75,8 +75,8 @@
         "cutOutSpeed": 20.0,
         "longitude": 112.7765,
         "latitude": 25.6030,
-        "accessScheme": "35kv场内集电+110kv升压送出",
-        "commissionDate": "2022-07-30",
+        "access_scheme": "35kv场内集电+110kv升压送出",
+        "commission_date": "2022-07-30",
         "status": "正常",
         "createdAt": "2025-01-01 00:00:00",
         "updatedAt": "2025-01-01 00:00:00"
@@ -139,10 +139,10 @@
 | company | string | 是 | 所属公司，对应数据字典company-type |
 | stationType | string | 是 | 场站类型，对应数据字典station-type |
 | capacity | decimal(10,2) | 是 | 装机容量(MW)，范围0-9999 |
-| minOutput | decimal(10,2) | 是 | 最小技术出力(MW)，范围0-9999 |
-| rampUp | decimal(8,2) | 是 | 爬坡率上限(MW/min)，范围0-999 |
-| rampDown | decimal(8,2) | 是 | 爬坡率下限(MW/min)，范围0-999 |
-| startStop | int | 是 | 启停约束(次/日)，范围0-99，0表示无限制 |
+| min_tech_output_mw | decimal(10,2) | 是 | 最小技术出力(MW)，范围0-9999 |
+| ramp_up_rate | decimal(8,2) | 是 | 爬坡率上限(MW/min)，范围0-999 |
+| ramp_down_rate | decimal(8,2) | 是 | 爬坡率下限(MW/min)，范围0-999 |
+| start_stop_limit | int | 是 | 启停约束(次/日)，范围0-99，0表示无限制 |
 | turbineCount | int | 否 | 风机台数，非风电场填null |
 | turbineModel | string | 否 | 风机型号，VARCHAR(50) |
 | ratedPower | string | 否 | 额定功率(kW)，VARCHAR(50) |
@@ -153,8 +153,8 @@
 | cutOutSpeed | decimal(4,1) | 否 | 切出风速(m/s)，范围0-50 |
 | longitude | decimal(10,6) | 否 | 经度，范围-180~180 |
 | latitude | decimal(10,6) | 否 | 纬度，范围-90~90 |
-| accessScheme | string | 否 | 接入方案，VARCHAR(100) |
-| commissionDate | date | 否 | 投产日期，格式YYYY-MM-DD |
+| access_scheme | string | 否 | 接入方案，VARCHAR(100) |
+| commission_date | date | 否 | 投产日期，格式YYYY-MM-DD |
 | status | string | 是 | 状态，枚举值：正常/停运 |
 
 ### 1.4 更新场站
@@ -249,15 +249,15 @@ Content-Type: `multipart/form-data`
     "list": [
       {
         "id": 1,
-        "name": "桂阳月和2025年度双边协商合约",
-        "type": "年度双边协商合约",
-        "period": "2025年1-12月",
-        "share": 40.00,
+        "contract_name": "桂阳月和2025年度双边协商合约",
+        "contract_type": "年度双边协商合约",
+        "trading_period": "2025年1-12月",
+        "volume_ratio": 40.00,
         "price": 450.00,
         "year": 2025,
-        "company": "新能源公司",
-        "station": "桂阳月和风电场",
-        "notes": "年度固定电价合约",
+        "company_name": "新能源公司",
+        "station_name": "桂阳月和风电场",
+        "remark": "年度固定电价合约",
         "createdAt": "2025-01-01 00:00:00",
         "updatedAt": "2025-01-01 00:00:00"
       }
@@ -281,29 +281,29 @@ Content-Type: `multipart/form-data`
 
 ```json
 {
-  "name": "桂阳月和2025年度双边协商合约",
-  "type": "年度双边协商合约",
-  "period": "2025年1-12月",
-  "share": 40.00,
+  "contract_name": "桂阳月和2025年度双边协商合约",
+  "contract_type": "年度双边协商合约",
+  "trading_period": "2025年1-12月",
+  "volume_ratio": 40.00,
   "price": 450.00,
   "year": 2025,
-  "company": "新能源公司",
-  "station": "桂阳月和风电场",
-  "notes": "年度固定电价合约"
+  "company_name": "新能源公司",
+  "station_name": "桂阳月和风电场",
+  "remark": "年度固定电价合约"
 }
 ```
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| name | string | 是 | 合约名称，VARCHAR(100) |
-| type | string | 是 | 交易品类，对应数据字典contract-type |
-| period | string | 是 | 交易时段，VARCHAR(50)，格式如"2025年1-12月" |
-| share | decimal(5,2) | 是 | 电量占比(%)，范围0-100 |
+| contract_name | string | 是 | 合约名称，VARCHAR(100) |
+| contract_type | string | 是 | 交易品类，对应数据字典contract-type |
+| trading_period | string | 是 | 交易时段，VARCHAR(50)，格式如"2025年1-12月" |
+| volume_ratio | decimal(5,2) | 是 | 电量占比(%)，范围0-100 |
 | price | decimal(10,2) | 否 | 电价(元/MWh)，固定电价填数值，按均价执行填0 |
 | year | int | 是 | 年度，范围2024-2030 |
-| company | string | 否 | 所属公司，VARCHAR(100) |
-| station | string | 否 | 关联场站，VARCHAR(255)，多个用逗号分隔 |
-| notes | text | 否 | 备注说明 |
+| company_name | string | 否 | 所属公司，VARCHAR(100) |
+| station_name | string | 否 | 关联场站，VARCHAR(255)，多个用逗号分隔 |
+| remark | text | 否 | 备注说明 |
 
 ### 2.4 更新合约
 

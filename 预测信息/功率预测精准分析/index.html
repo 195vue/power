@@ -13,43 +13,20 @@
     <main class="main-content">
         <!-- 页面标题 -->
         <div class="page-header">
-            <h2 class="page-title">功率预测精度分析</h2>
+            <h2 class="page-title">功率预测</h2>
             <p class="page-subtitle">功率预测精度统计与分析</p>
         </div>
 
         <!-- 筛选栏 -->
         <div class="filter-bar">
             <div class="filter-item">
-                <label>场站</label>
-                <select class="filter-select" id="station-select">
-                    <option value="changsha-wangcheng" selected>长沙望城风电场</option>
-                    <option value="changsha-ningxiang">长沙宁乡光伏站</option>
-                    <option value="changsha-liuyang">长沙浏阳风光互补</option>
-                    <option value="yueyang-junshan">岳阳君山风电场</option>
-                    <option value="yueyang-dongting">岳阳洞庭湖光伏</option>
-                    <option value="changsha-xingsha">长沙星沙分布式光伏</option>
-                    <option value="changde-taoyuan">常德桃源风电场</option>
-                    <option value="changde-dingcheng">常德鼎城光伏站</option>
-                    <option value="hengyang-yanfeng">衡阳雁峰风电场</option>
-                    <option value="hengyang-leiyang">衡阳耒阳光伏站</option>
-                    <option value="zhuzhou-yanling">株洲炎陵风电场</option>
-                    <option value="zhuzhou-liling">株洲醴陵光伏站</option>
-                    <option value="xiangtan-shaoshan">湘潭韶山光伏站</option>
-                    <option value="xiangtan-xiangxiang">湘潭湘乡风电场</option>
-                    <option value="shaoyang-longhui">邵阳隆回风电场</option>
-                    <option value="shaoyang-wugang">邵阳武冈光伏站</option>
-                    <option value="yiyang-yuanjiang">益阳沅江风电场</option>
-                    <option value="yiyang-taojiang">益阳桃江光伏站</option>
-                    <option value="yongzhou-lengshuitan">永州冷水滩风电场</option>
-                    <option value="yongzhou-jianghua">永州江华光伏站</option>
-                    <option value="huaihua-zhijiang">怀化芷江风电场</option>
-                    <option value="huaihua-mayang">怀化麻阳光伏站</option>
-                    <option value="loudi-xinhua">娄底新化风电场</option>
-                    <option value="loudi-lianyuan">娄底涟源光伏站</option>
-                    <option value="xiangxi-fenghuang">湘西凤凰风电场</option>
-                    <option value="zhangjiajie-cili">张家界慈利风电场</option>
-                    <option value="chenzhou-beihu">郴州北湖风电场</option>
-                    <option value="chenzhou-zixing">郴州资兴光伏站</option>
+                <label>气象数据源</label>
+                <select class="filter-select" id="data-source-select">
+                    <option value="all">全部</option>
+                    <option value="ecmwf">ECMWF</option>
+                    <option value="gfs">GFS</option>
+                    <option value="nam">NAM</option>
+                    <option value="local">本地观测</option>
                 </select>
             </div>
             <div class="filter-item">
@@ -61,57 +38,22 @@
                 <input type="date" class="filter-input" value="2026-05-26">
             </div>
             <div class="filter-item">
-                <label>气象数据源</label>
-                <select class="filter-select">
-                    <option value="all">全部</option>
-                    <option value="ecmwf">ECMWF</option>
-                    <option value="gfs">GFS</option>
-                    <option value="nam">NAM</option>
-                    <option value="local">本地观测</option>
-                </select>
-            </div>
-            <div class="filter-item">
                 <label>预测精度</label>
-                <select class="filter-select" multiple size="1">
-                    <option value="15min">15min</option>
+                <select class="filter-select" id="precision-select">
+                    <option value="15min" selected>15min</option>
                     <option value="1h">1h</option>
                     <option value="1d">1d</option>
                     <option value="3d">3d</option>
                     <option value="7d">7d</option>
                 </select>
             </div>
-            <!-- <div class="filter-item">
-                <label>评价指标</label>
-                <select class="filter-select">
-                    <option value="rmse">均方根误差</option>
-                    <option value="mae">平均绝对误差</option>
-                    <option value="r2">决定系数</option>
-                </select>
-            </div> -->
             <button class="btn-primary" id="query-btn">查询</button>
-            <button class="btn-secondary" id="export-btn" style="display: none;">导出报表</button>
+            <button class="btn-secondary" id="export-btn">导出报表</button>
             <span class="query-status" id="query-status"></span>
         </div>
 
-        <!-- 预测对比图表 - 双栏布局 -->
-        <div class="chart-grid-2">
-            <div class="chart-card">
-                <h3 class="chart-title">1小时间隔预测对比</h3>
-                <div id="power-comparison-chart" class="chart-container"></div>
-            </div>
-            <div class="chart-card">
-                <h3 class="chart-title">15分钟间隔预测对比</h3>
-                <div class="chart-toolbar">
-                    <span class="chart-badge">96点/日</span>
-                    <span class="chart-badge chart-badge-info">数据缩放可拖拽</span>
-                </div>
-                <div id="power-15min-chart" class="chart-container"></div>
-            </div>
-        </div>
-
-        <!-- 功率预测误差分析 -->
-        <div class="chart-card">
-            <h3 class="chart-title">功率预测误差分析</h3>
+        <!-- 误差分析卡片 - 迁移至操作栏下方 -->
+        <div class="error-metrics-section">
             <div class="error-metrics">
                 <div class="error-metric">
                     <span class="metric-label">平均绝对误差 (MAE)</span>
@@ -125,51 +67,39 @@
                     <span class="metric-label">均方根百分比误差 (MAPE)</span>
                     <span class="metric-value" style="color: var(--success)">5.82 <small>%</small></span>
                 </div>
-                <!-- <div class="error-metric">
-                    <span class="metric-label">预测合格率</span>
-                    <span class="metric-value" style="color: var(--warn)">93.7 <small>%</small></span>
-                </div> -->
+            </div>
+        </div>
+
+        <!-- 预测对比图表 - 合并为双Y轴图表 -->
+        <div class="chart-card">
+            <h3 class="chart-title">预测对比曲线</h3>
+            <div id="power-comparison-chart" class="chart-container-large"></div>
+        </div>
+
+        <!-- 误差分布图 -->
+        <div class="chart-card">
+            <h3 class="chart-title">功率预测误差分析</h3>
+            <div class="chart-toolbar">
+                <span class="chart-badge">误差分布</span>
+                <select class="filter-select error-filter-select" id="error-filter-select">
+                    <option value="mae">平均绝对误差</option>
+                    <option value="rmse">均方根误差</option>
+                </select>
             </div>
             <div id="error-distribution-chart" class="chart-container-large"></div>
         </div>
 
-        <!-- 近7天功率预测准确率图表 -->
-        <div class="chart-card">
-            <h3 class="chart-title">近7天功率预测准确率 <span class="chart-subtitle">（统计周期：从今天往前推7天）</span></h3>
-            <div id="accuracy-7days-chart" class="chart-container-large"></div>
-        </div>
-
-        <!-- 近30天功率预测准确率图表 -->
-        <div class="chart-card">
-            <h3 class="chart-title">近30天功率预测准确率趋势 <span class="chart-subtitle">（统计周期：从今天往前推30天）</span></h3>
-            <div id="accuracy-30days-chart" class="chart-container-large"></div>
-        </div>
-
-        <!-- 功率预测数据表格 -->
-        <div class="table-card">
-            <div class="table-header">
-                <h3 class="chart-title">功率预测数据</h3>
-            </div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>时间</th>
-                        <th>实际功率 (MW)</th>
-                        <th>预测功率 (MW)</th>
-                        <th>偏差 (MW)</th>
-                        <th>偏差率 (%)</th>
-                    </tr>
-                </thead>
-                <tbody id="power-data-table-body"></tbody>
-            </table>
-            <div class="pagination">
-                <span class="pagination-info">显示 1-10 条，共 24 条</span>
-                <div class="pagination-buttons">
-                    <button class="page-btn">上一页</button>
-                    <button class="page-btn active">1</button>
-                    <button class="page-btn">2</button>
-                    <button class="page-btn">3</button>
-                    <button class="page-btn">下一页</button>
+        <!-- 底部图表容器 - 独立白色底色，不与操作栏联动 -->
+        <div class="bottom-charts-container">
+            <h3 class="section-title">功率预测准确率统计</h3>
+            <div class="bottom-charts-row">
+                <div class="chart-card">
+                    <h3 class="chart-title">近7天功率预测准确率</h3>
+                    <div id="accuracy-7days-chart" class="chart-container"></div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">近30天功率预测准确率趋势</h3>
+                    <div id="accuracy-30days-chart" class="chart-container"></div>
                 </div>
             </div>
         </div>
