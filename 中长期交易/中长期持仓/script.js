@@ -26,7 +26,7 @@ contractVolumeChart.setOption({
     },
     yAxis: {
         type: 'value',
-        name: 'MWh',
+        name: '电量 (MWh)',
         max: 8000
     },
     series: [
@@ -157,7 +157,7 @@ contractGrowthChart.setOption({
     },
     yAxis: {
         type: 'value',
-        name: '%',
+        name: '增长率 (%)',
         max: 60
     },
     series: [

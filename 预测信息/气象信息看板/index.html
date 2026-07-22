@@ -15,15 +15,12 @@
     <script src="guizhou.js"></script>
 </head>
 <body>
-    <!-- 主内容区域 - 由主入口提供Header和Sidebar -->
     <main class="main-content">
-        <!-- 页面标题 -->
         <div class="page-header">
             <h2 class="page-title">气象信息看板</h2>
             <p class="page-subtitle">湖南省气象要素与新能源出力预测</p>
         </div>
 
-        <!-- 筛选栏 -->
         <div class="filter-bar">
             <div class="filter-item">
                 <label>气象数据源</label>
@@ -53,30 +50,34 @@
             </div>
             <button class="btn-primary" id="query-data-btn">查询数据</button>
             <button class="btn-secondary" id="export-report-btn" style="display: none;">导出报表</button>
-            <button class="btn-secondary" id="refresh-btn">刷新</button>
             <div class="status-indicator">
                 <span class="data-source">数据来源：<span id="current-source">ECMWF</span></span>
                 <span class="update-time">数据最后更新于：<span id="last-update-time">2026-05-26 14:30:00</span></span>
             </div>
         </div>
 
-        <!-- 地图和电量卡片 -->
         <div class="map-calendar-row">
             <div class="map-section">
                 <div class="section-header">
-                    <h3>湖南省风速热力地图</h3>
-                    <div class="drill-indicator" id="drill-indicator">
-                        <span class="drill-path" id="drill-path-label">湖南省</span>
-                        <span class="drill-sep">›</span>
-                        <span class="drill-current" id="drill-current">长沙市</span>
-                        <button class="drill-back" id="drill-back-btn">返回全省</button>
+                    <h3><span id="map-province-title">湖南省</span>风速热力地图</h3>
+                    <div id="drill-indicator" style="display: none;">
+                        <span id="drill-path-label">湖南省</span>
+                        <span>→</span>
+                        <span id="drill-current"></span>
+                        <button class="btn-sm btn-default" id="drill-back-btn">返回</button>
                     </div>
                     <span class="hint">点击地市可查看下属场站分布</span>
                 </div>
                 <div id="map-chart" class="map-container"></div>
+                <div id="selected-site-bar" style="display: none; margin-top: 12px; padding: 8px 12px; background: var(--accent-subtle); border-radius: 4px; border: 1px solid var(--accent);">
+                    <span id="selected-site-name" style="font-weight: 600; color: var(--accent);"></span>
+                    <span id="selected-site-meta" style="font-size: 12px; color: var(--muted); margin-left: 8px;"></span>
+                    <button class="btn-sm btn-default" id="clear-site-btn" style="margin-left: auto;">清除</button>
+                </div>
             </div>
+
             <div class="stats-section">
-                <div class="stats-cards-row" id="stats-cards-section">
+                <div class="stats-cards-row">
                     <div class="stat-card">
                         <span class="stat-icon">📅</span>
                         <div class="stat-header">
@@ -158,11 +159,29 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="forecast-section">
+                    <h3 class="forecast-title">未来短期<span id="forecast-region">湖南省</span>气象预测</h3>
+                    <div class="forecast-table-wrap">
+                        <table class="forecast-table">
+                            <thead>
+                                <tr>
+                                    <th>月份</th>
+                                    <th>平均风速(m/s)</th>
+                                    <th>平均辐照(W/m²)</th>
+                                    <th>平均温度(°C)</th>
+                                    <th>平均湿度(%)</th>
+                                    <th>预测电量(MWh)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forecast-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 图表区域 -->
-        <div class="charts-row-2" id="charts-section">
+        <div class="charts-row-2">
             <div class="chart-card">
                 <h3 class="chart-title">全省气象要素预测</h3>
                 <div id="weather-trend-chart" class="chart-container"></div>

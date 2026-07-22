@@ -382,6 +382,7 @@ function initRender() {
     if (document.getElementById('load-forecast-chart')) {
         render();
         updateDateInputStyle(document.getElementById('history-date'));
+        renderHistoryChart();
     } else {
         setTimeout(initRender, 50);
     }

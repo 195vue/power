@@ -285,7 +285,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var cfg = PROVINCE_MAP_CFG[province];
         if (!cfg) { callback(); return; }
         if (loadedGeo[province]) { callback(); return; }
-        // 从预加载的全局变量中读取GeoJSON（避免 file:// CORS 限制）
         var geo = window['geo_' + cfg.mapName];
         if (!geo) {
             console.warn(province + ' GeoJSON 预加载数据未找到');
@@ -297,7 +296,8 @@ document.addEventListener('DOMContentLoaded', function() {
         loadedGeo[province] = { cities: cities, geoJson: geo };
         callback();
     }
-function startInit() {
+
+    function startInit() {
         loadProvinceGeo('湖南省', function() {
             initMap('湖南省');
         });
@@ -425,18 +425,6 @@ function startInit() {
                     btn.disabled = false;
                 }, 2000);
             }, 1500);
-        });
-
-        // ── 刷新按钮事件 ────────────────────────────────────────────────
-        document.getElementById('refresh-btn').addEventListener('click', function() {
-            var now = new Date();
-            var timeStr = now.getFullYear() + '-' + 
-                         String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                         String(now.getDate()).padStart(2, '0') + ' ' + 
-                         String(now.getHours()).padStart(2, '0') + ':' + 
-                         String(now.getMinutes()).padStart(2, '0') + ':' + 
-                         String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('last-update-time').textContent = timeStr;
         });
 
         
@@ -719,9 +707,7 @@ function startInit() {
         weatherTrend.setOption({
             series: [
                 { name: '实时风速', data: cityData.windSpeed, itemStyle: { color: '#2f6feb' } },
-                { name: '风速预测', data: cityData.windFc, itemStyle: { color: '#faad14' } },
-                { name: '实时辐照', data: cityData.irradiance, itemStyle: { color: '#dc2626' } },
-                { name: '辐照预测', data: cityData.irradianceFc, itemStyle: { color: '#eab308' } }
+                { name: '风速预测', data: cityData.windFc, itemStyle: { color: '#faad14' } }
             ]
         });
 
@@ -788,9 +774,7 @@ function startInit() {
         weatherTrend.setOption({
             series: [
                 { name: '实时风速', data: data.windSpeed, itemStyle: { color: '#2f6feb' } },
-                { name: '风速预测', data: data.windFc, itemStyle: { color: '#faad14' } },
-                { name: '实时辐照', data: data.irradiance, itemStyle: { color: '#dc2626' } },
-                { name: '辐照预测', data: data.irradianceFc, itemStyle: { color: '#eab308' } }
+                { name: '风速预测', data: data.windFc, itemStyle: { color: '#faad14' } }
             ]
         });
 
@@ -853,24 +837,20 @@ function startInit() {
         weatherTrend.setOption({
             series: [
                 { name: '实时风速', data: PROVINCE_WEATHER_WIND_RT, itemStyle: { color: '#2f6feb' } },
-                { name: '风速预测', data: PROVINCE_WEATHER_WIND_FC, itemStyle: { color: '#faad14' } },
-                { name: '实时辐照', data: PROVINCE_WEATHER_IRR_RT, itemStyle: { color: '#dc2626' } },
-                { name: '辐照预测', data: PROVINCE_WEATHER_IRR_FC, itemStyle: { color: '#eab308' } }
+                { name: '风速预测', data: PROVINCE_WEATHER_WIND_FC, itemStyle: { color: '#faad14' } }
             ]
         });
 
         // 恢复出力预测图（完整配置 + notMerge，确保系列被完全替换）
         powerForecast.setOption({
             tooltip: { trigger: 'axis' },
-            legend: { data: ['风电预测', '风电实时', '光伏预测', '光伏实时'], top: 0, itemWidth: 14, itemHeight: 14, textStyle: { fontSize: 11 } },
+            legend: { data: ['实时功率', '预测功率'], top: 0, itemWidth: 14, itemHeight: 14, textStyle: { fontSize: 11 } },
             grid: { left: 30, right: 15, bottom: 40, top: 40 },
             xAxis: { type: 'category', boundaryGap: false, data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'], axisLabel: { color: '#999', fontSize: 11 } },
             yAxis: { type: 'value', name: '功率(MW)', min: 0, max: 2100, axisLabel: { color: '#999', fontSize: 11 } },
             series: [
-                { name: '风电预测', type: 'line', smooth: true, data: PROVINCE_POWER_WIND_FC, itemStyle: { color: '#2f6feb' }, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2 } },
-                { name: '风电实时', type: 'line', smooth: true, data: PROVINCE_POWER_WIND_RT, itemStyle: { color: '#17a34a' }, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2 } },
-                { name: '光伏预测', type: 'line', smooth: true, data: PROVINCE_POWER_SOLAR_FC, itemStyle: { color: '#faad14' }, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2 } },
-                { name: '光伏实时', type: 'line', smooth: true, data: PROVINCE_POWER_SOLAR_RT, itemStyle: { color: '#dc2626' }, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2 } }
+                { name: '实时功率', type: 'line', smooth: true, data: totalPowerRT, itemStyle: { color: '#2f6feb' }, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2 } },
+                { name: '预测功率', type: 'line', smooth: true, data: totalPowerFC, itemStyle: { color: '#17a34a' }, symbol: 'circle', symbolSize: 6, lineStyle: { width: 2, type: 'dashed' } }
             ]
         }, true);
         updateRightPanel();
@@ -878,6 +858,7 @@ function startInit() {
 
     startInit();
     updateForecastTitle(currentProvince);
+    updateRightPanel();
 
     // 响应式调整
     window.addEventListener('resize', function() {

@@ -130,6 +130,68 @@
     padding-left: 10px;
 }
 
+/* 历史负荷预测模块 */
+.history-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.history-section .section-header {
+    margin-bottom: 16px;
+}
+
+.history-section .section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--fg);
+}
+
+.history-filter-bar {
+    background: var(--surface);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: 1px solid var(--border);
+    box-shadow: var(--elev-ring);
+}
+
+.history-filter-bar .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-filter-bar .filter-item label {
+    font-size: var(--text-sm);
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.history-filter-bar .filter-input {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    outline: none;
+    transition: border-color var(--motion-fast) var(--ease-standard);
+}
+
+.history-filter-bar .filter-input:focus {
+    border-color: var(--accent);
+    box-shadow: var(--focus-ring);
+}
+
+.history-section .chart-card {
+    margin-bottom: 16px;
+}
+
 /* 数据表格 */
 .table-card {
     background: var(--surface);
